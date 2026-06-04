@@ -1,7 +1,16 @@
 import { Play } from "lucide-react";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { formatNumber, getCreator, works } from "@/lib/data";
+
+export const metadata: Metadata = {
+  title: "Leaderboard",
+  description: "Explore the most-liked AI-made games, tools, interactive pages, and experiments on oeeco.",
+  alternates: {
+    canonical: "/rank",
+  },
+};
 
 export default function RankPage() {
   const topWorks = [...works].sort((a, b) => b.likes - a.likes).slice(0, 8);
@@ -21,7 +30,7 @@ export default function RankPage() {
             <div>
               <strong>{work.title}</strong>
               <span>
-                {creator.handle} · {formatNumber(work.likes)} likes · {work.type}
+                {creator.handle} / {formatNumber(work.likes)} likes / {work.type}
               </span>
             </div>
             <Link className="play-link" href={`/play/${work.id}`}>

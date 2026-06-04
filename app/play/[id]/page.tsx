@@ -1,4 +1,5 @@
 import { Info, Upload } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPlayPreviewHtml } from "@/lib/play-preview";
@@ -9,6 +10,33 @@ export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return works.map((work) => ({ id: work.id }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const work = await getPublicWork(id);
+
+  if (!work) {
+    return {
+      title: "Work not found",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  return {
+    title: `Try ${work.title}`,
+    description: work.summary,
+    alternates: {
+      canonical: `/works/${work.id}`,
+    },
+    robots: {
+      index: false,
+      follow: true,
+    },
+  };
 }
 
 export default async function PlayPage({ params }: { params: Promise<{ id: string }> }) {

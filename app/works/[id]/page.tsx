@@ -1,14 +1,62 @@
 import { Heart, Play, Share2 } from "lucide-react";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatNumber, getWorkCreator, works } from "@/lib/data";
+import { absoluteUrl, defaultOgImage, siteName } from "@/lib/site";
 import { getPublicWork } from "@/lib/work-service";
 
 export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return works.map((work) => ({ id: work.id }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const work = await getPublicWork(id);
+
+  if (!work) {
+    return {
+      title: "Work not found",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const creator = getWorkCreator(work);
+  const title = `${work.title} by ${creator.name}`;
+  const description = work.summary || work.detail;
+  const image = work.cover || defaultOgImage;
+  const url = `/works/${work.id}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName,
+      images: [image],
+      type: "article",
+      publishedTime: work.createdAt,
+      authors: [creator.name],
+      tags: work.tags,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
+  };
 }
 
 export default async function WorkDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -20,9 +68,41 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
   }
 
   const creator = getWorkCreator(work);
+  const workJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: work.title,
+    description: work.summary,
+    url: absoluteUrl(`/works/${work.id}`),
+    image: absoluteUrl(work.cover),
+    datePublished: work.createdAt,
+    creator: {
+      "@type": "Person",
+      name: creator.name,
+      url: absoluteUrl(`/creators/${creator.id}`),
+    },
+    genre: work.type,
+    keywords: work.tags.join(", "),
+    interactionStatistic: [
+      {
+        "@type": "InteractionCounter",
+        interactionType: "https://schema.org/ViewAction",
+        userInteractionCount: work.views,
+      },
+      {
+        "@type": "InteractionCounter",
+        interactionType: "https://schema.org/LikeAction",
+        userInteractionCount: work.likes,
+      },
+    ],
+  };
 
   return (
     <section className="detail-grid">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(workJsonLd).replace(/</g, "\\u003c") }}
+      />
       <article className="surface detail-hero">
         <Image src={work.cover} width={1200} height={675} alt={work.title} priority />
         <div className="detail-body">
@@ -33,7 +113,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
             <span>
               <strong>{creator.name}</strong>
               <span>
-                {creator.handle} · {creator.followers} followers
+                {creator.handle} / {creator.followers} followers
               </span>
             </span>
           </Link>

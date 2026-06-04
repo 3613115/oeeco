@@ -1,27 +1,69 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
+import {
+  absoluteUrl,
+  defaultOgImage,
+  googleSiteVerification,
+  siteDescription,
+  siteName,
+  siteTitle,
+  siteUrl,
+} from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "oeeco - Explore AI-Made Web Works",
-  description:
-    "oeeco is a global gallery for AI-made games, web tools, interactive pages, and creative experiments.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://oeeco.com"),
+  title: {
+    default: siteTitle,
+    template: `%s | ${siteName}`,
+  },
+  description: siteDescription,
+  metadataBase: new URL(siteUrl),
+  alternates: {
+    canonical: "/",
+  },
+  verification: googleSiteVerification
+    ? {
+        google: googleSiteVerification,
+      }
+    : undefined,
   openGraph: {
-    title: "oeeco",
-    description: "Discover, try, and share web works made by AI-assisted creators.",
+    title: siteTitle,
+    description: siteDescription,
     url: "/",
-    siteName: "oeeco",
-    images: ["/assets/cover-fishing.png"],
+    siteName,
+    images: [defaultOgImage],
     locale: "en_US",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+    images: [defaultOgImage],
   },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: siteName,
+    url: siteUrl,
+    description: siteDescription,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${absoluteUrl("/")}?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <html lang="en">
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+        />
         <SiteHeader />
         <main className="app-shell">{children}</main>
       </body>
