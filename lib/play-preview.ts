@@ -85,6 +85,12 @@ export function getPlayPreviewHtml(work: Work) {
         <button onclick="document.getElementById('timer').textContent='24:59'">开始</button>
         <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
       </div></div>`,
+    upload: `
+      ${sharedStyle}<div class="stage"><div class="panel">
+        <h1>${work.title}</h1><p>${work.summary}</p>
+        <p>这个作品已经发布到 oeeco。后续可以把作者的真实网页、游戏或工具嵌入到这里。</p>
+        <button onclick="document.body.style.background='#163d33'">点亮 oeeco 预览</button>
+      </div></div>`,
   };
 
   return frames[work.frame];

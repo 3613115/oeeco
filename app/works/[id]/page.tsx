@@ -1,8 +1,11 @@
-import { Heart, Share2, Play } from "lucide-react";
+import { Heart, Play, Share2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatNumber, getCreator, getWork, works } from "@/lib/data";
+import { formatNumber, getWorkCreator, works } from "@/lib/data";
+import { getPublicWork } from "@/lib/work-service";
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return works.map((work) => ({ id: work.id }));
@@ -10,13 +13,13 @@ export function generateStaticParams() {
 
 export default async function WorkDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const work = getWork(id);
+  const work = await getPublicWork(id);
 
   if (!work) {
     notFound();
   }
 
-  const creator = getCreator(work.creatorId);
+  const creator = getWorkCreator(work);
 
   return (
     <section className="detail-grid">
@@ -87,17 +90,21 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
         </div>
         <div>
           <span className="section-kicker">评论</span>
-          <div className="comment-list">
-            {work.comments.map(([name, avatar, text]) => (
-              <div className="comment" key={`${name}-${text}`}>
-                <Image src={avatar} width={36} height={36} alt="" />
-                <div>
-                  <strong>{name}</strong>
-                  <p>{text}</p>
+          {work.comments.length ? (
+            <div className="comment-list">
+              {work.comments.map(([name, avatar, text]) => (
+                <div className="comment" key={`${name}-${text}`}>
+                  <Image src={avatar} width={36} height={36} alt="" />
+                  <div>
+                    <strong>{name}</strong>
+                    <p>{text}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p>评论功能会在下一阶段接入。</p>
+          )}
         </div>
       </aside>
     </section>

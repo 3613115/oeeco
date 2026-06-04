@@ -4,11 +4,11 @@ import { Heart, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { formatNumber, getCreator, type Work } from "@/lib/data";
+import { formatNumber, getWorkCreator, type Work } from "@/lib/data";
 
 export function WorkCard({ work }: { work: Work }) {
   const [liked, setLiked] = useState(false);
-  const creator = getCreator(work.creatorId);
+  const creator = getWorkCreator(work);
 
   return (
     <article className="work-card">

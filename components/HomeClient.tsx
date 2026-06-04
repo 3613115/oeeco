@@ -5,18 +5,24 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { WorkCard } from "@/components/WorkCard";
-import { categories, getCreator, works, type CategoryId } from "@/lib/data";
+import { categories, getWorkCreator, type CategoryId, type Work } from "@/lib/data";
 
-export function HomeClient({ initialQuery = "" }: { initialQuery?: string }) {
+export function HomeClient({
+  initialQuery = "",
+  initialWorks,
+}: {
+  initialQuery?: string;
+  initialWorks: Work[];
+}) {
   const [category, setCategory] = useState<CategoryId>("all");
   const [sort, setSort] = useState<"featured" | "hot" | "new">("featured");
-  const featured = works[0];
-  const featuredCreator = getCreator(featured.creatorId);
+  const featured = initialWorks[0];
+  const featuredCreator = featured ? getWorkCreator(featured) : null;
   const query = initialQuery.trim().toLowerCase();
 
   const filteredWorks = useMemo(() => {
-    const next = works.filter((work) => {
-      const creator = getCreator(work.creatorId);
+    const next = initialWorks.filter((work) => {
+      const creator = getWorkCreator(work);
       const matchesCategory = category === "all" || work.category === category;
       const text = [work.title, work.type, work.summary, creator.name, creator.handle, ...work.tags]
         .join(" ")
@@ -33,7 +39,19 @@ export function HomeClient({ initialQuery = "" }: { initialQuery?: string }) {
     }
 
     return next;
-  }, [category, query, sort]);
+  }, [category, initialWorks, query, sort]);
+
+  if (!featured || !featuredCreator) {
+    return (
+      <section className="empty-state surface">
+        <h1 className="page-title">oeeco</h1>
+        <p>还没有公开作品，先上传一个吧。</p>
+        <Link className="solid-button" href="/upload">
+          上传作品
+        </Link>
+      </section>
+    );
+  }
 
   return (
     <section className="feed-layout">
@@ -84,8 +102,8 @@ export function HomeClient({ initialQuery = "" }: { initialQuery?: string }) {
                   <span>创作者</span>
                 </div>
                 <div className="metric-box">
-                  <strong>86</strong>
-                  <span>新作品</span>
+                  <strong>{initialWorks.length}</strong>
+                  <span>作品</span>
                 </div>
               </div>
             </div>

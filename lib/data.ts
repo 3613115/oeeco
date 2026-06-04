@@ -15,6 +15,7 @@ export type Work = {
   type: string;
   category: Exclude<CategoryId, "all">;
   creatorId: string;
+  creator?: Creator;
   cover: string;
   tags: string[];
   views: number;
@@ -24,8 +25,9 @@ export type Work = {
   createdAt: string;
   summary: string;
   detail: string;
+  demoUrl?: string | null;
   comments: Array<[string, string, string]>;
-  frame: "fishing" | "crm" | "story" | "garden" | "kitchen" | "clock";
+  frame: "fishing" | "crm" | "story" | "garden" | "kitchen" | "clock" | "upload";
 };
 
 export const categories: Array<[CategoryId, string]> = [
@@ -36,6 +38,14 @@ export const categories: Array<[CategoryId, string]> = [
   ["visual", "视觉艺术"],
   ["ai", "AI 实验"],
 ];
+
+export const categoryLabels: Record<Exclude<CategoryId, "all">, string> = {
+  game: "小游戏",
+  tool: "实用工具",
+  story: "互动网页",
+  visual: "视觉艺术",
+  ai: "AI 实验",
+};
 
 export const creators: Record<string, Creator> = {
   mika: {
@@ -211,8 +221,16 @@ export function getCreator(id: string) {
   return creators[id] || creators.neo;
 }
 
+export function getWorkCreator(work: Work) {
+  return work.creator || getCreator(work.creatorId);
+}
+
 export function getWork(id: string) {
   return works.find((work) => work.id === id);
+}
+
+export function isCategoryId(value: string): value is Exclude<CategoryId, "all"> {
+  return ["game", "tool", "story", "visual", "ai"].includes(value);
 }
 
 export function formatNumber(value: number) {

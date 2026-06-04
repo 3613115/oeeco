@@ -2,7 +2,10 @@ import { Info, Upload } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPlayPreviewHtml } from "@/lib/play-preview";
-import { getWork, works } from "@/lib/data";
+import { works } from "@/lib/data";
+import { getPublicWork } from "@/lib/work-service";
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return works.map((work) => ({ id: work.id }));
@@ -10,7 +13,7 @@ export function generateStaticParams() {
 
 export default async function PlayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const work = getWork(id);
+  const work = await getPublicWork(id);
 
   if (!work) {
     notFound();
@@ -35,12 +38,21 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
       <div className="play-window">
-        <iframe
-          className="play-frame"
-          title={`${work.title} 试玩`}
-          sandbox="allow-scripts"
-          srcDoc={getPlayPreviewHtml(work)}
-        />
+        {work.demoUrl ? (
+          <iframe
+            className="play-frame"
+            title={`${work.title} 试玩`}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            src={work.demoUrl}
+          />
+        ) : (
+          <iframe
+            className="play-frame"
+            title={`${work.title} 试玩`}
+            sandbox="allow-scripts"
+            srcDoc={getPlayPreviewHtml(work)}
+          />
+        )}
       </div>
     </section>
   );
