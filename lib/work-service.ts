@@ -3,6 +3,7 @@ import {
   creators,
   getWork,
   isCategoryId,
+  type CategoryId,
   type Creator,
   type Work,
   works as seedWorks,
@@ -39,8 +40,21 @@ type TagRow = {
   tag: string;
 };
 
+export type AdminWorkStatus = "pending" | "published" | "rejected" | "hidden";
+
 export type AdminWork = Work & {
-  status: string;
+  status: AdminWorkStatus;
+};
+
+export type AdminWorkUpdate = {
+  title: string;
+  summary: string;
+  description: string;
+  category: Exclude<CategoryId, "all">;
+  coverUrl: string | null;
+  demoUrl: string | null;
+  toolStack: string;
+  tags: string[];
 };
 
 export async function getHomeWorks() {
@@ -84,7 +98,7 @@ export async function getPublicWork(id: string) {
   return work || null;
 }
 
-export async function getAdminWorks(status = "pending") {
+export async function getAdminWorks(status: AdminWorkStatus = "pending") {
   const supabase = getSupabaseAdminClient();
   if (!supabase) return [];
 
@@ -97,14 +111,40 @@ export async function getAdminWorks(status = "pending") {
 
   if (error || !data?.length) return [];
 
-  const hydrated = await hydrateWorks(data as WorkRow[], true);
+  const rows = data as WorkRow[];
+  const hydrated = await hydrateWorks(rows, true);
   return hydrated.map((work, index) => ({
     ...work,
-    status: (data[index] as WorkRow).status,
+    status: rows[index].status as AdminWorkStatus,
   }));
 }
 
-export async function updateAdminWorkStatus(id: string, status: "published" | "rejected" | "hidden") {
+export async function getAdminWorkCounts() {
+  const supabase = getSupabaseAdminClient();
+  const empty: Record<AdminWorkStatus, number> = {
+    pending: 0,
+    published: 0,
+    rejected: 0,
+    hidden: 0,
+  };
+
+  if (!supabase) return empty;
+
+  const rows = await Promise.all(
+    (Object.keys(empty) as AdminWorkStatus[]).map(async (status) => {
+      const { count } = await supabase
+        .from("works")
+        .select("id", { count: "exact", head: true })
+        .eq("status", status);
+
+      return [status, count || 0] as const;
+    }),
+  );
+
+  return Object.fromEntries(rows) as Record<AdminWorkStatus, number>;
+}
+
+export async function updateAdminWorkStatus(id: string, status: AdminWorkStatus) {
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return { ok: false, message: "Supabase 管理密钥未配置。" };
@@ -116,6 +156,50 @@ export async function updateAdminWorkStatus(id: string, status: "published" | "r
     ok: !error,
     message: error?.message || "状态已更新。",
   };
+}
+
+export async function updateAdminWorkDetails(id: string, input: AdminWorkUpdate) {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) {
+    return { ok: false, message: "Supabase 管理密钥未配置。" };
+  }
+
+  const { error } = await supabase
+    .from("works")
+    .update({
+      title: input.title,
+      summary: input.summary,
+      description: input.description,
+      category: input.category,
+      cover_url: input.coverUrl,
+      demo_url: input.demoUrl,
+      tool_stack: input.toolStack,
+    })
+    .eq("id", id);
+
+  if (error) {
+    return { ok: false, message: error.message };
+  }
+
+  const { error: deleteError } = await supabase.from("work_tags").delete().eq("work_id", id);
+  if (deleteError) {
+    return { ok: false, message: deleteError.message };
+  }
+
+  if (input.tags.length) {
+    const { error: tagError } = await supabase.from("work_tags").insert(
+      input.tags.map((tag) => ({
+        work_id: id,
+        tag,
+      })),
+    );
+
+    if (tagError) {
+      return { ok: false, message: tagError.message };
+    }
+  }
+
+  return { ok: true, message: "作品信息已保存。" };
 }
 
 async function hydrateWorks(rows: WorkRow[], useAdmin = false): Promise<Work[]> {
