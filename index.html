@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>oeeco - AI 创作者作品广场</title>
+    <meta
+      name="description"
+      content="oeeco 是一个展示、试玩和分享 AI 创作者网页作品的平台。"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="oeeco 首页">
+        <span class="brand-mark">oe</span>
+        <span class="brand-name">oeeco</span>
+      </a>
+
+      <label class="search-shell">
+        <span class="search-icon">⌕</span>
+        <input id="searchInput" type="search" placeholder="搜索作品、创作者、标签" />
+      </label>
+
+      <nav class="nav-links" aria-label="主导航">
+        <a href="#home" data-nav="home">广场</a>
+        <a href="#rank" data-nav="rank">榜单</a>
+        <a href="#upload" data-nav="upload">上传</a>
+      </nav>
+
+      <button class="avatar-button" type="button" aria-label="我的主页">
+        <img src="./assets/avatar-neo.png" alt="" />
+      </button>
+    </header>
+
+    <main id="app" class="app-shell" tabindex="-1"></main>
+
+    <template id="workCardTemplate">
+      <article class="work-card">
+        <a class="cover-link" href="">
+          <img class="work-cover" src="" alt="" loading="lazy" />
+          <span class="work-type"></span>
+        </a>
+        <div class="work-card-body">
+          <div class="work-title-row">
+            <a class="work-title" href=""></a>
+            <button class="icon-button like-button" type="button" aria-label="喜欢">♡</button>
+          </div>
+          <a class="creator-line" href="">
+            <img src="" alt="" />
+            <span></span>
+          </a>
+          <div class="tag-row"></div>
+          <div class="metric-row">
+            <span class="views"></span>
+            <span class="likes"></span>
+            <a class="play-link" href="">试玩</a>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
