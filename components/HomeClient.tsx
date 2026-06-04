@@ -45,9 +45,9 @@ export function HomeClient({
     return (
       <section className="empty-state surface">
         <h1 className="page-title">oeeco</h1>
-        <p>还没有公开作品，先上传一个吧。</p>
+        <p>No public works yet. Be the first to submit one.</p>
         <Link className="solid-button" href="/upload">
-          上传作品
+          Submit Work
         </Link>
       </section>
     );
@@ -56,7 +56,7 @@ export function HomeClient({
   return (
     <section className="feed-layout">
       <aside className="sidebar surface">
-        <div className="sidebar-title">分类</div>
+        <div className="sidebar-title">Categories</div>
         <div className="category-list">
           {categories.map(([id, label]) => (
             <button
@@ -75,35 +75,36 @@ export function HomeClient({
         <section className="spotlight surface">
           <div className="spotlight-copy">
             <div>
-              <span className="section-kicker">今日精选</span>
+              <span className="section-kicker">Today&apos;s Pick</span>
               <h1 className="headline">oeeco</h1>
               <p className="lede">
-                AI 创作者的作品广场。上传小游戏、网页工具、互动实验，让观众直接打开、试玩、收藏和关注。
+                A global gallery for AI-made games, web tools, interactive pages, and playful experiments. Submit
+                your work, let people open it instantly, and help the next weird little web thing get discovered.
               </p>
             </div>
             <div>
               <div className="action-row">
                 <Link className="solid-button" href="/upload">
                   <Upload size={17} aria-hidden="true" />
-                  上传作品
+                  Submit Work
                 </Link>
                 <Link className="ghost-button" href={`/play/${featured.id}`}>
                   <Play size={17} aria-hidden="true" />
-                  试玩精选
+                  Try Featured
                 </Link>
               </div>
               <div className="metric-strip">
                 <div className="metric-box">
                   <strong>12.6k</strong>
-                  <span>本周试玩</span>
+                  <span>plays this week</span>
                 </div>
                 <div className="metric-box">
                   <strong>438</strong>
-                  <span>创作者</span>
+                  <span>creators</span>
                 </div>
                 <div className="metric-box">
                   <strong>{initialWorks.length}</strong>
-                  <span>作品</span>
+                  <span>works</span>
                 </div>
               </div>
             </div>
@@ -123,11 +124,11 @@ export function HomeClient({
         </section>
 
         <div className="filter-row">
-          <div className="segmented" aria-label="排序">
+          <div className="segmented" aria-label="Sort works">
             {[
-              ["featured", "推荐"],
-              ["hot", "热门"],
-              ["new", "最新"],
+              ["featured", "Featured"],
+              ["hot", "Hot"],
+              ["new", "New"],
             ].map(([id, label]) => (
               <button
                 key={id}
@@ -139,7 +140,7 @@ export function HomeClient({
               </button>
             ))}
           </div>
-          <div className="result-count">{filteredWorks.length} 个作品</div>
+          <div className="result-count">{filteredWorks.length} works</div>
         </div>
 
         {filteredWorks.length ? (
@@ -150,8 +151,8 @@ export function HomeClient({
           </section>
         ) : (
           <section className="empty-state surface">
-            <h1 className="page-title">暂时没有匹配的作品</h1>
-            <p>换个关键词或分类试试。</p>
+            <h1 className="page-title">No matching works yet</h1>
+            <p>Try another keyword, category, or sort option.</p>
           </section>
         )}
       </div>

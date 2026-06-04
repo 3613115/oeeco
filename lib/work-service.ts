@@ -147,21 +147,21 @@ export async function getAdminWorkCounts() {
 export async function updateAdminWorkStatus(id: string, status: AdminWorkStatus) {
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
-    return { ok: false, message: "Supabase 管理密钥未配置。" };
+    return { ok: false, message: "Supabase admin key is not configured." };
   }
 
   const { error } = await supabase.from("works").update({ status }).eq("id", id);
 
   return {
     ok: !error,
-    message: error?.message || "状态已更新。",
+    message: error?.message || "Status updated.",
   };
 }
 
 export async function updateAdminWorkDetails(id: string, input: AdminWorkUpdate) {
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
-    return { ok: false, message: "Supabase 管理密钥未配置。" };
+    return { ok: false, message: "Supabase admin key is not configured." };
   }
 
   const { error } = await supabase
@@ -199,7 +199,7 @@ export async function updateAdminWorkDetails(id: string, input: AdminWorkUpdate)
     }
   }
 
-  return { ok: true, message: "作品信息已保存。" };
+  return { ok: true, message: "Work details saved." };
 }
 
 async function hydrateWorks(rows: WorkRow[], useAdmin = false): Promise<Work[]> {
@@ -233,8 +233,8 @@ async function hydrateWorks(rows: WorkRow[], useAdmin = false): Promise<Work[]> 
       name: profile?.display_name || profile?.username || "oeeco creator",
       handle: profile?.username ? `@${profile.username}` : "@creator",
       avatar: profile?.avatar_url || creators.neo.avatar,
-      bio: profile?.bio || "oeeco 创作者",
-      followers: "新创作者",
+      bio: profile?.bio || "oeeco creator",
+      followers: "new creator",
     };
 
     return {

@@ -32,21 +32,21 @@ export default async function CreatorPage({ params }: { params: Promise<{ id: st
           <div className="metric-strip">
             <div className="metric-box">
               <strong>{creator.followers}</strong>
-              <span>关注者</span>
+              <span>followers</span>
             </div>
             <div className="metric-box">
               <strong>{creatorWorks.length}</strong>
-              <span>作品</span>
+              <span>works</span>
             </div>
             <div className="metric-box">
               <strong>{formatNumber(likes)}</strong>
-              <span>喜欢</span>
+              <span>likes</span>
             </div>
           </div>
         </div>
         <button className="solid-button" type="button">
           <UserPlus size={17} aria-hidden="true" />
-          关注
+          Follow
         </button>
       </section>
       {creatorWorks.length ? (
@@ -57,7 +57,7 @@ export default async function CreatorPage({ params }: { params: Promise<{ id: st
         </section>
       ) : (
         <section className="empty-state surface">
-          <h1 className="page-title">这个创作者还没有公开作品</h1>
+          <h1 className="page-title">This creator has no public works yet</h1>
         </section>
       )}
     </>

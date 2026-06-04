@@ -29,11 +29,11 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
         <div className="action-row">
           <Link className="ghost-button" href={`/works/${work.id}`}>
             <Info size={17} aria-hidden="true" />
-            详情
+            Details
           </Link>
           <Link className="solid-button" href="/upload">
             <Upload size={17} aria-hidden="true" />
-            上传作品
+            Submit Work
           </Link>
         </div>
       </div>
@@ -41,14 +41,14 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
         {work.demoUrl ? (
           <iframe
             className="play-frame"
-            title={`${work.title} 试玩`}
+            title={`${work.title} preview`}
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
             src={work.demoUrl}
           />
         ) : (
           <iframe
             className="play-frame"
-            title={`${work.title} 试玩`}
+            title={`${work.title} preview`}
             sandbox="allow-scripts"
             srcDoc={getPlayPreviewHtml(work)}
           />

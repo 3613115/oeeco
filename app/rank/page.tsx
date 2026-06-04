@@ -9,8 +9,8 @@ export default function RankPage() {
   return (
     <section className="leaderboard surface">
       <div>
-        <span className="section-kicker">热门榜单</span>
-        <h1 className="page-title">本周被喜欢最多的作品</h1>
+        <span className="section-kicker">Leaderboard</span>
+        <h1 className="page-title">Most-liked works this week</h1>
       </div>
       {topWorks.map((work, index) => {
         const creator = getCreator(work.creatorId);
@@ -21,12 +21,12 @@ export default function RankPage() {
             <div>
               <strong>{work.title}</strong>
               <span>
-                {creator.handle} · {formatNumber(work.likes)} 喜欢 · {work.type}
+                {creator.handle} · {formatNumber(work.likes)} likes · {work.type}
               </span>
             </div>
             <Link className="play-link" href={`/play/${work.id}`}>
               <Play size={14} aria-hidden="true" />
-              试玩
+              Try
             </Link>
           </div>
         );

@@ -18,7 +18,7 @@ export function SiteHeader() {
 
   return (
     <header className="topbar">
-      <Link className="brand" href="/" aria-label="oeeco 首页">
+      <Link className="brand" href="/" aria-label="oeeco home">
         <span className="brand-mark">oe</span>
         <span className="brand-name">oeeco</span>
       </Link>
@@ -29,21 +29,21 @@ export function SiteHeader() {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           type="search"
-          placeholder="搜索作品、创作者、标签"
-          aria-label="搜索作品、创作者、标签"
+          placeholder="Search works, creators, tags"
+          aria-label="Search works, creators, tags"
         />
       </form>
 
-      <nav className="nav-links" aria-label="主导航">
-        <Link href="/">广场</Link>
-        <Link href="/rank">榜单</Link>
+      <nav className="nav-links" aria-label="Main navigation">
+        <Link href="/">Explore</Link>
+        <Link href="/rank">Leaderboard</Link>
         <Link href="/upload">
           <Upload size={16} aria-hidden="true" />
-          上传
+          Submit
         </Link>
       </nav>
 
-      <Link className="avatar-button" href="/creators/neo" aria-label="我的主页">
+      <Link className="avatar-button" href="/creators/neo" aria-label="My profile">
         <Image src="/assets/avatar-neo.png" width={30} height={30} alt="" />
       </Link>
     </header>

@@ -50,13 +50,13 @@ export function UploadForm() {
     event.preventDefault();
 
     if (!supabase) {
-      setMessage("Supabase 还没有配置完成。");
+      setMessage("Supabase is not configured yet.");
       return;
     }
 
     const nextEmail = email.trim();
     if (!nextEmail) {
-      setMessage("请先填写邮箱。");
+      setMessage("Enter your email first.");
       return;
     }
 
@@ -69,7 +69,7 @@ export function UploadForm() {
     });
     setSubmitState("idle");
 
-    setMessage(error ? error.message : "登录链接已发送到你的邮箱，请打开邮件完成登录。");
+    setMessage(error ? error.message : "Magic link sent. Open your email to finish signing in.");
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -83,12 +83,12 @@ export function UploadForm() {
         "oeeco-upload-draft",
         JSON.stringify({ ...draft, submittedAt: new Date().toISOString() }),
       );
-      setMessage("本地草稿已保存。填好 Supabase 环境变量后，这里会切换为真实发布。");
+      setMessage("Draft saved locally. Add Supabase environment variables to enable real submissions.");
       return;
     }
 
     if (!user) {
-      setMessage("请先用邮箱登录，然后再发布作品。");
+      setMessage("Sign in with email before submitting a work.");
       return;
     }
 
@@ -111,7 +111,7 @@ export function UploadForm() {
 
     if (error || !work) {
       setSubmitState("idle");
-      setMessage(error?.message || "发布失败，请稍后再试。");
+      setMessage(error?.message || "Submission failed. Please try again later.");
       return;
     }
 
@@ -125,19 +125,19 @@ export function UploadForm() {
 
       if (tagError) {
         setSubmitState("idle");
-        setMessage(`作品已创建，但标签保存失败：${tagError.message}`);
+        setMessage(`Work created, but tags were not saved: ${tagError.message}`);
         return;
       }
     }
 
     setSubmitState("sent");
-    setMessage("作品已提交，当前状态为待审核。后面我们会做管理员审核后台。");
+    setMessage("Work submitted. It is now waiting for review.");
     reset(false);
   }
 
   async function signOut() {
     await supabase?.auth.signOut();
-    setMessage("已退出登录。");
+    setMessage("Signed out.");
   }
 
   function reset(clearMessage = true) {
@@ -149,27 +149,27 @@ export function UploadForm() {
     <section className="upload-shell surface">
       <div className="form-grid">
         <div>
-          <span className="section-kicker">发布作品</span>
-          <h1 className="page-title">上传到 oeeco</h1>
+          <span className="section-kicker">Submit Work</span>
+          <h1 className="page-title">Submit to oeeco</h1>
           <p className="upload-help">
-            创作者登录后可以提交作品。第一版会写入 Supabase，并进入待审核状态。
+            Sign in, submit your AI-made game, web tool, or interactive experiment, and send it into review.
           </p>
         </div>
 
         {user ? (
           <div className="surface detail-body">
-            <span className="section-kicker">当前账号</span>
+            <span className="section-kicker">Current account</span>
             <p>{user.email}</p>
             <button className="ghost-button" type="button" onClick={signOut}>
               <LogOut size={17} aria-hidden="true" />
-              退出登录
+              Sign out
             </button>
           </div>
         ) : (
           <form className="form-grid surface detail-body" onSubmit={sendMagicLink}>
-            <span className="section-kicker">创作者登录</span>
+            <span className="section-kicker">Creator Login</span>
             <div className="field">
-              <label htmlFor="email">邮箱</label>
+              <label htmlFor="email">Email</label>
               <input
                 id="email"
                 name="email"
@@ -181,14 +181,14 @@ export function UploadForm() {
               />
             </div>
             <button className="solid-button" type="submit" disabled={submitState === "loading"}>
-              发送登录链接
+              Send magic link
             </button>
           </form>
         )}
 
         <form className="form-grid" onSubmit={submit}>
           <div className="field">
-            <label htmlFor="title">作品标题</label>
+            <label htmlFor="title">Work title</label>
             <input
               id="title"
               name="title"
@@ -196,11 +196,11 @@ export function UploadForm() {
               maxLength={36}
               value={draft.title}
               onChange={(event) => updateDraft("title", event.target.value)}
-              placeholder="例如：星轨番茄钟"
+              placeholder="Example: Orbit Focus Clock"
             />
           </div>
           <div className="field">
-            <label htmlFor="summary">一句话简介</label>
+            <label htmlFor="summary">Short summary</label>
             <input
               id="summary"
               name="summary"
@@ -208,49 +208,49 @@ export function UploadForm() {
               maxLength={80}
               value={draft.summary}
               onChange={(event) => updateDraft("summary", event.target.value)}
-              placeholder="让观众快速知道它好玩在哪里"
+              placeholder="Tell viewers why it is worth opening"
             />
           </div>
           <div className="field">
-            <label htmlFor="link">作品链接</label>
+            <label htmlFor="link">Work URL</label>
             <input id="link" name="link" type="url" placeholder="https://..." />
           </div>
           <div className="field">
-            <label htmlFor="category">类型</label>
+            <label htmlFor="category">Category</label>
             <select id="category" name="category">
-              <option value="game">小游戏</option>
-              <option value="tool">实用工具</option>
-              <option value="story">互动网页</option>
-              <option value="visual">视觉艺术</option>
-              <option value="ai">AI 实验</option>
+              <option value="game">Game</option>
+              <option value="tool">Tool</option>
+              <option value="story">Interactive</option>
+              <option value="visual">Visual</option>
+              <option value="ai">AI Experiment</option>
             </select>
           </div>
           <div className="field">
-            <label htmlFor="tags">标签</label>
+            <label htmlFor="tags">Tags</label>
             <input
               id="tags"
               name="tags"
               value={draft.tags}
               onChange={(event) => updateDraft("tags", event.target.value)}
-              placeholder="Codex, Canvas, 休闲"
+              placeholder="Codex, Canvas, Casual"
             />
           </div>
           <div className="field">
-            <label htmlFor="detail">创作说明</label>
+            <label htmlFor="detail">Creator notes</label>
             <textarea
               id="detail"
               name="detail"
-              placeholder="可以写用了哪些工具、怎么做出来的、适合谁体验"
+              placeholder="Share what you used, how you built it, and who should try it"
             />
           </div>
           <div className="form-actions">
             <button className="solid-button" type="submit" disabled={submitState === "loading"}>
               <Send size={17} aria-hidden="true" />
-              {submitState === "loading" ? "提交中" : "提交审核"}
+              {submitState === "loading" ? "Submitting" : "Submit for review"}
             </button>
             <button className="ghost-button" type="button" onClick={() => reset()}>
               <RotateCcw size={17} aria-hidden="true" />
-              重填
+              Reset
             </button>
           </div>
           {message ? <div className="toast" role="status">{message}</div> : null}
@@ -258,13 +258,13 @@ export function UploadForm() {
       </div>
 
       <aside className="preview-card">
-        <Image src="/assets/cover-upload.png" width={640} height={400} alt="上传预览" />
+        <Image src="/assets/cover-upload.png" width={640} height={400} alt="Submission preview" />
         <div>
-          <span className="section-kicker">预览卡片</span>
-          <h2>{draft.title || "你的作品会出现在这里"}</h2>
-          <p>{draft.summary || "封面、标题、简介、标签和试玩入口会组成 oeeco 的作品卡片。"}</p>
+          <span className="section-kicker">Preview Card</span>
+          <h2>{draft.title || "Your work will appear here"}</h2>
+          <p>{draft.summary || "Cover, title, summary, tags, and a playable link form your oeeco card."}</p>
           <div className="tag-row">
-            {(tags.length ? tags : ["Codex", "新作品"]).map((tag) => (
+            {(tags.length ? tags : ["Codex", "New Work"]).map((tag) => (
               <span className="small-pill" key={tag}>
                 {tag}
               </span>
@@ -278,7 +278,7 @@ export function UploadForm() {
 
 function parseTags(value: string) {
   return value
-    .split(/[,，\s]+/)
+    .split(/[,\s]+/)
     .map((tag) => tag.trim())
     .filter(Boolean)
     .slice(0, 5);

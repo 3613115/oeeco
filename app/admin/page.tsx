@@ -14,10 +14,10 @@ import {
 export const dynamic = "force-dynamic";
 
 const statusOptions: Array<{ id: AdminWorkStatus; label: string; helper: string }> = [
-  { id: "pending", label: "待审核", helper: "新提交的作品" },
-  { id: "published", label: "已发布", helper: "正在广场展示" },
-  { id: "rejected", label: "已拒绝", helper: "不展示给观众" },
-  { id: "hidden", label: "已隐藏", helper: "暂时下架" },
+  { id: "pending", label: "Pending", helper: "New submissions waiting for review" },
+  { id: "published", label: "Published", helper: "Visible on Explore" },
+  { id: "rejected", label: "Rejected", helper: "Not visible to viewers" },
+  { id: "hidden", label: "Hidden", helper: "Temporarily removed from Explore" },
 ];
 
 const categoryOptions = categories.filter(
@@ -46,7 +46,7 @@ function optionalText(value: FormDataEntryValue | null, maxLength: number) {
 function parseTags(value: FormDataEntryValue | null) {
   const seen = new Set<string>();
   return String(value || "")
-    .split(/[,，\n]/)
+    .split(/[,\n]/)
     .map((tag) => tag.trim())
     .filter(Boolean)
     .map((tag) => tag.slice(0, 32))
@@ -136,9 +136,9 @@ export default async function AdminPage({
   if (!adminReady) {
     return (
       <section className="surface detail-body">
-        <span className="section-kicker">管理员后台</span>
-        <h1 className="page-title">需要配置管理环境变量</h1>
-        <p>在 Vercel 的 Environment Variables 里添加：</p>
+        <span className="section-kicker">Admin</span>
+        <h1 className="page-title">Admin environment variables required</h1>
+        <p>Add these variables in Vercel Environment Variables:</p>
         <div className="stat-list">
           <div className="stat-item">
             <span>SUPABASE_SERVICE_ROLE_KEY</span>
@@ -146,7 +146,7 @@ export default async function AdminPage({
           </div>
           <div className="stat-item">
             <span>ADMIN_PASSCODE</span>
-            <strong>你自定义的审核密码</strong>
+            <strong>Your private admin password</strong>
           </div>
         </div>
       </section>
@@ -156,20 +156,20 @@ export default async function AdminPage({
   if (!authorized) {
     return (
       <section className="surface detail-body admin-login">
-        <span className="section-kicker">管理员后台</span>
-        <h1 className="page-title">输入审核密码</h1>
-        <p>这里用于审核、编辑和上下架创作者提交的作品。</p>
+        <span className="section-kicker">Admin</span>
+        <h1 className="page-title">Enter admin passcode</h1>
+        <p>Review, edit, publish, reject, and hide submitted works.</p>
         <form className="form-grid" action="/admin">
           <div className="field">
-            <label htmlFor="key">审核密码</label>
+            <label htmlFor="key">Passcode</label>
             <input id="key" name="key" type="password" required />
           </div>
           <button className="solid-button" type="submit">
             <Shield size={17} aria-hidden="true" />
-            进入后台
+            Enter Admin
           </button>
         </form>
-        {params.error ? <p>密码不对或请求无效。</p> : null}
+        {params.error ? <p>Wrong passcode or invalid request.</p> : null}
       </section>
     );
   }
@@ -181,17 +181,17 @@ export default async function AdminPage({
     <section className="surface detail-body admin-page">
       <div className="admin-heading">
         <div>
-          <span className="section-kicker">管理员后台</span>
-          <h1 className="page-title">作品审核台</h1>
-          <p>查看提交内容、打开试玩、修改作品信息，再决定发布、拒绝或隐藏。</p>
+          <span className="section-kicker">Admin</span>
+          <h1 className="page-title">Review Dashboard</h1>
+          <p>Inspect submissions, open demos, edit metadata, then publish, reject, or hide works.</p>
         </div>
         <Link className="ghost-button" href="/" target="_blank">
           <ExternalLink size={17} aria-hidden="true" />
-          打开广场
+          Open Explore
         </Link>
       </div>
 
-      <nav className="admin-tabs" aria-label="审核状态">
+      <nav className="admin-tabs" aria-label="Review status">
         {statusOptions.map((status) => (
           <Link
             className={status.id === activeStatus ? "admin-tab is-active" : "admin-tab"}
@@ -204,16 +204,16 @@ export default async function AdminPage({
         ))}
       </nav>
 
-      {params.updated ? <div className="admin-notice">状态已更新。</div> : null}
-      {params.saved ? <div className="admin-notice">作品信息已保存。</div> : null}
-      {params.error ? <div className="admin-notice is-error">操作没有成功，请检查表单内容后再试。</div> : null}
+      {params.updated ? <div className="admin-notice">Status updated.</div> : null}
+      {params.saved ? <div className="admin-notice">Work details saved.</div> : null}
+      {params.error ? <div className="admin-notice is-error">Action failed. Check the form and try again.</div> : null}
 
       <div className="admin-section-title">
         <div>
           <h2>{activeOption.label}</h2>
           <p>{activeOption.helper}</p>
         </div>
-        <span>{works.length} 个作品</span>
+        <span>{works.length} works</span>
       </div>
 
       {works.length ? (
@@ -234,13 +234,13 @@ export default async function AdminPage({
                   {work.demoUrl ? (
                     <Link className="ghost-button" href={work.demoUrl} target="_blank" rel="noreferrer">
                       <ExternalLink size={17} aria-hidden="true" />
-                      打开试玩
+                      Open Demo
                     </Link>
                   ) : null}
                   {work.status === "published" ? (
                     <Link className="ghost-button" href={`/works/${work.id}`} target="_blank">
                       <Eye size={17} aria-hidden="true" />
-                      站内详情
+                      Public Page
                     </Link>
                   ) : null}
                 </div>
@@ -252,15 +252,15 @@ export default async function AdminPage({
                 <input type="hidden" name="currentStatus" value={activeStatus} />
                 <div className="admin-fields">
                   <label>
-                    <span>标题</span>
+                    <span>Title</span>
                     <input name="title" defaultValue={work.title} maxLength={80} required />
                   </label>
                   <label>
-                    <span>一句话简介</span>
+                    <span>Short summary</span>
                     <input name="summary" defaultValue={work.summary} maxLength={160} required />
                   </label>
                   <label>
-                    <span>类型</span>
+                    <span>Category</span>
                     <select name="category" defaultValue={work.category}>
                       {categoryOptions.map(([id, label]) => (
                         <option value={id} key={id}>
@@ -270,29 +270,29 @@ export default async function AdminPage({
                     </select>
                   </label>
                   <label>
-                    <span>标签</span>
-                    <input name="tags" defaultValue={work.tags.join(", ")} placeholder="Codex, 游戏, 休闲" />
+                    <span>Tags</span>
+                    <input name="tags" defaultValue={work.tags.join(", ")} placeholder="Codex, Game, Casual" />
                   </label>
                   <label>
-                    <span>试玩链接</span>
+                    <span>Demo URL</span>
                     <input name="demoUrl" defaultValue={work.demoUrl || ""} placeholder="https://..." />
                   </label>
                   <label>
-                    <span>封面 URL</span>
+                    <span>Cover URL</span>
                     <input name="coverUrl" defaultValue={work.cover || ""} placeholder="/assets/cover-upload.png" />
                   </label>
                   <label>
-                    <span>工具</span>
+                    <span>Tools</span>
                     <input name="toolStack" defaultValue={work.tool} placeholder="Codex, Canvas, React" />
                   </label>
                   <label className="span-2">
-                    <span>创作说明</span>
+                    <span>Creator notes</span>
                     <textarea name="description" defaultValue={work.detail} rows={4} />
                   </label>
                 </div>
                 <button className="ghost-button" type="submit">
                   <Save size={17} aria-hidden="true" />
-                  保存修改
+                  Save Changes
                 </button>
               </form>
 
@@ -304,7 +304,7 @@ export default async function AdminPage({
                     <input type="hidden" name="currentStatus" value={activeStatus} />
                     <button className="solid-button" name="status" value="published" type="submit">
                       <Check size={17} aria-hidden="true" />
-                      发布
+                      Publish
                     </button>
                   </form>
                 ) : null}
@@ -315,7 +315,7 @@ export default async function AdminPage({
                     <input type="hidden" name="currentStatus" value={activeStatus} />
                     <button className="ghost-button" name="status" value="rejected" type="submit">
                       <X size={17} aria-hidden="true" />
-                      拒绝
+                      Reject
                     </button>
                   </form>
                 ) : null}
@@ -326,7 +326,7 @@ export default async function AdminPage({
                     <input type="hidden" name="currentStatus" value={activeStatus} />
                     <button className="ghost-button" name="status" value="hidden" type="submit">
                       <X size={17} aria-hidden="true" />
-                      隐藏
+                      Hide
                     </button>
                   </form>
                 ) : null}
@@ -337,7 +337,7 @@ export default async function AdminPage({
                     <input type="hidden" name="currentStatus" value={activeStatus} />
                     <button className="ghost-button" name="status" value="pending" type="submit">
                       <RotateCcw size={17} aria-hidden="true" />
-                      退回待审
+                      Move to Pending
                     </button>
                   </form>
                 ) : null}
@@ -347,8 +347,8 @@ export default async function AdminPage({
         </div>
       ) : (
         <section className="empty-state">
-          <h2>这里暂时没有作品</h2>
-          <p>切换上方状态，或等创作者提交新作品后再回来处理。</p>
+          <h2>No works in this status</h2>
+          <p>Switch tabs above, or come back when creators submit new works.</p>
         </section>
       )}
     </section>

@@ -33,7 +33,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
             <span>
               <strong>{creator.name}</strong>
               <span>
-                {creator.handle} · {creator.followers} 关注者
+                {creator.handle} · {creator.followers} followers
               </span>
             </span>
           </Link>
@@ -48,15 +48,15 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
           <div className="detail-actions">
             <Link className="solid-button" href={`/play/${work.id}`}>
               <Play size={17} aria-hidden="true" />
-              立即体验
+              Try It
             </Link>
             <button className="ghost-button" type="button">
               <Heart size={17} aria-hidden="true" />
-              喜欢 {formatNumber(work.likes)}
+              Like {formatNumber(work.likes)}
             </button>
             <button className="ghost-button" type="button">
               <Share2 size={17} aria-hidden="true" />
-              分享
+              Share
             </button>
           </div>
         </div>
@@ -64,32 +64,32 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
 
       <aside className="surface side-panel">
         <div>
-          <span className="section-kicker">作品数据</span>
+          <span className="section-kicker">Work Stats</span>
           <div className="stat-list">
             <div className="stat-item">
-              <span>浏览</span>
+              <span>Views</span>
               <strong>{formatNumber(work.views)}</strong>
             </div>
             <div className="stat-item">
-              <span>喜欢</span>
+              <span>Likes</span>
               <strong>{formatNumber(work.likes)}</strong>
             </div>
             <div className="stat-item">
-              <span>收藏</span>
+              <span>Saves</span>
               <strong>{formatNumber(work.collections)}</strong>
             </div>
             <div className="stat-item">
-              <span>工具</span>
+              <span>Tools</span>
               <strong>{work.tool}</strong>
             </div>
             <div className="stat-item">
-              <span>发布</span>
+              <span>Published</span>
               <strong>{work.createdAt}</strong>
             </div>
           </div>
         </div>
         <div>
-          <span className="section-kicker">评论</span>
+          <span className="section-kicker">Comments</span>
           {work.comments.length ? (
             <div className="comment-list">
               {work.comments.map(([name, avatar, text]) => (
@@ -103,7 +103,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
               ))}
             </div>
           ) : (
-            <p>评论功能会在下一阶段接入。</p>
+            <p>Comments will be added in a later version.</p>
           )}
         </div>
       </aside>

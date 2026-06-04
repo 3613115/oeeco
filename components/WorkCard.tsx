@@ -24,7 +24,7 @@ export function WorkCard({ work }: { work: Work }) {
           <button
             className="icon-button like-button"
             type="button"
-            aria-label="喜欢"
+            aria-label="Like"
             onClick={() => setLiked((value) => !value)}
           >
             <Heart size={18} fill={liked ? "currentColor" : "none"} />
@@ -42,11 +42,11 @@ export function WorkCard({ work }: { work: Work }) {
           ))}
         </div>
         <div className="metric-row">
-          <span>{formatNumber(work.views)} 浏览</span>
-          <span>{formatNumber(work.likes)} 喜欢</span>
+          <span>{formatNumber(work.views)} views</span>
+          <span>{formatNumber(work.likes)} likes</span>
           <Link className="play-link" href={`/play/${work.id}`}>
             <Play size={14} aria-hidden="true" />
-            试玩
+            Try
           </Link>
         </div>
       </div>
