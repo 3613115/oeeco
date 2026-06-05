@@ -1,10 +1,11 @@
-import { Heart, Play, Share2 } from "lucide-react";
+import { ExternalLink, Heart, Play, Shield, Share2 } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatNumber, getWorkCreator, works } from "@/lib/data";
 import { tagToSlug } from "@/lib/discovery";
+import { getPlayableDemoUrl, getRunnerOriginLabel } from "@/lib/play-runner";
 import { absoluteUrl, defaultOgImage, siteName } from "@/lib/site";
 import { getPublicWork } from "@/lib/work-service";
 
@@ -69,14 +70,22 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
   }
 
   const creator = getWorkCreator(work);
+  const playableDemoUrl = getPlayableDemoUrl(work.demoUrl);
+  const runnerOrigin = getRunnerOriginLabel(work.demoUrl);
+  const runnerLabel = playableDemoUrl ? `Sandboxed from ${runnerOrigin}` : "Sandboxed oeeco preview";
   const workJsonLd = {
     "@context": "https://schema.org",
-    "@type": "CreativeWork",
+    "@type": ["CreativeWork", "WebApplication"],
     name: work.title,
     description: work.summary,
     url: absoluteUrl(`/works/${work.id}`),
     image: absoluteUrl(work.cover),
     datePublished: work.createdAt,
+    applicationCategory: work.type,
+    operatingSystem: "Web browser",
+    isAccessibleForFree: true,
+    creativeWorkStatus: "Published",
+    sameAs: playableDemoUrl ? [playableDemoUrl] : undefined,
     creator: {
       "@type": "Person",
       name: creator.name,
@@ -84,6 +93,10 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
     },
     genre: work.type,
     keywords: work.tags.join(", "),
+    potentialAction: {
+      "@type": "PlayAction",
+      target: absoluteUrl(`/play/${work.id}`),
+    },
     interactionStatistic: [
       {
         "@type": "InteractionCounter",
@@ -119,6 +132,16 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
             </span>
           </Link>
           <p>{work.detail}</p>
+          <div className="detail-runner-card">
+            <span>
+              <Shield size={17} aria-hidden="true" />
+              {runnerLabel}
+            </span>
+            <p>
+              TRY opens this work in oeeco&apos;s isolated runner. External demos are embedded with a restricted iframe
+              sandbox and a new-tab fallback.
+            </p>
+          </div>
           <div className="tag-row">
             {work.tags.map((tag) => (
               <Link className="small-pill" href={`/tags/${tagToSlug(tag)}`} key={tag}>
@@ -131,6 +154,12 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
               <Play size={17} aria-hidden="true" />
               Try It
             </Link>
+            {playableDemoUrl ? (
+              <Link className="ghost-button" href={playableDemoUrl} target="_blank" rel="noreferrer">
+                <ExternalLink size={17} aria-hidden="true" />
+                Open Demo
+              </Link>
+            ) : null}
             <button className="ghost-button" type="button">
               <Heart size={17} aria-hidden="true" />
               Like {formatNumber(work.likes)}
@@ -144,6 +173,32 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
       </article>
 
       <aside className="surface side-panel">
+        <div>
+          <span className="section-kicker">Publish Quality</span>
+          <div className="publish-quality-list">
+            <div className="publish-quality-item is-ready">
+              <Shield size={16} aria-hidden="true" />
+              <span>
+                <strong>Runner</strong>
+                <span>{runnerLabel}</span>
+              </span>
+            </div>
+            <div className="publish-quality-item is-ready">
+              <Play size={16} aria-hidden="true" />
+              <span>
+                <strong>TRY route</strong>
+                <span>/play/{work.id}</span>
+              </span>
+            </div>
+            <div className={work.demoUrl && !playableDemoUrl ? "publish-quality-item" : "publish-quality-item is-ready"}>
+              <ExternalLink size={16} aria-hidden="true" />
+              <span>
+                <strong>Demo source</strong>
+                <span>{playableDemoUrl ? runnerOrigin : work.demoUrl ? "Held for safety" : "oeeco preview"}</span>
+              </span>
+            </div>
+          </div>
+        </div>
         <div>
           <span className="section-kicker">Work Stats</span>
           <div className="stat-list">
@@ -162,6 +217,10 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
             <div className="stat-item">
               <span>Tools</span>
               <strong>{work.tool}</strong>
+            </div>
+            <div className="stat-item">
+              <span>Category</span>
+              <strong>{work.type}</strong>
             </div>
             <div className="stat-item">
               <span>Published</span>

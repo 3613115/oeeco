@@ -755,9 +755,76 @@ button {
   margin: 20px 0;
 }
 
+.detail-runner-card {
+  display: grid;
+  gap: 6px;
+  margin: 18px 0 14px;
+  border: 1px solid rgba(12, 122, 85, 0.24);
+  border-radius: 8px;
+  background: rgba(85, 214, 168, 0.14);
+  padding: 12px;
+}
+
+.detail-runner-card > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--leaf);
+  font-weight: 900;
+}
+
+.detail-runner-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
 .side-panel {
   display: grid;
   gap: 18px;
+}
+
+.publish-quality-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.publish-quality-item {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid rgba(244, 180, 63, 0.34);
+  border-radius: 8px;
+  background: rgba(244, 180, 63, 0.13);
+  padding: 10px;
+  color: #805600;
+}
+
+.publish-quality-item.is-ready {
+  border-color: rgba(12, 122, 85, 0.24);
+  background: rgba(85, 214, 168, 0.14);
+  color: var(--leaf);
+}
+
+.publish-quality-item > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.publish-quality-item strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.publish-quality-item span span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+  overflow-wrap: anywhere;
 }
 
 .stat-list {
