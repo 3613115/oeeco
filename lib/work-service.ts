@@ -74,6 +74,18 @@ export async function getPublicWorksByCategory(category: Exclude<CategoryId, "al
   return publicWorks.filter((work) => work.category === category);
 }
 
+export async function getPublicWorksByCreator(creatorId: string) {
+  const publicWorks = await getAllPublicWorks();
+  return publicWorks.filter((work) => work.creatorId === creatorId);
+}
+
+export async function getPublicCreator(creatorId: string) {
+  if (creators[creatorId]) return creators[creatorId];
+
+  const publicWorks = await getAllPublicWorks();
+  return publicWorks.find((work) => work.creatorId === creatorId)?.creator || null;
+}
+
 export async function getPublishedWorks() {
   const supabase = getSupabasePublicServerClient();
   if (!supabase) return [];
