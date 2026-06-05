@@ -998,6 +998,13 @@ button {
   font-weight: 850;
 }
 
+.form-hint {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 720;
+  line-height: 1.45;
+}
+
 .field input,
 .field textarea,
 .field select {
@@ -1022,6 +1029,26 @@ button {
   margin-top: 6px;
 }
 
+.validation-list {
+  border: 1px solid rgba(244, 93, 143, 0.28);
+  border-radius: 8px;
+  background: rgba(244, 93, 143, 0.1);
+  color: #8f2149;
+  padding: 12px 14px;
+}
+
+.validation-list strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.validation-list ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 20px;
+}
+
 .preview-card {
   overflow: hidden;
   border: 1px solid var(--line);
@@ -1038,6 +1065,23 @@ button {
 
 .preview-card div {
   padding: 14px;
+}
+
+.submission-checklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.submission-checklist span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--muted);
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .creator-header {

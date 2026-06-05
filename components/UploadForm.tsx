@@ -1,32 +1,67 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { LogOut, RotateCcw, Send } from "lucide-react";
+import { CheckCircle, LogOut, RotateCcw, Send } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { categoryLabels, isCategoryId, type CategoryId } from "@/lib/data";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase";
 
 type Draft = {
   title: string;
   summary: string;
+  detail: string;
+  category: Exclude<CategoryId, "all">;
   tags: string;
+  demoUrl: string;
+  coverUrl: string;
+  toolStack: string;
 };
 
 type SubmitState = "idle" | "loading" | "sent";
 
+type PreparedSubmission = {
+  title: string;
+  summary: string;
+  detail: string;
+  category: Exclude<CategoryId, "all">;
+  tags: string[];
+  demoUrl: string;
+  coverUrl: string | null;
+  toolStack: string;
+};
+
+const defaultDraft: Draft = {
+  title: "",
+  summary: "",
+  detail: "",
+  category: "game",
+  tags: "",
+  demoUrl: "",
+  coverUrl: "",
+  toolStack: "Codex",
+};
+
+const categoryOptions: Array<[Exclude<CategoryId, "all">, string]> = [
+  ["game", "Game"],
+  ["tool", "Tool"],
+  ["story", "Interactive"],
+  ["visual", "Visual"],
+  ["ai", "AI Experiment"],
+];
+
 export function UploadForm() {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
-  const [draft, setDraft] = useState<Draft>({
-    title: "",
-    summary: "",
-    tags: "",
-  });
+  const [draft, setDraft] = useState<Draft>(defaultDraft);
   const [email, setEmail] = useState("");
   const [user, setUser] = useState<User | null>(null);
   const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState<string[]>([]);
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
 
   const tags = useMemo(() => parseTags(draft.tags), [draft.tags]);
+  const previewCover = getPreviewCover(draft.coverUrl);
 
   useEffect(() => {
     if (!supabase) return;
@@ -42,8 +77,41 @@ export function UploadForm() {
     return () => data.subscription.unsubscribe();
   }, [supabase]);
 
+  useEffect(() => {
+    const savedDraft = localStorage.getItem("oeeco-upload-draft");
+    if (!savedDraft) return;
+
+    try {
+      const parsed = JSON.parse(savedDraft) as Partial<Draft>;
+      setDraft({
+        ...defaultDraft,
+        ...parsed,
+        category: parsed.category && isCategoryId(parsed.category) ? parsed.category : defaultDraft.category,
+      });
+    } catch {
+      localStorage.removeItem("oeeco-upload-draft");
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("oeeco-upload-draft", JSON.stringify(draft));
+  }, [draft]);
+
   function updateDraft(key: keyof Draft, value: string) {
-    setDraft((current) => ({ ...current, [key]: value }));
+    setDraft((current) => {
+      if (key === "category") {
+        return {
+          ...current,
+          category: isCategoryId(value) ? value : current.category,
+        };
+      }
+
+      return {
+        ...current,
+        [key]: value,
+      };
+    });
+    setErrors([]);
   }
 
   async function sendMagicLink(event: FormEvent<HTMLFormElement>) {
@@ -75,13 +143,17 @@ export function UploadForm() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const form = event.currentTarget;
-    const formData = new FormData(form);
+    const prepared = prepareSubmission(draft);
+    if (prepared.errors.length) {
+      setErrors(prepared.errors);
+      setMessage("");
+      return;
+    }
 
     if (!supabase || !isSupabaseConfigured) {
       localStorage.setItem(
         "oeeco-upload-draft",
-        JSON.stringify({ ...draft, submittedAt: new Date().toISOString() }),
+        JSON.stringify({ ...draft, validatedAt: new Date().toISOString() }),
       );
       setMessage("Draft saved locally. Add Supabase environment variables to enable real submissions.");
       return;
@@ -97,13 +169,13 @@ export function UploadForm() {
       .from("works")
       .insert({
         creator_id: user.id,
-        title: draft.title.trim(),
-        summary: draft.summary.trim(),
-        description: String(formData.get("detail") || "").trim(),
-        category: String(formData.get("category") || "game"),
-        demo_url: String(formData.get("link") || "").trim() || null,
-        cover_url: "/assets/cover-upload.png",
-        tool_stack: "Codex",
+        title: prepared.data.title,
+        summary: prepared.data.summary,
+        description: prepared.data.detail,
+        category: prepared.data.category,
+        demo_url: prepared.data.demoUrl,
+        cover_url: prepared.data.coverUrl || "/assets/cover-upload.png",
+        tool_stack: prepared.data.toolStack,
         status: "pending",
       })
       .select("id")
@@ -117,7 +189,7 @@ export function UploadForm() {
 
     if (tags.length) {
       const { error: tagError } = await supabase.from("work_tags").insert(
-        tags.map((tag) => ({
+        prepared.data.tags.map((tag) => ({
           work_id: work.id,
           tag,
         })),
@@ -132,6 +204,7 @@ export function UploadForm() {
 
     setSubmitState("sent");
     setMessage("Work submitted. It is now waiting for review.");
+    localStorage.removeItem("oeeco-upload-draft");
     reset(false);
   }
 
@@ -141,7 +214,9 @@ export function UploadForm() {
   }
 
   function reset(clearMessage = true) {
-    setDraft({ title: "", summary: "", tags: "" });
+    setDraft(defaultDraft);
+    setErrors([]);
+    localStorage.removeItem("oeeco-upload-draft");
     if (clearMessage) setMessage("");
   }
 
@@ -152,7 +227,7 @@ export function UploadForm() {
           <span className="section-kicker">Submit Work</span>
           <h1 className="page-title">Submit to oeeco</h1>
           <p className="upload-help">
-            Sign in, submit your AI-made game, web tool, or interactive experiment, and send it into review.
+            Sign in, describe your AI-made game, web tool, interactive page, or experiment, and send it into review.
           </p>
         </div>
 
@@ -186,18 +261,20 @@ export function UploadForm() {
           </form>
         )}
 
-        <form className="form-grid" onSubmit={submit}>
+        <form className="form-grid" onSubmit={submit} noValidate>
           <div className="field">
             <label htmlFor="title">Work title</label>
             <input
               id="title"
               name="title"
               required
-              maxLength={36}
+              minLength={3}
+              maxLength={80}
               value={draft.title}
               onChange={(event) => updateDraft("title", event.target.value)}
               placeholder="Example: Orbit Focus Clock"
             />
+            <span className="form-hint">{draft.title.trim().length}/80 characters</span>
           </div>
           <div className="field">
             <label htmlFor="summary">Short summary</label>
@@ -205,24 +282,40 @@ export function UploadForm() {
               id="summary"
               name="summary"
               required
-              maxLength={80}
+              minLength={20}
+              maxLength={160}
               value={draft.summary}
               onChange={(event) => updateDraft("summary", event.target.value)}
               placeholder="Tell viewers why it is worth opening"
             />
+            <span className="form-hint">{draft.summary.trim().length}/160 characters</span>
           </div>
           <div className="field">
-            <label htmlFor="link">Work URL</label>
-            <input id="link" name="link" type="url" placeholder="https://..." />
+            <label htmlFor="demoUrl">Demo URL</label>
+            <input
+              id="demoUrl"
+              name="demoUrl"
+              type="url"
+              value={draft.demoUrl}
+              onChange={(event) => updateDraft("demoUrl", event.target.value)}
+              placeholder="https://..."
+              required
+            />
+            <span className="form-hint">Use a public, inspectable page. Private links may be rejected.</span>
           </div>
           <div className="field">
             <label htmlFor="category">Category</label>
-            <select id="category" name="category">
-              <option value="game">Game</option>
-              <option value="tool">Tool</option>
-              <option value="story">Interactive</option>
-              <option value="visual">Visual</option>
-              <option value="ai">AI Experiment</option>
+            <select
+              id="category"
+              name="category"
+              value={draft.category}
+              onChange={(event) => updateDraft("category", event.target.value)}
+            >
+              {categoryOptions.map(([id, label]) => (
+                <option value={id} key={id}>
+                  {label}
+                </option>
+              ))}
             </select>
           </div>
           <div className="field">
@@ -234,35 +327,85 @@ export function UploadForm() {
               onChange={(event) => updateDraft("tags", event.target.value)}
               placeholder="Codex, Canvas, Casual"
             />
+            <span className="form-hint">{tags.length}/8 tags. Separate with commas.</span>
+          </div>
+          <div className="field">
+            <label htmlFor="toolStack">Tool stack</label>
+            <input
+              id="toolStack"
+              name="toolStack"
+              required
+              maxLength={120}
+              value={draft.toolStack}
+              onChange={(event) => updateDraft("toolStack", event.target.value)}
+              placeholder="Codex, Canvas, Supabase"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="coverUrl">Cover image URL</label>
+            <input
+              id="coverUrl"
+              name="coverUrl"
+              value={draft.coverUrl}
+              onChange={(event) => updateDraft("coverUrl", event.target.value)}
+              placeholder="https://... or leave blank"
+            />
+            <span className="form-hint">Optional. If empty, oeeco uses a default review cover.</span>
           </div>
           <div className="field">
             <label htmlFor="detail">Creator notes</label>
             <textarea
               id="detail"
               name="detail"
+              required
+              minLength={30}
+              maxLength={1200}
+              value={draft.detail}
+              onChange={(event) => updateDraft("detail", event.target.value)}
               placeholder="Share what you used, how you built it, and who should try it"
             />
+            <span className="form-hint">{draft.detail.trim().length}/1200 characters</span>
           </div>
+          {errors.length ? (
+            <div className="validation-list" role="alert">
+              <strong>Before submitting</strong>
+              <ul>
+                {errors.map((error) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           <div className="form-actions">
             <button className="solid-button" type="submit" disabled={submitState === "loading"}>
               <Send size={17} aria-hidden="true" />
-              {submitState === "loading" ? "Submitting" : "Submit for review"}
+              {submitState === "loading" ? "Submitting" : submitState === "sent" ? "Submitted" : "Submit for review"}
             </button>
             <button className="ghost-button" type="button" onClick={() => reset()}>
               <RotateCcw size={17} aria-hidden="true" />
               Reset
             </button>
+            {submitState === "sent" ? (
+              <Link className="ghost-button" href="/account">
+                <CheckCircle size={17} aria-hidden="true" />
+                Track status
+              </Link>
+            ) : null}
           </div>
           {message ? <div className="toast" role="status">{message}</div> : null}
         </form>
       </div>
 
       <aside className="preview-card">
-        <Image src="/assets/cover-upload.png" width={640} height={400} alt="Submission preview" />
+        <Image src={previewCover} width={640} height={400} alt="Submission preview" />
         <div>
           <span className="section-kicker">Preview Card</span>
           <h2>{draft.title || "Your work will appear here"}</h2>
           <p>{draft.summary || "Cover, title, summary, tags, and a playable link form your oeeco card."}</p>
+          <div className="submission-checklist">
+            <span>{categoryLabels[draft.category]}</span>
+            <span>{draft.toolStack.trim() || "Tool stack"}</span>
+          </div>
           <div className="tag-row">
             {(tags.length ? tags : ["Codex", "New Work"]).map((tag) => (
               <span className="small-pill" key={tag}>
@@ -277,9 +420,68 @@ export function UploadForm() {
 }
 
 function parseTags(value: string) {
+  const seen = new Set<string>();
   return value
-    .split(/[,\s]+/)
-    .map((tag) => tag.trim())
+    .split(/[,\n]/)
+    .map((tag) => tag.trim().replace(/\s+/g, " "))
     .filter(Boolean)
-    .slice(0, 5);
+    .map((tag) => tag.slice(0, 32))
+    .filter((tag) => {
+      const key = tag.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 8);
+}
+
+function prepareSubmission(draft: Draft): { data: PreparedSubmission; errors: string[] } {
+  const title = draft.title.trim();
+  const summary = draft.summary.trim();
+  const detail = draft.detail.trim();
+  const tags = parseTags(draft.tags);
+  const demoUrl = draft.demoUrl.trim();
+  const coverUrl = draft.coverUrl.trim();
+  const toolStack = draft.toolStack.trim();
+  const errors: string[] = [];
+
+  if (title.length < 3) errors.push("Add a title with at least 3 characters.");
+  if (summary.length < 20) errors.push("Add a short summary with at least 20 characters.");
+  if (detail.length < 30) errors.push("Add creator notes with at least 30 characters.");
+  if (!isHttpUrl(demoUrl)) errors.push("Add a valid public Demo URL starting with http or https.");
+  if (coverUrl && !isHttpUrl(coverUrl) && !coverUrl.startsWith("/")) {
+    errors.push("Use a valid cover image URL, a local path starting with /, or leave it blank.");
+  }
+  if (!toolStack) errors.push("Add the tools used to build the work.");
+  if (!tags.length) errors.push("Add at least one tag.");
+
+  return {
+    data: {
+      title: title.slice(0, 80),
+      summary: summary.slice(0, 160),
+      detail: detail.slice(0, 1200),
+      category: draft.category,
+      tags,
+      demoUrl,
+      coverUrl: coverUrl || null,
+      toolStack: toolStack.slice(0, 120),
+    },
+    errors,
+  };
+}
+
+function isHttpUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function getPreviewCover(value: string) {
+  const cover = value.trim();
+  if (!cover) return "/assets/cover-upload.png";
+  if (cover.startsWith("/") || isHttpUrl(cover)) return cover;
+  return "/assets/cover-upload.png";
 }
