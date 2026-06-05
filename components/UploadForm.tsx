@@ -1,7 +1,7 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { CheckCircle, LogOut, RotateCcw, Send } from "lucide-react";
+import { CheckCircle, CircleUserRound, LogOut, RotateCcw, Send } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -20,6 +20,7 @@ type Draft = {
 };
 
 type SubmitState = "idle" | "loading" | "sent";
+type OAuthState = "idle" | "google";
 
 type PreparedSubmission = {
   title: string;
@@ -59,6 +60,7 @@ export function UploadForm() {
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
+  const [oauthState, setOauthState] = useState<OAuthState>("idle");
 
   const tags = useMemo(() => parseTags(draft.tags), [draft.tags]);
   const previewCover = getPreviewCover(draft.coverUrl);
@@ -138,6 +140,26 @@ export function UploadForm() {
     setSubmitState("idle");
 
     setMessage(error ? error.message : "Magic link sent. Open your email to finish signing in.");
+  }
+
+  async function signInWithGoogle() {
+    if (!supabase || !isSupabaseConfigured) {
+      setMessage("Supabase is not configured yet.");
+      return;
+    }
+
+    setOauthState("google");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/upload`,
+      },
+    });
+
+    if (error) {
+      setOauthState("idle");
+      setMessage(error.message);
+    }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -243,6 +265,13 @@ export function UploadForm() {
         ) : (
           <form className="form-grid surface detail-body" onSubmit={sendMagicLink}>
             <span className="section-kicker">Creator Login</span>
+            <button className="solid-button" type="button" onClick={signInWithGoogle} disabled={oauthState === "google"}>
+              <CircleUserRound size={17} aria-hidden="true" />
+              {oauthState === "google" ? "Connecting" : "Continue with Google"}
+            </button>
+            <div className="auth-divider">
+              <span>Email sign-in</span>
+            </div>
             <div className="field">
               <label htmlFor="email">Email</label>
               <input

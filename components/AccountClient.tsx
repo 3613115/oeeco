@@ -1,7 +1,7 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { ExternalLink, LogOut, Mail, Play, RefreshCw, Save, Send, Upload, UserRound } from "lucide-react";
+import { CircleUserRound, ExternalLink, LogOut, Mail, Play, RefreshCw, Save, Send, Upload, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -39,6 +39,7 @@ type ProfileForm = {
 type LoadState = "idle" | "loading" | "ready";
 type SubmitState = "idle" | "loading";
 type SaveState = "idle" | "saving";
+type OAuthState = "idle" | "google";
 
 const statusMeta: Record<WorkStatus, { label: string; helper: string }> = {
   pending: {
@@ -79,6 +80,7 @@ export function AccountClient() {
   const [works, setWorks] = useState<AccountWorkRow[]>([]);
   const [message, setMessage] = useState("");
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
+  const [oauthState, setOauthState] = useState<OAuthState>("idle");
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [loadState, setLoadState] = useState<LoadState>("idle");
 
@@ -132,6 +134,26 @@ export function AccountClient() {
     setSubmitState("idle");
 
     setMessage(error ? error.message : "Magic link sent. Open your email to finish signing in.");
+  }
+
+  async function signInWithGoogle() {
+    if (!supabase || !isSupabaseConfigured) {
+      setMessage("Supabase is not configured yet.");
+      return;
+    }
+
+    setOauthState("google");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/account`,
+      },
+    });
+
+    if (error) {
+      setOauthState("idle");
+      setMessage(error.message);
+    }
   }
 
   async function loadProfile(userId: string) {
@@ -261,6 +283,16 @@ export function AccountClient() {
             <span className="section-kicker">Creator Account</span>
             <h1 className="page-title">Sign in to track your work</h1>
             <p>Use the same email you submit with to see review status, public links, and playable demos.</p>
+          </div>
+        </div>
+
+        <div className="account-login auth-provider-stack">
+          <button className="solid-button" type="button" onClick={signInWithGoogle} disabled={oauthState === "google"}>
+            <CircleUserRound size={17} aria-hidden="true" />
+            {oauthState === "google" ? "Connecting" : "Continue with Google"}
+          </button>
+          <div className="auth-divider">
+            <span>Email sign-in</span>
           </div>
         </div>
 

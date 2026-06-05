@@ -1167,6 +1167,28 @@ button {
   max-width: 520px;
 }
 
+.auth-provider-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-divider {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 820;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  background: var(--line);
+}
+
 .form-grid {
   display: grid;
   gap: 16px;
