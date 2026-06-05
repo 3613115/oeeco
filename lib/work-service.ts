@@ -94,6 +94,20 @@ export async function getPublicWorksByCreator(creatorId: string) {
 export async function getPublicCreator(creatorId: string) {
   if (creators[creatorId]) return creators[creatorId];
 
+  const supabase = getSupabasePublicServerClient();
+  if (supabase) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, username, display_name, avatar_url, bio")
+      .eq("id", creatorId)
+      .maybeSingle();
+
+    const profile = data as ProfileRow | null;
+    if (profile) {
+      return profileToCreator(profile);
+    }
+  }
+
   const publicWorks = await getAllPublicWorks();
   return publicWorks.find((work) => work.creatorId === creatorId)?.creator || null;
 }
@@ -310,14 +324,7 @@ async function hydrateWorks(rows: WorkRow[], useAdmin = false): Promise<Work[]> 
     const rawTags = tagsByWorkId.get(row.id) || ["oeeco"];
     const curation = parseCurationTags(rawTags);
     const displayTags = rawTags.filter((tag) => !isCurationTag(tag));
-    const creator: Creator = {
-      id: row.creator_id,
-      name: profile?.display_name || profile?.username || "oeeco creator",
-      handle: profile?.username ? `@${profile.username}` : "@creator",
-      avatar: profile?.avatar_url || creators.neo.avatar,
-      bio: profile?.bio || "oeeco creator",
-      followers: "new creator",
-    };
+    const creator = profile ? profileToCreator(profile) : fallbackCreator(row.creator_id);
 
     return {
       id: row.id,
@@ -341,6 +348,28 @@ async function hydrateWorks(rows: WorkRow[], useAdmin = false): Promise<Work[]> 
       frame: "upload",
     };
   });
+}
+
+function profileToCreator(profile: ProfileRow): Creator {
+  return {
+    id: profile.id,
+    name: profile.display_name || profile.username || "oeeco creator",
+    handle: profile.username ? `@${profile.username}` : "@creator",
+    avatar: profile.avatar_url || creators.neo.avatar,
+    bio: profile.bio || "oeeco creator",
+    followers: "new creator",
+  };
+}
+
+function fallbackCreator(id: string): Creator {
+  return {
+    id,
+    name: "oeeco creator",
+    handle: "@creator",
+    avatar: creators.neo.avatar,
+    bio: "oeeco creator",
+    followers: "new creator",
+  };
 }
 
 function sortHomeWorks(works: Work[]) {

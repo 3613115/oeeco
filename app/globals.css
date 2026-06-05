@@ -979,6 +979,72 @@ button {
   justify-content: flex-end;
 }
 
+.account-profile-panel {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.45fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 16px;
+}
+
+.account-profile-preview {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+}
+
+.account-profile-preview img {
+  width: 84px;
+  height: 84px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+}
+
+.account-profile-preview h2 {
+  margin: 4px 0;
+  font-size: 24px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.account-profile-preview p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.account-profile-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.account-profile-form .span-2,
+.account-profile-actions {
+  grid-column: 1 / -1;
+}
+
+.account-profile-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.account-profile-actions span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 760;
+}
+
 .account-status-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -1914,7 +1980,9 @@ button {
   }
 
   .account-heading,
-  .account-work {
+  .account-work,
+  .account-profile-panel,
+  .account-profile-form {
     grid-template-columns: 1fr;
   }
 
@@ -1923,7 +1991,8 @@ button {
   }
 
   .account-actions,
-  .account-work-actions {
+  .account-work-actions,
+  .account-profile-actions {
     justify-content: flex-start;
   }
 

@@ -1,7 +1,8 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { ExternalLink, LogOut, Mail, Play, RefreshCw, Send, Upload } from "lucide-react";
+import { ExternalLink, LogOut, Mail, Play, RefreshCw, Save, Send, Upload, UserRound } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { categoryLabels, isCategoryId, type CategoryId } from "@/lib/data";
@@ -20,8 +21,24 @@ type AccountWorkRow = {
   updated_at: string;
 };
 
+type ProfileRow = {
+  id: string;
+  username: string;
+  display_name: string;
+  avatar_url: string | null;
+  bio: string | null;
+};
+
+type ProfileForm = {
+  username: string;
+  displayName: string;
+  avatarUrl: string;
+  bio: string;
+};
+
 type LoadState = "idle" | "loading" | "ready";
 type SubmitState = "idle" | "loading";
+type SaveState = "idle" | "saving";
 
 const statusMeta: Record<WorkStatus, { label: string; helper: string }> = {
   pending: {
@@ -52,9 +69,17 @@ export function AccountClient() {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [email, setEmail] = useState("");
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
+  const [profileForm, setProfileForm] = useState<ProfileForm>({
+    username: "",
+    displayName: "",
+    avatarUrl: "",
+    bio: "",
+  });
   const [works, setWorks] = useState<AccountWorkRow[]>([]);
   const [message, setMessage] = useState("");
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
+  const [saveState, setSaveState] = useState<SaveState>("idle");
   const [loadState, setLoadState] = useState<LoadState>("idle");
 
   useEffect(() => {
@@ -74,9 +99,11 @@ export function AccountClient() {
   useEffect(() => {
     if (!supabase || !user) {
       setWorks([]);
+      setProfile(null);
       return;
     }
 
+    loadProfile(user.id);
     loadWorks(user.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, user]);
@@ -107,6 +134,35 @@ export function AccountClient() {
     setMessage(error ? error.message : "Magic link sent. Open your email to finish signing in.");
   }
 
+  async function loadProfile(userId: string) {
+    if (!supabase) return;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, username, display_name, avatar_url, bio")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    if (!data) {
+      setMessage("Profile is still being created. Refresh in a moment.");
+      return;
+    }
+
+    const nextProfile = data as ProfileRow;
+    setProfile(nextProfile);
+    setProfileForm({
+      username: nextProfile.username || "",
+      displayName: nextProfile.display_name || "",
+      avatarUrl: nextProfile.avatar_url || "",
+      bio: nextProfile.bio || "",
+    });
+  }
+
   async function loadWorks(userId: string) {
     if (!supabase) return;
 
@@ -126,6 +182,52 @@ export function AccountClient() {
 
     setWorks((data as AccountWorkRow[] | null) || []);
     setLoadState("ready");
+  }
+
+  async function saveProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!supabase || !user) return;
+
+    const prepared = prepareProfileForm(profileForm);
+    if (!prepared.ok) {
+      setMessage(prepared.message);
+      return;
+    }
+
+    setSaveState("saving");
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({
+        username: prepared.data.username,
+        display_name: prepared.data.displayName,
+        avatar_url: prepared.data.avatarUrl || null,
+        bio: prepared.data.bio,
+      })
+      .eq("id", user.id)
+      .select("id, username, display_name, avatar_url, bio")
+      .maybeSingle();
+    setSaveState("idle");
+
+    if (error) {
+      setMessage(getProfileSaveError(error.message));
+      return;
+    }
+
+    if (!data) {
+      setMessage("Profile was not found. Refresh your account and try again.");
+      return;
+    }
+
+    const nextProfile = data as ProfileRow;
+    setProfile(nextProfile);
+    setProfileForm({
+      username: nextProfile.username || "",
+      displayName: nextProfile.display_name || "",
+      avatarUrl: nextProfile.avatar_url || "",
+      bio: nextProfile.bio || "",
+    });
+    setMessage("Profile saved.");
   }
 
   async function signOut() {
@@ -203,6 +305,10 @@ export function AccountClient() {
             <RefreshCw size={17} aria-hidden="true" />
             Refresh
           </button>
+          <Link className="ghost-button" href={`/creators/${user.id}`}>
+            <UserRound size={17} aria-hidden="true" />
+            Public profile
+          </Link>
           <button className="ghost-button" type="button" onClick={signOut}>
             <LogOut size={17} aria-hidden="true" />
             Sign out
@@ -213,6 +319,68 @@ export function AccountClient() {
           </Link>
         </div>
       </div>
+
+      <section className="account-profile-panel">
+        <div className="account-profile-preview">
+          <Image src={getProfileAvatar(profileForm.avatarUrl)} width={84} height={84} alt="" />
+          <div>
+            <span className="section-kicker">Creator Profile</span>
+            <h2>{profileForm.displayName.trim() || profile?.display_name || "oeeco creator"}</h2>
+            <p>{profileForm.username.trim() ? `@${profileForm.username.trim()}` : "Choose a creator handle"}</p>
+          </div>
+        </div>
+        <form className="account-profile-form" onSubmit={saveProfile}>
+          <div className="field">
+            <label htmlFor="profile-display-name">Display name</label>
+            <input
+              id="profile-display-name"
+              maxLength={60}
+              value={profileForm.displayName}
+              onChange={(event) => setProfileForm((value) => ({ ...value, displayName: event.target.value }))}
+              placeholder="Your creator name"
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="profile-username">Username</label>
+            <input
+              id="profile-username"
+              maxLength={24}
+              value={profileForm.username}
+              onChange={(event) => setProfileForm((value) => ({ ...value, username: event.target.value }))}
+              placeholder="creator_123"
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="profile-avatar">Avatar URL</label>
+            <input
+              id="profile-avatar"
+              value={profileForm.avatarUrl}
+              onChange={(event) => setProfileForm((value) => ({ ...value, avatarUrl: event.target.value }))}
+              placeholder="https://..."
+            />
+          </div>
+          <div className="field span-2">
+            <label htmlFor="profile-bio">Bio</label>
+            <textarea
+              id="profile-bio"
+              maxLength={240}
+              rows={4}
+              value={profileForm.bio}
+              onChange={(event) => setProfileForm((value) => ({ ...value, bio: event.target.value }))}
+              placeholder="What do you make with AI?"
+            />
+          </div>
+          <div className="account-profile-actions">
+            <span>{profileForm.bio.length}/240 bio characters</span>
+            <button className="solid-button" type="submit" disabled={saveState === "saving"}>
+              <Save size={17} aria-hidden="true" />
+              {saveState === "saving" ? "Saving" : "Save Profile"}
+            </button>
+          </div>
+        </form>
+      </section>
 
       <div className="account-status-grid" aria-label="Submission status counts">
         {statusOrder.map((status) => (
@@ -294,4 +462,70 @@ function formatDate(value: string) {
     day: "numeric",
     year: "numeric",
   }).format(new Date(value));
+}
+
+function prepareProfileForm(form: ProfileForm) {
+  const username = form.username.trim().replace(/^@+/, "");
+  const displayName = form.displayName.trim().replace(/\s+/g, " ");
+  const avatarUrl = form.avatarUrl.trim();
+  const bio = form.bio.trim().replace(/\s+/g, " ");
+
+  if (!/^[a-zA-Z0-9_]{3,24}$/.test(username)) {
+    return {
+      ok: false as const,
+      message: "Username must be 3-24 characters using letters, numbers, or underscores.",
+    };
+  }
+
+  if (displayName.length < 2 || displayName.length > 60) {
+    return {
+      ok: false as const,
+      message: "Display name must be 2-60 characters.",
+    };
+  }
+
+  if (avatarUrl && !isHttpsUrl(avatarUrl)) {
+    return {
+      ok: false as const,
+      message: "Avatar URL must use https.",
+    };
+  }
+
+  if (bio.length > 240) {
+    return {
+      ok: false as const,
+      message: "Bio must be 240 characters or fewer.",
+    };
+  }
+
+  return {
+    ok: true as const,
+    data: {
+      username,
+      displayName,
+      avatarUrl,
+      bio,
+    },
+  };
+}
+
+function getProfileAvatar(value: string) {
+  return isHttpsUrl(value.trim()) ? value.trim() : "/assets/avatar-neo.png";
+}
+
+function isHttpsUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function getProfileSaveError(message: string) {
+  if (message.toLowerCase().includes("duplicate")) return "That username is already taken.";
+  if (message.toLowerCase().includes("violates check constraint")) {
+    return "Check your username, display name, avatar URL, and bio length.";
+  }
+  return message;
 }
