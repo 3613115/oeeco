@@ -48,12 +48,14 @@ const categoryOptions = categories.filter(
 
 type AdminSort = "newest" | "oldest" | "views" | "likes" | "ready" | "health";
 type AdminHealthFilter = "all" | "attention" | "curated" | "featured";
+type AdminQueueFilter = "all" | "ready" | "fixes" | "attention" | "home";
 
 type AdminFilters = {
   q: string;
   category: "all" | Exclude<CategoryId, "all">;
   sort: AdminSort;
   health: AdminHealthFilter;
+  queue: AdminQueueFilter;
 };
 
 const sortOptions: Array<{ id: AdminSort; label: string }> = [
@@ -72,6 +74,14 @@ const healthOptions: Array<{ id: AdminHealthFilter; label: string }> = [
   { id: "featured", label: "Featured" },
 ];
 
+const queueOptions: Array<{ id: AdminQueueFilter; label: string }> = [
+  { id: "all", label: "All queues" },
+  { id: "ready", label: "Ready to publish" },
+  { id: "fixes", label: "Needs fixes" },
+  { id: "attention", label: "Live attention" },
+  { id: "home", label: "Home lineup" },
+];
+
 function parseStatus(value: FormDataEntryValue | string | undefined | null): AdminWorkStatus {
   const next = String(value || "");
   return statusOptions.some((status) => status.id === next) ? (next as AdminWorkStatus) : "pending";
@@ -87,18 +97,24 @@ function parseHealthFilter(value: FormDataEntryValue | string | undefined | null
   return healthOptions.some((health) => health.id === next) ? (next as AdminHealthFilter) : "all";
 }
 
+function parseQueueFilter(value: FormDataEntryValue | string | undefined | null): AdminQueueFilter {
+  const next = String(value || "all");
+  return queueOptions.some((queue) => queue.id === next) ? (next as AdminQueueFilter) : "all";
+}
+
 function parseFilterCategory(value: FormDataEntryValue | string | undefined | null): AdminFilters["category"] {
   const next = String(value || "all");
   if (next === "all") return "all";
   return isCategoryId(next) ? next : "all";
 }
 
-function getAdminFilters(input: { q?: string; category?: string; sort?: string; health?: string }): AdminFilters {
+function getAdminFilters(input: { q?: string; category?: string; sort?: string; health?: string; queue?: string }): AdminFilters {
   return {
     q: (input.q || "").trim().slice(0, 120),
     category: parseFilterCategory(input.category),
     sort: parseSort(input.sort),
     health: parseHealthFilter(input.health),
+    queue: parseQueueFilter(input.queue),
   };
 }
 
@@ -110,6 +126,7 @@ function getAdminFilterParams(filters: AdminFilters) {
   if (filters.q) params.q = filters.q;
   if (filters.category !== "all") params.category = filters.category;
   if (filters.health !== "all") params.health = filters.health;
+  if (filters.queue !== "all") params.queue = filters.queue;
 
   return params;
 }
@@ -120,6 +137,7 @@ function getAdminFormContext(formData: FormData): AdminFilters {
     category: parseFilterCategory(formData.get("category")),
     sort: parseSort(formData.get("sort")),
     health: parseHealthFilter(formData.get("health")),
+    queue: parseQueueFilter(formData.get("queue")),
   };
 }
 
@@ -291,6 +309,7 @@ function filterAndSortAdminWorks(works: AdminWork[], filters: AdminFilters) {
   const filtered = works.filter((work) => {
     if (filters.category !== "all" && work.category !== filters.category) return false;
     if (!matchesHealthFilter(work, filters.health)) return false;
+    if (!matchesQueueFilter(work, filters.queue)) return false;
     if (!query) return true;
 
     const creator = work.creator;
@@ -344,6 +363,21 @@ function matchesHealthFilter(work: AdminWork, filter: AdminHealthFilter) {
   return true;
 }
 
+function matchesQueueFilter(work: AdminWork, filter: AdminQueueFilter) {
+  if (filter === "ready") return work.status === "pending" && isReviewReady(work);
+  if (filter === "fixes") return work.status === "pending" && !isReviewReady(work);
+  if (filter === "attention") return work.status === "published" && getContentHealthReport(work).needsAttention;
+  if (filter === "home") {
+    const curation = getWorkCuration(work);
+    return work.status === "published" && (curation.featured || Boolean(curation.rank || curation.label));
+  }
+  return true;
+}
+
+function isReviewReady(work: AdminWork) {
+  return getReviewChecks(work).every((check) => check.ok);
+}
+
 function getContentHealthReport(work: AdminWork) {
   const checks = getContentHealthChecks(work);
   const passed = checks.filter((check) => check.ok).length;
@@ -356,6 +390,85 @@ function getContentHealthReport(work: AdminWork) {
     total: checks.length,
     score: Math.round((passed / checks.length) * 100),
     needsAttention: work.status === "published" && issues > 0,
+  };
+}
+
+function getAdminQueueSummary(pendingWorks: AdminWork[], publishedWorks: AdminWork[]) {
+  return {
+    ready: pendingWorks.filter(isReviewReady).length,
+    fixes: pendingWorks.filter((work) => !isReviewReady(work)).length,
+    attention: publishedWorks.filter((work) => getContentHealthReport(work).needsAttention).length,
+    home: publishedWorks.filter((work) => {
+      const curation = getWorkCuration(work);
+      return curation.featured || Boolean(curation.rank || curation.label);
+    }).length,
+  };
+}
+
+function getQueueHref(key: string, queue: AdminQueueFilter) {
+  if (queue === "ready") return adminUrl(key, "pending", { sort: "ready", queue });
+  if (queue === "fixes") return adminUrl(key, "pending", { sort: "ready", queue });
+  if (queue === "attention") return adminUrl(key, "published", { sort: "health", health: "attention", queue });
+  if (queue === "home") return adminUrl(key, "published", { sort: "health", health: "curated", queue });
+  return adminUrl(key, "pending");
+}
+
+function getNextAction(work: AdminWork) {
+  const curation = getWorkCuration(work);
+  const health = getContentHealthReport(work);
+
+  if (work.status === "pending" && isReviewReady(work)) {
+    return {
+      label: "Ready to publish",
+      helper: "Open the demo once, confirm the metadata, then publish.",
+      tone: "good" as const,
+    };
+  }
+
+  if (work.status === "pending") {
+    return {
+      label: "Fix review blockers",
+      helper: "Resolve the failed review checks before publishing.",
+      tone: "warning" as const,
+    };
+  }
+
+  if (work.status === "published" && health.needsAttention) {
+    return {
+      label: "Repair live quality",
+      helper: "Fix content health issues, or hide temporarily if the live experience is not acceptable.",
+      tone: "warning" as const,
+    };
+  }
+
+  if (work.status === "published" && curation.featured) {
+    return {
+      label: "Maintain featured slot",
+      helper: "Keep rank, label, cover, and demo quality aligned while it stays featured.",
+      tone: "good" as const,
+    };
+  }
+
+  if (work.status === "published" && (curation.rank || curation.label)) {
+    return {
+      label: "Review home lineup",
+      helper: "This work is curated for the homepage. Check whether it should become featured or stay lower priority.",
+      tone: "neutral" as const,
+    };
+  }
+
+  if (work.status === "published") {
+    return {
+      label: "Candidate for curation",
+      helper: "If the work is strong, add a home rank or feature label.",
+      tone: "neutral" as const,
+    };
+  }
+
+  return {
+    label: "Archived decision",
+    helper: "Keep this state, or move it back to pending if you want to review again.",
+    tone: "neutral" as const,
   };
 }
 
@@ -517,6 +630,7 @@ export default async function AdminPage({
     category?: string;
     sort?: string;
     health?: string;
+    queue?: string;
     error?: string;
     updated?: string;
     saved?: string;
@@ -572,10 +686,22 @@ export default async function AdminPage({
     );
   }
 
-  const [works, counts] = await Promise.all([getAdminWorks(activeStatus), getAdminWorkCounts()]);
+  const [works, counts, pendingWorks, publishedWorks] = await Promise.all([
+    getAdminWorks(activeStatus),
+    getAdminWorkCounts(),
+    getAdminWorks("pending"),
+    getAdminWorks("published"),
+  ]);
   const visibleWorks = filterAndSortAdminWorks(works, filters);
   const activeOption = statusOptions.find((status) => status.id === activeStatus) || statusOptions[0];
   const healthSummary = getAdminHealthSummary(works);
+  const queueSummary = getAdminQueueSummary(pendingWorks, publishedWorks);
+  const queueCards: Array<{ id: AdminQueueFilter; label: string; helper: string; count: number }> = [
+    { id: "ready", label: "Ready to publish", helper: "Pending works that pass review checks", count: queueSummary.ready },
+    { id: "fixes", label: "Needs fixes", helper: "Pending works with review blockers", count: queueSummary.fixes },
+    { id: "attention", label: "Live attention", helper: "Published works with health issues", count: queueSummary.attention },
+    { id: "home", label: "Home lineup", helper: "Published works used for curation", count: queueSummary.home },
+  ];
 
   return (
     <section className="surface detail-body admin-page">
@@ -659,6 +785,19 @@ export default async function AdminPage({
             ))}
           </select>
         </label>
+        <label>
+          <span>
+            <SlidersHorizontal size={14} aria-hidden="true" />
+            Queue
+          </span>
+          <select name="queue" defaultValue={filters.queue}>
+            {queueOptions.map((queue) => (
+              <option value={queue.id} key={queue.id}>
+                {queue.label}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="admin-ops-actions">
           <button className="solid-button" type="submit">
             Apply
@@ -668,6 +807,20 @@ export default async function AdminPage({
           </Link>
         </div>
       </form>
+
+      <div className="admin-queue-grid" aria-label="Operational queues">
+        {queueCards.map((queue) => (
+          <Link
+            className={filters.queue === queue.id ? "admin-queue-card is-active" : "admin-queue-card"}
+            href={getQueueHref(key, queue.id)}
+            key={queue.id}
+          >
+            <span>{queue.label}</span>
+            <strong>{queue.count}</strong>
+            <small>{queue.helper}</small>
+          </Link>
+        ))}
+      </div>
 
       <div className="admin-health-summary" aria-label="Content health summary">
         <div className={healthSummary.attentionCount ? "admin-health-card is-warning" : "admin-health-card is-good"}>
@@ -746,6 +899,7 @@ function AdminWorkReviewRow({
   const playUrl = absoluteUrl(`/play/${work.id}`);
   const curation = getWorkCuration(work);
   const health = getContentHealthReport(work);
+  const nextAction = getNextAction(work);
 
   return (
     <article className="admin-row">
@@ -857,6 +1011,15 @@ function AdminWorkReviewRow({
           />
         </details>
       ) : null}
+
+      <div className={`admin-next-action is-${nextAction.tone}`}>
+        <span>
+          <Activity size={16} aria-hidden="true" />
+          Next action
+        </span>
+        <strong>{nextAction.label}</strong>
+        <p>{nextAction.helper}</p>
+      </div>
 
       <div className="admin-health-panel">
         <div>
@@ -1026,6 +1189,7 @@ function AdminContextFields({ filters }: { filters: AdminFilters }) {
       <input type="hidden" name="category" value={filters.category} />
       <input type="hidden" name="sort" value={filters.sort} />
       <input type="hidden" name="health" value={filters.health} />
+      <input type="hidden" name="queue" value={filters.queue} />
     </>
   );
 }
