@@ -4,6 +4,7 @@ const platformLinks = [
   ["Explore", "/"],
   ["Leaderboard", "/rank"],
   ["Submit Work", "/upload"],
+  ["Account", "/account"],
 ];
 
 const policyLinks = [

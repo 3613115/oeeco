@@ -43,7 +43,7 @@ export function SiteHeader() {
         </Link>
       </nav>
 
-      <Link className="avatar-button" href="/creators/neo" aria-label="My profile">
+      <Link className="avatar-button" href="/account" aria-label="My account">
         <Image src="/assets/avatar-neo.png" width={30} height={30} alt="" />
       </Link>
     </header>
