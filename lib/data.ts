@@ -26,8 +26,15 @@ export type Work = {
   summary: string;
   detail: string;
   demoUrl?: string | null;
+  curation?: WorkCuration;
   comments: Array<[string, string, string]>;
   frame: "fishing" | "crm" | "story" | "garden" | "kitchen" | "clock" | "upload";
+};
+
+export type WorkCuration = {
+  featured: boolean;
+  rank: number | null;
+  label: string | null;
 };
 
 export const categories: Array<[CategoryId, string]> = [
@@ -223,6 +230,10 @@ export function getCreator(id: string) {
 
 export function getWorkCreator(work: Work) {
   return work.creator || getCreator(work.creatorId);
+}
+
+export function getWorkCuration(work: Work): WorkCuration {
+  return work.curation || { featured: false, rank: null, label: null };
 }
 
 export function getWork(id: string) {

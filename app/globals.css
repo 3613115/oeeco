@@ -1618,6 +1618,69 @@ button {
   background: #101b17;
 }
 
+.admin-curation-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(150px, 0.42fr) minmax(150px, 0.42fr) minmax(180px, 0.55fr) auto;
+  gap: 12px;
+  align-items: end;
+  border: 1px solid rgba(12, 122, 85, 0.2);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(85, 214, 168, 0.12), rgba(255, 255, 255, 0.92));
+  padding: 14px;
+}
+
+.admin-curation-panel h3 {
+  margin: 4px 0 3px;
+  font-size: 17px;
+}
+
+.admin-curation-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.admin-curation-panel label {
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.admin-curation-panel label > span,
+.admin-toggle-field span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--leaf);
+}
+
+.admin-curation-panel input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 8px 10px;
+}
+
+.admin-toggle-field {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 8px 10px;
+}
+
+.admin-toggle-field input {
+  width: 18px;
+  min-height: 18px;
+  accent-color: var(--leaf);
+}
+
 .admin-edit-form {
   display: grid;
   gap: 12px;
@@ -1845,7 +1908,8 @@ button {
   .admin-tabs,
   .admin-fields,
   .admin-review-grid,
-  .admin-ops-bar {
+  .admin-ops-bar,
+  .admin-curation-panel {
     grid-template-columns: 1fr;
   }
 

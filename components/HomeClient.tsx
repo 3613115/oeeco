@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { WorkCard } from "@/components/WorkCard";
-import { categories, getWorkCreator, type CategoryId, type Work } from "@/lib/data";
+import { categories, getWorkCreator, getWorkCuration, type CategoryId, type Work } from "@/lib/data";
 
 export function HomeClient({
   initialQuery = "",
@@ -18,6 +18,7 @@ export function HomeClient({
   const [sort, setSort] = useState<"featured" | "hot" | "new">("featured");
   const featured = initialWorks[0];
   const featuredCreator = featured ? getWorkCreator(featured) : null;
+  const featuredCuration = featured ? getWorkCuration(featured) : null;
   const query = initialQuery.trim().toLowerCase();
 
   const filteredWorks = useMemo(() => {
@@ -75,7 +76,7 @@ export function HomeClient({
         <section className="spotlight surface">
           <div className="spotlight-copy">
             <div>
-              <span className="section-kicker">Today&apos;s Pick</span>
+              <span className="section-kicker">{featuredCuration?.label || "Today&apos;s Pick"}</span>
               <h1 className="headline">oeeco</h1>
               <p className="lede">
                 A global gallery for AI-made games, web tools, interactive pages, and playful experiments. Submit

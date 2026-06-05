@@ -11,15 +11,18 @@ import {
   Search,
   Shield,
   SlidersHorizontal,
+  Star,
+  Trophy,
   X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { categories, categoryLabels, isCategoryId, type CategoryId } from "@/lib/data";
+import { categories, categoryLabels, getWorkCuration, isCategoryId, type CategoryId } from "@/lib/data";
 import { absoluteUrl } from "@/lib/site";
 import {
+  updateAdminWorkCuration,
   getAdminWorkCounts,
   getAdminWorks,
   type AdminWork,
@@ -138,6 +141,12 @@ function parseTags(value: FormDataEntryValue | null) {
     .slice(0, 8);
 }
 
+function parseCurationRank(value: FormDataEntryValue | null) {
+  const rank = Number.parseInt(String(value || ""), 10);
+  if (!Number.isFinite(rank) || rank <= 0) return null;
+  return Math.min(rank, 999);
+}
+
 function isHttpUrl(value: string) {
   try {
     const url = new URL(value);
@@ -243,6 +252,7 @@ function getAdminErrorMessage(error: string | undefined) {
   if (error === "bad-request") return "Action failed. Check the required fields and try again.";
   if (error === "bad-url") return "Use valid http or https URLs. Cover URLs can also use a local path starting with /.";
   if (error === "save-failed") return "Save failed. Check Supabase and try again.";
+  if (error === "curation-failed") return "Curation update failed. Check Supabase and try again.";
   if (error === "update-failed") return "Status update failed. Check Supabase and try again.";
   return "Action failed. Check the form and try again.";
 }
@@ -329,6 +339,42 @@ async function saveDetails(formData: FormData) {
   );
 }
 
+async function saveCuration(formData: FormData) {
+  "use server";
+
+  const key = String(formData.get("key") || "");
+  const id = String(formData.get("id") || "");
+  const currentStatus = parseStatus(formData.get("currentStatus"));
+  const filters = getAdminFormContext(formData);
+
+  if (!process.env.ADMIN_PASSCODE || key !== process.env.ADMIN_PASSCODE) {
+    redirect("/admin?error=bad-key");
+  }
+
+  if (!id) {
+    redirect(adminUrl(key, currentStatus, { ...getAdminFilterParams(filters), error: "bad-request" }));
+  }
+
+  const result = await updateAdminWorkCuration(id, {
+    featured: formData.get("featured") === "on",
+    rank: parseCurationRank(formData.get("rank")),
+    label: cleanText(formData.get("label"), 19) || null,
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath(`/works/${id}`);
+  revalidatePath(`/play/${id}`);
+
+  redirect(
+    adminUrl(
+      key,
+      currentStatus,
+      result.ok ? { ...getAdminFilterParams(filters), curated: "1" } : { ...getAdminFilterParams(filters), error: "curation-failed" },
+    ),
+  );
+}
+
 export default async function AdminPage({
   searchParams,
 }: {
@@ -341,6 +387,7 @@ export default async function AdminPage({
     error?: string;
     updated?: string;
     saved?: string;
+    curated?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -425,6 +472,7 @@ export default async function AdminPage({
 
       {params.updated ? <div className="admin-notice">Status updated.</div> : null}
       {params.saved ? <div className="admin-notice">Work details saved.</div> : null}
+      {params.curated ? <div className="admin-notice">Home curation saved.</div> : null}
       {params.error ? <div className="admin-notice is-error">{getAdminErrorMessage(params.error)}</div> : null}
 
       <form className="admin-ops-bar" action="/admin">
@@ -491,6 +539,7 @@ export default async function AdminPage({
               key={work.id}
               keyValue={key}
               updateStatus={updateStatus}
+              saveCuration={saveCuration}
               saveDetails={saveDetails}
               work={work}
             />
@@ -510,6 +559,7 @@ function AdminWorkReviewRow({
   activeStatus,
   filters,
   keyValue,
+  saveCuration,
   saveDetails,
   updateStatus,
   work,
@@ -517,6 +567,7 @@ function AdminWorkReviewRow({
   activeStatus: AdminWorkStatus;
   filters: AdminFilters;
   keyValue: string;
+  saveCuration: (formData: FormData) => Promise<void>;
   saveDetails: (formData: FormData) => Promise<void>;
   updateStatus: (formData: FormData) => Promise<void>;
   work: AdminWork;
@@ -527,6 +578,7 @@ function AdminWorkReviewRow({
   const coverUrl = getSafeCoverUrl(work.cover);
   const workUrl = absoluteUrl(`/works/${work.id}`);
   const playUrl = absoluteUrl(`/play/${work.id}`);
+  const curation = getWorkCuration(work);
 
   return (
     <article className="admin-row">
@@ -545,6 +597,8 @@ function AdminWorkReviewRow({
             <span>{work.createdAt}</span>
             <span>{categoryLabels[work.category]}</span>
             <span>{work.tool}</span>
+            {curation.featured ? <span>Featured</span> : null}
+            {curation.rank ? <span>Home #{curation.rank}</span> : null}
           </div>
         </div>
         <div className="admin-actions">
@@ -633,6 +687,40 @@ function AdminWorkReviewRow({
           />
         </details>
       ) : null}
+
+      <form className="admin-curation-panel" action={saveCuration}>
+        <input type="hidden" name="key" value={keyValue} />
+        <input type="hidden" name="id" value={work.id} />
+        <input type="hidden" name="currentStatus" value={activeStatus} />
+        <AdminContextFields filters={filters} />
+        <div>
+          <span className="section-kicker">Home Curation</span>
+          <h3>Control homepage placement</h3>
+          <p>Featured works and lower ranks appear first on the oeeco homepage.</p>
+        </div>
+        <label className="admin-toggle-field">
+          <input name="featured" type="checkbox" defaultChecked={curation.featured} />
+          <span>
+            <Star size={16} aria-hidden="true" />
+            Featured
+          </span>
+        </label>
+        <label>
+          <span>
+            <Trophy size={15} aria-hidden="true" />
+            Home rank
+          </span>
+          <input name="rank" type="number" min={1} max={999} defaultValue={curation.rank || ""} placeholder="1" />
+        </label>
+        <label>
+          <span>Editorial label</span>
+          <input name="label" defaultValue={curation.label || ""} maxLength={19} placeholder="Editor's Pick" />
+        </label>
+        <button className="ghost-button" type="submit">
+          <Save size={17} aria-hidden="true" />
+          Save Curation
+        </button>
+      </form>
 
       <form className="admin-edit-form" action={saveDetails}>
         <input type="hidden" name="key" value={keyValue} />
