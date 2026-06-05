@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  Activity,
   ArrowDownUp,
   Check,
   ExternalLink,
@@ -20,6 +21,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { categories, categoryLabels, getWorkCuration, isCategoryId, type CategoryId } from "@/lib/data";
+import { getPlayableDemoUrl, getRunnerOriginLabel } from "@/lib/play-runner";
 import { absoluteUrl } from "@/lib/site";
 import {
   updateAdminWorkCuration,
@@ -44,12 +46,14 @@ const categoryOptions = categories.filter(
   (category): category is [Exclude<CategoryId, "all">, string] => category[0] !== "all",
 );
 
-type AdminSort = "newest" | "oldest" | "views" | "likes" | "ready";
+type AdminSort = "newest" | "oldest" | "views" | "likes" | "ready" | "health";
+type AdminHealthFilter = "all" | "attention" | "curated" | "featured";
 
 type AdminFilters = {
   q: string;
   category: "all" | Exclude<CategoryId, "all">;
   sort: AdminSort;
+  health: AdminHealthFilter;
 };
 
 const sortOptions: Array<{ id: AdminSort; label: string }> = [
@@ -58,6 +62,14 @@ const sortOptions: Array<{ id: AdminSort; label: string }> = [
   { id: "views", label: "Most views" },
   { id: "likes", label: "Most likes" },
   { id: "ready", label: "Review readiness" },
+  { id: "health", label: "Health risk" },
+];
+
+const healthOptions: Array<{ id: AdminHealthFilter; label: string }> = [
+  { id: "all", label: "All health states" },
+  { id: "attention", label: "Needs attention" },
+  { id: "curated", label: "Curated" },
+  { id: "featured", label: "Featured" },
 ];
 
 function parseStatus(value: FormDataEntryValue | string | undefined | null): AdminWorkStatus {
@@ -70,17 +82,23 @@ function parseSort(value: FormDataEntryValue | string | undefined | null): Admin
   return sortOptions.some((sort) => sort.id === next) ? (next as AdminSort) : "newest";
 }
 
+function parseHealthFilter(value: FormDataEntryValue | string | undefined | null): AdminHealthFilter {
+  const next = String(value || "all");
+  return healthOptions.some((health) => health.id === next) ? (next as AdminHealthFilter) : "all";
+}
+
 function parseFilterCategory(value: FormDataEntryValue | string | undefined | null): AdminFilters["category"] {
   const next = String(value || "all");
   if (next === "all") return "all";
   return isCategoryId(next) ? next : "all";
 }
 
-function getAdminFilters(input: { q?: string; category?: string; sort?: string }): AdminFilters {
+function getAdminFilters(input: { q?: string; category?: string; sort?: string; health?: string }): AdminFilters {
   return {
     q: (input.q || "").trim().slice(0, 120),
     category: parseFilterCategory(input.category),
     sort: parseSort(input.sort),
+    health: parseHealthFilter(input.health),
   };
 }
 
@@ -91,6 +109,7 @@ function getAdminFilterParams(filters: AdminFilters) {
 
   if (filters.q) params.q = filters.q;
   if (filters.category !== "all") params.category = filters.category;
+  if (filters.health !== "all") params.health = filters.health;
 
   return params;
 }
@@ -100,6 +119,7 @@ function getAdminFormContext(formData: FormData): AdminFilters {
     q: cleanText(formData.get("q"), 120),
     category: parseFilterCategory(formData.get("category")),
     sort: parseSort(formData.get("sort")),
+    health: parseHealthFilter(formData.get("health")),
   };
 }
 
@@ -198,6 +218,69 @@ function getReviewChecks(work: AdminWork) {
   ];
 }
 
+function getContentHealthChecks(work: AdminWork) {
+  const curation = getWorkCuration(work);
+  const hasInvalidDemo = Boolean(work.demoUrl && !isHttpUrl(work.demoUrl));
+  const playableDemoUrl = getPlayableDemoUrl(work.demoUrl);
+
+  return [
+    {
+      label: "Public page",
+      ok: work.status !== "published" || Boolean(work.id),
+      helper: work.status === "published" ? `/works/${work.id}` : "Public route appears after publishing.",
+    },
+    {
+      label: "TRY route",
+      ok: work.status !== "published" || Boolean(work.id),
+      helper: work.status === "published" ? `/play/${work.id}` : "TRY route appears after publishing.",
+    },
+    {
+      label: "Demo source",
+      ok: !hasInvalidDemo,
+      helper: hasInvalidDemo ? "Demo URL must be http or https." : work.demoUrl ? "External demo URL is syntactically valid." : "Uses oeeco preview.",
+    },
+    {
+      label: "Runner source",
+      ok: !work.demoUrl || Boolean(playableDemoUrl),
+      helper: playableDemoUrl
+        ? `Playable from ${getRunnerOriginLabel(work.demoUrl)}.`
+        : work.demoUrl
+          ? "External demo is held by runner policy."
+          : "Uses generated oeeco preview.",
+    },
+    {
+      label: "Cover asset",
+      ok: Boolean(work.cover && (work.cover.startsWith("/") || work.cover.startsWith("https://"))),
+      helper: "Local asset path or https cover.",
+    },
+    {
+      label: "Search summary",
+      ok: work.summary.trim().length >= 50,
+      helper: "At least 50 characters for cards and metadata.",
+    },
+    {
+      label: "Detail copy",
+      ok: work.detail.trim().length >= 80,
+      helper: "At least 80 characters for the detail page.",
+    },
+    {
+      label: "Discovery tags",
+      ok: work.tags.length >= 2,
+      helper: "At least two public tags.",
+    },
+    {
+      label: "Tools",
+      ok: work.tool.trim().length > 0,
+      helper: "Tool stack is visible.",
+    },
+    {
+      label: "Curation",
+      ok: !curation.featured || Boolean(curation.rank && curation.label),
+      helper: curation.featured ? "Featured works should have rank and label." : "Not featured.",
+    },
+  ];
+}
+
 function adminUrl(key: string, status: AdminWorkStatus, params: Record<string, string> = {}) {
   const query = new URLSearchParams({ key, status, ...params });
   return `/admin?${query.toString()}`;
@@ -207,6 +290,7 @@ function filterAndSortAdminWorks(works: AdminWork[], filters: AdminFilters) {
   const query = filters.q.toLowerCase();
   const filtered = works.filter((work) => {
     if (filters.category !== "all" && work.category !== filters.category) return false;
+    if (!matchesHealthFilter(work, filters.health)) return false;
     if (!query) return true;
 
     const creator = work.creator;
@@ -238,6 +322,11 @@ function filterAndSortAdminWorks(works: AdminWork[], filters: AdminFilters) {
     if (filters.sort === "ready") {
       return getReviewReadyScore(b) - getReviewReadyScore(a) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
+    if (filters.sort === "health") {
+      const aReport = getContentHealthReport(a);
+      const bReport = getContentHealthReport(b);
+      return bReport.issues - aReport.issues || aReport.score - bReport.score || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
 
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
@@ -245,6 +334,49 @@ function filterAndSortAdminWorks(works: AdminWork[], filters: AdminFilters) {
 
 function getReviewReadyScore(work: AdminWork) {
   return getReviewChecks(work).filter((check) => check.ok).length;
+}
+
+function matchesHealthFilter(work: AdminWork, filter: AdminHealthFilter) {
+  const curation = getWorkCuration(work);
+  if (filter === "attention") return getContentHealthReport(work).needsAttention;
+  if (filter === "curated") return curation.featured || Boolean(curation.rank || curation.label);
+  if (filter === "featured") return curation.featured;
+  return true;
+}
+
+function getContentHealthReport(work: AdminWork) {
+  const checks = getContentHealthChecks(work);
+  const passed = checks.filter((check) => check.ok).length;
+  const issues = checks.length - passed;
+
+  return {
+    checks,
+    passed,
+    issues,
+    total: checks.length,
+    score: Math.round((passed / checks.length) * 100),
+    needsAttention: work.status === "published" && issues > 0,
+  };
+}
+
+function getAdminHealthSummary(works: AdminWork[]) {
+  const reports = works.map(getContentHealthReport);
+  const attentionCount = reports.filter((report) => report.needsAttention).length;
+  const featuredCount = works.filter((work) => getWorkCuration(work).featured).length;
+  const curatedCount = works.filter((work) => {
+    const curation = getWorkCuration(work);
+    return curation.featured || Boolean(curation.rank || curation.label);
+  }).length;
+  const averageScore = reports.length
+    ? Math.round(reports.reduce((sum, report) => sum + report.score, 0) / reports.length)
+    : 100;
+
+  return {
+    attentionCount,
+    curatedCount,
+    featuredCount,
+    averageScore,
+  };
 }
 
 function getAdminErrorMessage(error: string | undefined) {
@@ -384,6 +516,7 @@ export default async function AdminPage({
     q?: string;
     category?: string;
     sort?: string;
+    health?: string;
     error?: string;
     updated?: string;
     saved?: string;
@@ -442,6 +575,7 @@ export default async function AdminPage({
   const [works, counts] = await Promise.all([getAdminWorks(activeStatus), getAdminWorkCounts()]);
   const visibleWorks = filterAndSortAdminWorks(works, filters);
   const activeOption = statusOptions.find((status) => status.id === activeStatus) || statusOptions[0];
+  const healthSummary = getAdminHealthSummary(works);
 
   return (
     <section className="surface detail-body admin-page">
@@ -512,6 +646,19 @@ export default async function AdminPage({
             ))}
           </select>
         </label>
+        <label>
+          <span>
+            <Activity size={14} aria-hidden="true" />
+            Health
+          </span>
+          <select name="health" defaultValue={filters.health}>
+            {healthOptions.map((health) => (
+              <option value={health.id} key={health.id}>
+                {health.label}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="admin-ops-actions">
           <button className="solid-button" type="submit">
             Apply
@@ -521,6 +668,25 @@ export default async function AdminPage({
           </Link>
         </div>
       </form>
+
+      <div className="admin-health-summary" aria-label="Content health summary">
+        <div className={healthSummary.attentionCount ? "admin-health-card is-warning" : "admin-health-card is-good"}>
+          <span>Needs attention</span>
+          <strong>{healthSummary.attentionCount}</strong>
+        </div>
+        <div className="admin-health-card">
+          <span>Average health</span>
+          <strong>{healthSummary.averageScore}%</strong>
+        </div>
+        <div className="admin-health-card">
+          <span>Curated</span>
+          <strong>{healthSummary.curatedCount}</strong>
+        </div>
+        <div className="admin-health-card">
+          <span>Featured</span>
+          <strong>{healthSummary.featuredCount}</strong>
+        </div>
+      </div>
 
       <div className="admin-section-title">
         <div>
@@ -579,6 +745,7 @@ function AdminWorkReviewRow({
   const workUrl = absoluteUrl(`/works/${work.id}`);
   const playUrl = absoluteUrl(`/play/${work.id}`);
   const curation = getWorkCuration(work);
+  const health = getContentHealthReport(work);
 
   return (
     <article className="admin-row">
@@ -588,6 +755,9 @@ function AdminWorkReviewRow({
             <strong>{work.title}</strong>
             <span className={isReady ? "review-score is-ready" : "review-score"}>
               {passedChecks}/{checks.length} ready
+            </span>
+            <span className={health.needsAttention ? "review-score is-warning" : "review-score is-ready"}>
+              {health.score}% health
             </span>
           </div>
           <p>{work.summary}</p>
@@ -687,6 +857,28 @@ function AdminWorkReviewRow({
           />
         </details>
       ) : null}
+
+      <div className="admin-health-panel">
+        <div>
+          <span className="section-kicker">Content Health</span>
+          <h3>{health.needsAttention ? "Needs attention" : "Healthy enough"}</h3>
+          <p>
+            {health.passed}/{health.total} checks passed. This is a structural post-publish audit, not a live external
+            uptime monitor.
+          </p>
+        </div>
+        <div className="admin-health-checks">
+          {health.checks.map((check) => (
+            <div className={check.ok ? "review-check is-ok" : "review-check"} key={check.label}>
+              {check.ok ? <Check size={15} aria-hidden="true" /> : <AlertTriangle size={15} aria-hidden="true" />}
+              <span>
+                <strong>{check.label}</strong>
+                <span>{check.helper}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
 
       <form className="admin-curation-panel" action={saveCuration}>
         <input type="hidden" name="key" value={keyValue} />
@@ -833,6 +1025,7 @@ function AdminContextFields({ filters }: { filters: AdminFilters }) {
       <input type="hidden" name="q" value={filters.q} />
       <input type="hidden" name="category" value={filters.category} />
       <input type="hidden" name="sort" value={filters.sort} />
+      <input type="hidden" name="health" value={filters.health} />
     </>
   );
 }
