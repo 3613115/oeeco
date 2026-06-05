@@ -813,6 +813,30 @@ button {
   gap: 12px;
 }
 
+.play-runner-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 10px 12px;
+}
+
+.play-runner-bar span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 820;
+}
+
+.play-runner-bar svg {
+  color: var(--leaf);
+}
+
 .play-window {
   min-height: min(70vh, 720px);
   border: 1px solid #101b17;
@@ -826,6 +850,32 @@ button {
   min-height: min(70vh, 720px);
   border: 0;
   background: #101b17;
+}
+
+.play-fallback {
+  display: grid;
+  min-height: min(70vh, 720px);
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.play-fallback h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.play-fallback p {
+  max-width: 520px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+  line-height: 1.7;
+}
+
+.play-fallback svg {
+  color: var(--mint);
 }
 
 .upload-shell {
@@ -1595,7 +1645,8 @@ button {
   }
 
   .filter-row,
-  .play-top {
+  .play-top,
+  .play-runner-bar {
     align-items: stretch;
     flex-direction: column;
   }

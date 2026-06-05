@@ -1,8 +1,15 @@
-import { Info, Upload } from "lucide-react";
+import { ExternalLink, Info, Shield, Upload } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPlayPreviewHtml } from "@/lib/play-preview";
+import {
+  externalRunnerSandbox,
+  getPlayableDemoUrl,
+  getRunnerOriginLabel,
+  localPreviewSandbox,
+  runnerAllowPolicy,
+} from "@/lib/play-runner";
 import { works } from "@/lib/data";
 import { getPublicWork } from "@/lib/work-service";
 
@@ -47,6 +54,9 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
     notFound();
   }
 
+  const playableDemoUrl = getPlayableDemoUrl(work.demoUrl);
+  const runnerOrigin = getRunnerOriginLabel(work.demoUrl);
+
   return (
     <section className="play-page">
       <div className="play-top">
@@ -65,20 +75,45 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
           </Link>
         </div>
       </div>
+      <div className="play-runner-bar">
+        <span>
+          <Shield size={16} aria-hidden="true" />
+          {playableDemoUrl ? `Sandboxed from ${runnerOrigin}` : "Sandboxed oeeco preview"}
+        </span>
+        {playableDemoUrl ? (
+          <Link className="ghost-button" href={playableDemoUrl} target="_blank" rel="noreferrer">
+            <ExternalLink size={17} aria-hidden="true" />
+            Open New Tab
+          </Link>
+        ) : null}
+      </div>
       <div className="play-window">
-        {work.demoUrl ? (
+        {playableDemoUrl ? (
           <iframe
+            allow={runnerAllowPolicy}
+            allowFullScreen
             className="play-frame"
+            referrerPolicy="no-referrer"
+            sandbox={externalRunnerSandbox}
+            src={playableDemoUrl}
             title={`${work.title} preview`}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-            src={work.demoUrl}
           />
+        ) : work.demoUrl ? (
+          <div className="play-fallback">
+            <Shield size={28} aria-hidden="true" />
+            <h2>Preview held for safety</h2>
+            <p>This work has a demo link, but it is not using an approved playable URL format.</p>
+            <Link className="ghost-button" href={`/works/${work.id}`}>
+              Review Details
+            </Link>
+          </div>
         ) : (
           <iframe
             className="play-frame"
-            title={`${work.title} preview`}
-            sandbox="allow-scripts"
+            referrerPolicy="no-referrer"
+            sandbox={localPreviewSandbox}
             srcDoc={getPlayPreviewHtml(work)}
+            title={`${work.title} preview`}
           />
         )}
       </div>
