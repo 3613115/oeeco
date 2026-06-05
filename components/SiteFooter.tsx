@@ -3,6 +3,7 @@ import Link from "next/link";
 const platformLinks = [
   ["Explore", "/"],
   ["Latest", "/latest"],
+  ["Search", "/search"],
   ["Leaderboard", "/rank"],
   ["Submit Work", "/upload"],
   ["Account", "/account"],

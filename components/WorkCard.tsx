@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { formatNumber, getWorkCreator, type Work } from "@/lib/data";
+import { tagToSlug } from "@/lib/discovery";
 
 export function WorkCard({ work }: { work: Work }) {
   const [liked, setLiked] = useState(false);
@@ -36,9 +37,9 @@ export function WorkCard({ work }: { work: Work }) {
         </Link>
         <div className="tag-row">
           {work.tags.map((tag) => (
-            <span className="small-pill" key={tag}>
+            <Link className="small-pill" href={`/tags/${tagToSlug(tag)}`} key={tag}>
               {tag}
-            </span>
+            </Link>
           ))}
         </div>
         <div className="metric-row">

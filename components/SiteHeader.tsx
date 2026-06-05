@@ -13,7 +13,7 @@ export function SiteHeader() {
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const next = query.trim();
-    router.push(next ? `/?q=${encodeURIComponent(next)}` : "/");
+    router.push(next ? `/search?q=${encodeURIComponent(next)}` : "/search");
   }
 
   return (

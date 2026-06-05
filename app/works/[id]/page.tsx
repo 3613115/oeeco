@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatNumber, getWorkCreator, works } from "@/lib/data";
+import { tagToSlug } from "@/lib/discovery";
 import { absoluteUrl, defaultOgImage, siteName } from "@/lib/site";
 import { getPublicWork } from "@/lib/work-service";
 
@@ -120,9 +121,9 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
           <p>{work.detail}</p>
           <div className="tag-row">
             {work.tags.map((tag) => (
-              <span className="small-pill" key={tag}>
+              <Link className="small-pill" href={`/tags/${tagToSlug(tag)}`} key={tag}>
                 {tag}
-              </span>
+              </Link>
             ))}
           </div>
           <div className="detail-actions">

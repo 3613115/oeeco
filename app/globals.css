@@ -68,6 +68,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  justify-self: start;
   min-width: max-content;
 }
 
@@ -320,6 +321,19 @@ button {
   color: var(--muted);
   font-size: 17px;
   line-height: 1.7;
+}
+
+.search-page-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  max-width: 780px;
+  margin-top: 8px;
+}
+
+.search-page-field {
+  gap: 6px;
 }
 
 .feed-layout {
@@ -1279,6 +1293,7 @@ button {
   .spotlight,
   .detail-grid,
   .upload-shell,
+  .search-page-form,
   .site-footer {
     grid-template-columns: 1fr;
   }
@@ -1364,9 +1379,10 @@ button {
   }
 
   .topbar {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px;
     padding: 10px 12px;
+    overflow-x: clip;
   }
 
   .brand-name {
@@ -1375,16 +1391,20 @@ button {
 
   .nav-links {
     grid-column: 1 / -1;
+    min-width: 0;
     overflow-x: auto;
   }
 
   .avatar-button {
     grid-column: 2;
     grid-row: 1;
+    justify-self: end;
   }
 
   .search-shell {
     grid-row: 3;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .category-list {
