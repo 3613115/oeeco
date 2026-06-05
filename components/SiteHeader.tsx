@@ -36,6 +36,7 @@ export function SiteHeader() {
 
       <nav className="nav-links" aria-label="Main navigation">
         <Link href="/">Explore</Link>
+        <Link href="/latest">Latest</Link>
         <Link href="/rank">Leaderboard</Link>
         <Link href="/upload">
           <Upload size={16} aria-hidden="true" />

@@ -62,6 +62,18 @@ export async function getHomeWorks() {
   return [...published, ...seedWorks];
 }
 
+export async function getAllPublicWorks() {
+  const worksById = new Map((await getHomeWorks()).map((work) => [work.id, work]));
+  return Array.from(worksById.values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+}
+
+export async function getPublicWorksByCategory(category: Exclude<CategoryId, "all">) {
+  const publicWorks = await getAllPublicWorks();
+  return publicWorks.filter((work) => work.category === category);
+}
+
 export async function getPublishedWorks() {
   const supabase = getSupabasePublicServerClient();
   if (!supabase) return [];

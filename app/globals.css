@@ -176,7 +176,7 @@ button {
 
 .site-footer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   gap: clamp(24px, 6vw, 72px);
   width: min(1240px, calc(100% - 32px));
   margin: 0 auto;
@@ -301,6 +301,25 @@ button {
   flex-wrap: wrap;
   gap: 10px;
   padding-top: 6px;
+}
+
+.discovery-page {
+  display: grid;
+  gap: 22px;
+}
+
+.discovery-heading {
+  display: grid;
+  gap: 10px;
+  padding: clamp(20px, 4vw, 34px);
+}
+
+.discovery-heading p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.7;
 }
 
 .feed-layout {

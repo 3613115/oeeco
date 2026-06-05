@@ -2,9 +2,18 @@ import Link from "next/link";
 
 const platformLinks = [
   ["Explore", "/"],
+  ["Latest", "/latest"],
   ["Leaderboard", "/rank"],
   ["Submit Work", "/upload"],
   ["Account", "/account"],
+];
+
+const categoryLinks = [
+  ["Games", "/categories/game"],
+  ["Tools", "/categories/tool"],
+  ["Interactive", "/categories/story"],
+  ["Visual", "/categories/visual"],
+  ["AI Experiments", "/categories/ai"],
 ];
 
 const policyLinks = [
@@ -28,6 +37,15 @@ export function SiteFooter() {
       <nav className="footer-links" aria-label="Platform links">
         <span>Platform</span>
         {platformLinks.map(([label, href]) => (
+          <Link href={href} key={href}>
+            {label}
+          </Link>
+        ))}
+      </nav>
+
+      <nav className="footer-links" aria-label="Category links">
+        <span>Categories</span>
+        {categoryLinks.map(([label, href]) => (
           <Link href={href} key={href}>
             {label}
           </Link>

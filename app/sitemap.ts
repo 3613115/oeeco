@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { creators, works } from "@/lib/data";
+import { categories, creators, works, type CategoryId } from "@/lib/data";
 import { absoluteUrl } from "@/lib/site";
 import { getPublishedWorks } from "@/lib/work-service";
 
@@ -20,6 +20,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: "daily",
       priority: 0.7,
+    },
+    {
+      url: absoluteUrl("/latest"),
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.8,
     },
     {
       url: absoluteUrl("/upload"),
@@ -60,6 +66,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  const categoryRoutes: MetadataRoute.Sitemap = categories
+    .filter((category): category is [Exclude<CategoryId, "all">, string] => category[0] !== "all")
+    .map(([id]) => ({
+      url: absoluteUrl(`/categories/${id}`),
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.7,
+    }));
+
   const workRoutes: MetadataRoute.Sitemap = Array.from(allWorksById.values()).map((work) => ({
     url: absoluteUrl(`/works/${work.id}`),
     lastModified: new Date(work.createdAt),
@@ -67,5 +82,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...creatorRoutes, ...workRoutes];
+  return [...staticRoutes, ...categoryRoutes, ...creatorRoutes, ...workRoutes];
 }
