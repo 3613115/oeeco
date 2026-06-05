@@ -1,8 +1,9 @@
-import { Check, ExternalLink, Eye, RotateCcw, Save, Shield, X } from "lucide-react";
+import { AlertTriangle, Check, ExternalLink, Eye, Link as LinkIcon, Monitor, RotateCcw, Save, Shield, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { categories, isCategoryId, type CategoryId } from "@/lib/data";
+import { categories, categoryLabels, isCategoryId, type CategoryId } from "@/lib/data";
 import {
   getAdminWorkCounts,
   getAdminWorks,
@@ -43,24 +44,93 @@ function optionalText(value: FormDataEntryValue | null, maxLength: number) {
   return next || null;
 }
 
+function optionalUrl(value: FormDataEntryValue | null, maxLength: number, allowLocalPath = false) {
+  const next = optionalText(value, maxLength);
+  if (!next) return null;
+
+  if (allowLocalPath && next.startsWith("/")) return next;
+  return isHttpUrl(next) ? next : null;
+}
+
 function parseTags(value: FormDataEntryValue | null) {
   const seen = new Set<string>();
   return String(value || "")
     .split(/[,\n]/)
-    .map((tag) => tag.trim())
+    .map((tag) => tag.trim().replace(/\s+/g, " "))
     .filter(Boolean)
     .map((tag) => tag.slice(0, 32))
     .filter((tag) => {
-      if (seen.has(tag)) return false;
-      seen.add(tag);
+      const key = tag.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     })
     .slice(0, 8);
 }
 
+function isHttpUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function getSafeCoverUrl(value: string | null | undefined) {
+  const cover = value?.trim();
+  if (!cover) return "/assets/cover-upload.png";
+  if (cover.startsWith("/") || cover.startsWith("https://")) return cover;
+  return "/assets/cover-upload.png";
+}
+
+function getReviewChecks(work: Awaited<ReturnType<typeof getAdminWorks>>[number]) {
+  return [
+    {
+      label: "Demo URL",
+      ok: Boolean(work.demoUrl && isHttpUrl(work.demoUrl)),
+      helper: "Public http or https link.",
+    },
+    {
+      label: "Summary",
+      ok: work.summary.trim().length >= 20,
+      helper: "At least 20 characters.",
+    },
+    {
+      label: "Creator notes",
+      ok: work.detail.trim().length >= 30,
+      helper: "Enough context for review.",
+    },
+    {
+      label: "Tags",
+      ok: work.tags.length > 0,
+      helper: "At least one searchable tag.",
+    },
+    {
+      label: "Tools",
+      ok: work.tool.trim().length > 0,
+      helper: "Tool stack is visible.",
+    },
+    {
+      label: "Cover",
+      ok: Boolean(work.cover),
+      helper: "Cover preview available.",
+    },
+  ];
+}
+
 function adminUrl(key: string, status: AdminWorkStatus, params: Record<string, string> = {}) {
   const query = new URLSearchParams({ key, status, ...params });
   return `/admin?${query.toString()}`;
+}
+
+function getAdminErrorMessage(error: string | undefined) {
+  if (error === "bad-key") return "Wrong passcode.";
+  if (error === "bad-request") return "Action failed. Check the required fields and try again.";
+  if (error === "bad-url") return "Use valid http or https URLs. Cover URLs can also use a local path starting with /.";
+  if (error === "save-failed") return "Save failed. Check Supabase and try again.";
+  if (error === "update-failed") return "Status update failed. Check Supabase and try again.";
+  return "Action failed. Check the form and try again.";
 }
 
 async function updateStatus(formData: FormData) {
@@ -103,13 +173,22 @@ async function saveDetails(formData: FormData) {
     redirect(adminUrl(key, currentStatus, { error: "bad-request" }));
   }
 
+  const demoUrl = optionalUrl(formData.get("demoUrl"), 500);
+  const coverUrl = optionalUrl(formData.get("coverUrl"), 500, true);
+  const rawDemoUrl = optionalText(formData.get("demoUrl"), 500);
+  const rawCoverUrl = optionalText(formData.get("coverUrl"), 500);
+
+  if ((rawDemoUrl && !demoUrl) || (rawCoverUrl && !coverUrl)) {
+    redirect(adminUrl(key, currentStatus, { error: "bad-url" }));
+  }
+
   const result = await updateAdminWorkDetails(id, {
     title,
     summary,
     description: cleanText(formData.get("description"), 1200),
     category: parseCategory(formData.get("category")),
-    coverUrl: optionalText(formData.get("coverUrl"), 500),
-    demoUrl: optionalText(formData.get("demoUrl"), 500),
+    coverUrl,
+    demoUrl,
     toolStack: cleanText(formData.get("toolStack"), 120),
     tags: parseTags(formData.get("tags")),
   });
@@ -169,7 +248,7 @@ export default async function AdminPage({
             Enter Admin
           </button>
         </form>
-        {params.error ? <p>Wrong passcode or invalid request.</p> : null}
+        {params.error ? <p>{getAdminErrorMessage(params.error)}</p> : null}
       </section>
     );
   }
@@ -206,7 +285,7 @@ export default async function AdminPage({
 
       {params.updated ? <div className="admin-notice">Status updated.</div> : null}
       {params.saved ? <div className="admin-notice">Work details saved.</div> : null}
-      {params.error ? <div className="admin-notice is-error">Action failed. Check the form and try again.</div> : null}
+      {params.error ? <div className="admin-notice is-error">{getAdminErrorMessage(params.error)}</div> : null}
 
       <div className="admin-section-title">
         <div>
@@ -219,130 +298,14 @@ export default async function AdminPage({
       {works.length ? (
         <div className="admin-list">
           {works.map((work) => (
-            <article className="admin-row" key={work.id}>
-              <div className="admin-card-header">
-                <div>
-                  <strong>{work.title}</strong>
-                  <p>{work.summary}</p>
-                  <div className="admin-meta">
-                    <span>{work.creator?.handle || "@creator"}</span>
-                    <span>{work.createdAt}</span>
-                    <span>{work.type}</span>
-                  </div>
-                </div>
-                <div className="admin-actions">
-                  {work.demoUrl ? (
-                    <Link className="ghost-button" href={work.demoUrl} target="_blank" rel="noreferrer">
-                      <ExternalLink size={17} aria-hidden="true" />
-                      Open Demo
-                    </Link>
-                  ) : null}
-                  {work.status === "published" ? (
-                    <Link className="ghost-button" href={`/works/${work.id}`} target="_blank">
-                      <Eye size={17} aria-hidden="true" />
-                      Public Page
-                    </Link>
-                  ) : null}
-                </div>
-              </div>
-
-              <form className="admin-edit-form" action={saveDetails}>
-                <input type="hidden" name="key" value={key} />
-                <input type="hidden" name="id" value={work.id} />
-                <input type="hidden" name="currentStatus" value={activeStatus} />
-                <div className="admin-fields">
-                  <label>
-                    <span>Title</span>
-                    <input name="title" defaultValue={work.title} maxLength={80} required />
-                  </label>
-                  <label>
-                    <span>Short summary</span>
-                    <input name="summary" defaultValue={work.summary} maxLength={160} required />
-                  </label>
-                  <label>
-                    <span>Category</span>
-                    <select name="category" defaultValue={work.category}>
-                      {categoryOptions.map(([id, label]) => (
-                        <option value={id} key={id}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span>Tags</span>
-                    <input name="tags" defaultValue={work.tags.join(", ")} placeholder="Codex, Game, Casual" />
-                  </label>
-                  <label>
-                    <span>Demo URL</span>
-                    <input name="demoUrl" defaultValue={work.demoUrl || ""} placeholder="https://..." />
-                  </label>
-                  <label>
-                    <span>Cover URL</span>
-                    <input name="coverUrl" defaultValue={work.cover || ""} placeholder="/assets/cover-upload.png" />
-                  </label>
-                  <label>
-                    <span>Tools</span>
-                    <input name="toolStack" defaultValue={work.tool} placeholder="Codex, Canvas, React" />
-                  </label>
-                  <label className="span-2">
-                    <span>Creator notes</span>
-                    <textarea name="description" defaultValue={work.detail} rows={4} />
-                  </label>
-                </div>
-                <button className="ghost-button" type="submit">
-                  <Save size={17} aria-hidden="true" />
-                  Save Changes
-                </button>
-              </form>
-
-              <div className="admin-action-bar">
-                {work.status !== "published" ? (
-                  <form action={updateStatus}>
-                    <input type="hidden" name="key" value={key} />
-                    <input type="hidden" name="id" value={work.id} />
-                    <input type="hidden" name="currentStatus" value={activeStatus} />
-                    <button className="solid-button" name="status" value="published" type="submit">
-                      <Check size={17} aria-hidden="true" />
-                      Publish
-                    </button>
-                  </form>
-                ) : null}
-                {work.status !== "rejected" ? (
-                  <form action={updateStatus}>
-                    <input type="hidden" name="key" value={key} />
-                    <input type="hidden" name="id" value={work.id} />
-                    <input type="hidden" name="currentStatus" value={activeStatus} />
-                    <button className="ghost-button" name="status" value="rejected" type="submit">
-                      <X size={17} aria-hidden="true" />
-                      Reject
-                    </button>
-                  </form>
-                ) : null}
-                {work.status !== "hidden" && work.status === "published" ? (
-                  <form action={updateStatus}>
-                    <input type="hidden" name="key" value={key} />
-                    <input type="hidden" name="id" value={work.id} />
-                    <input type="hidden" name="currentStatus" value={activeStatus} />
-                    <button className="ghost-button" name="status" value="hidden" type="submit">
-                      <X size={17} aria-hidden="true" />
-                      Hide
-                    </button>
-                  </form>
-                ) : null}
-                {work.status !== "pending" ? (
-                  <form action={updateStatus}>
-                    <input type="hidden" name="key" value={key} />
-                    <input type="hidden" name="id" value={work.id} />
-                    <input type="hidden" name="currentStatus" value={activeStatus} />
-                    <button className="ghost-button" name="status" value="pending" type="submit">
-                      <RotateCcw size={17} aria-hidden="true" />
-                      Move to Pending
-                    </button>
-                  </form>
-                ) : null}
-              </div>
-            </article>
+            <AdminWorkReviewRow
+              activeStatus={activeStatus}
+              key={work.id}
+              keyValue={key}
+              updateStatus={updateStatus}
+              saveDetails={saveDetails}
+              work={work}
+            />
           ))}
         </div>
       ) : (
@@ -352,5 +315,216 @@ export default async function AdminPage({
         </section>
       )}
     </section>
+  );
+}
+
+function AdminWorkReviewRow({
+  activeStatus,
+  keyValue,
+  saveDetails,
+  updateStatus,
+  work,
+}: {
+  activeStatus: AdminWorkStatus;
+  keyValue: string;
+  saveDetails: (formData: FormData) => Promise<void>;
+  updateStatus: (formData: FormData) => Promise<void>;
+  work: Awaited<ReturnType<typeof getAdminWorks>>[number];
+}) {
+  const checks = getReviewChecks(work);
+  const passedChecks = checks.filter((check) => check.ok).length;
+  const isReady = checks.every((check) => check.ok);
+  const coverUrl = getSafeCoverUrl(work.cover);
+
+  return (
+    <article className="admin-row">
+      <div className="admin-card-header">
+        <div>
+          <div className="admin-title-line">
+            <strong>{work.title}</strong>
+            <span className={isReady ? "review-score is-ready" : "review-score"}>
+              {passedChecks}/{checks.length} ready
+            </span>
+          </div>
+          <p>{work.summary}</p>
+          <div className="admin-meta">
+            <span>{work.creator?.handle || "@creator"}</span>
+            <span>{work.createdAt}</span>
+            <span>{categoryLabels[work.category]}</span>
+            <span>{work.tool}</span>
+          </div>
+        </div>
+        <div className="admin-actions">
+          {work.demoUrl ? (
+            <Link className="ghost-button" href={work.demoUrl} target="_blank" rel="noreferrer">
+              <ExternalLink size={17} aria-hidden="true" />
+              Open Demo
+            </Link>
+          ) : null}
+          {work.status === "published" ? (
+            <Link className="ghost-button" href={`/works/${work.id}`} target="_blank">
+              <Eye size={17} aria-hidden="true" />
+              Public Page
+            </Link>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="admin-review-grid">
+        <div className="admin-cover-preview">
+          <Image src={coverUrl} width={360} height={225} alt="" />
+        </div>
+
+        <div className="admin-review-panel">
+          <div className="admin-panel-heading">
+            <span className="section-kicker">Review Checks</span>
+            {isReady ? (
+              <span className="status-badge is-published">Ready</span>
+            ) : (
+              <span className="status-badge is-pending">Needs review</span>
+            )}
+          </div>
+          <div className="review-check-list">
+            {checks.map((check) => (
+              <div className={check.ok ? "review-check is-ok" : "review-check"} key={check.label}>
+                {check.ok ? <Check size={15} aria-hidden="true" /> : <AlertTriangle size={15} aria-hidden="true" />}
+                <span>
+                  <strong>{check.label}</strong>
+                  <span>{check.helper}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="admin-review-panel">
+          <div className="admin-panel-heading">
+            <span className="section-kicker">Review Links</span>
+            <LinkIcon size={16} aria-hidden="true" />
+          </div>
+          <label className="admin-copy-field">
+            <span>Demo URL</span>
+            <input readOnly value={work.demoUrl || "No demo URL submitted"} />
+          </label>
+          <label className="admin-copy-field">
+            <span>Cover URL</span>
+            <input readOnly value={work.cover || "Default cover"} />
+          </label>
+        </div>
+      </div>
+
+      {work.demoUrl ? (
+        <details className="admin-demo-preview">
+          <summary>
+            <Monitor size={17} aria-hidden="true" />
+            Sandbox preview
+          </summary>
+          <iframe
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            sandbox="allow-scripts allow-forms allow-popups"
+            src={work.demoUrl}
+            title={`${work.title} admin preview`}
+          />
+        </details>
+      ) : null}
+
+      <form className="admin-edit-form" action={saveDetails}>
+        <input type="hidden" name="key" value={keyValue} />
+        <input type="hidden" name="id" value={work.id} />
+        <input type="hidden" name="currentStatus" value={activeStatus} />
+        <div className="admin-fields">
+          <label>
+            <span>Title</span>
+            <input name="title" defaultValue={work.title} maxLength={80} required />
+          </label>
+          <label>
+            <span>Short summary</span>
+            <input name="summary" defaultValue={work.summary} maxLength={160} required />
+          </label>
+          <label>
+            <span>Category</span>
+            <select name="category" defaultValue={work.category}>
+              {categoryOptions.map(([id, label]) => (
+                <option value={id} key={id}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Tags</span>
+            <input name="tags" defaultValue={work.tags.join(", ")} placeholder="Codex, Game, Casual" />
+          </label>
+          <label>
+            <span>Demo URL</span>
+            <input name="demoUrl" defaultValue={work.demoUrl || ""} placeholder="https://..." />
+          </label>
+          <label>
+            <span>Cover URL</span>
+            <input name="coverUrl" defaultValue={work.cover || ""} placeholder="/assets/cover-upload.png" />
+          </label>
+          <label>
+            <span>Tools</span>
+            <input name="toolStack" defaultValue={work.tool} placeholder="Codex, Canvas, React" />
+          </label>
+          <label className="span-2">
+            <span>Creator notes</span>
+            <textarea name="description" defaultValue={work.detail} rows={4} />
+          </label>
+        </div>
+        <button className="ghost-button" type="submit">
+          <Save size={17} aria-hidden="true" />
+          Save Changes
+        </button>
+      </form>
+
+      <div className="admin-action-bar">
+        {work.status !== "published" ? (
+          <form action={updateStatus}>
+            <input type="hidden" name="key" value={keyValue} />
+            <input type="hidden" name="id" value={work.id} />
+            <input type="hidden" name="currentStatus" value={activeStatus} />
+            <button className="solid-button" name="status" value="published" type="submit">
+              <Check size={17} aria-hidden="true" />
+              Publish
+            </button>
+          </form>
+        ) : null}
+        {work.status !== "rejected" ? (
+          <form action={updateStatus}>
+            <input type="hidden" name="key" value={keyValue} />
+            <input type="hidden" name="id" value={work.id} />
+            <input type="hidden" name="currentStatus" value={activeStatus} />
+            <button className="ghost-button" name="status" value="rejected" type="submit">
+              <X size={17} aria-hidden="true" />
+              Reject
+            </button>
+          </form>
+        ) : null}
+        {work.status !== "hidden" && work.status === "published" ? (
+          <form action={updateStatus}>
+            <input type="hidden" name="key" value={keyValue} />
+            <input type="hidden" name="id" value={work.id} />
+            <input type="hidden" name="currentStatus" value={activeStatus} />
+            <button className="ghost-button" name="status" value="hidden" type="submit">
+              <X size={17} aria-hidden="true" />
+              Hide
+            </button>
+          </form>
+        ) : null}
+        {work.status !== "pending" ? (
+          <form action={updateStatus}>
+            <input type="hidden" name="key" value={keyValue} />
+            <input type="hidden" name="id" value={work.id} />
+            <input type="hidden" name="currentStatus" value={activeStatus} />
+            <button className="ghost-button" name="status" value="pending" type="submit">
+              <RotateCcw size={17} aria-hidden="true" />
+              Move to Pending
+            </button>
+          </form>
+        ) : null}
+      </div>
+    </article>
   );
 }

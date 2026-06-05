@@ -1250,6 +1250,33 @@ button {
   color: var(--muted);
 }
 
+.admin-title-line,
+.admin-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.review-score {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid rgba(244, 180, 63, 0.34);
+  border-radius: 999px;
+  background: rgba(244, 180, 63, 0.16);
+  color: #805600;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.review-score.is-ready {
+  border-color: rgba(12, 122, 85, 0.28);
+  background: rgba(85, 214, 168, 0.18);
+  color: var(--leaf);
+}
+
 .admin-meta {
   display: flex;
   flex-wrap: wrap;
@@ -1270,6 +1297,118 @@ button {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.admin-review-grid {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) minmax(240px, 0.85fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.admin-cover-preview,
+.admin-review-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.admin-cover-preview {
+  overflow: hidden;
+}
+
+.admin-cover-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 170px;
+  object-fit: cover;
+}
+
+.admin-review-panel {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 14px;
+}
+
+.review-check-list {
+  display: grid;
+  gap: 8px;
+}
+
+.review-check {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  color: #8f2149;
+}
+
+.review-check.is-ok {
+  color: var(--leaf);
+}
+
+.review-check > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.review-check strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.review-check span span,
+.admin-copy-field span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.admin-copy-field {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-copy-field input {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.admin-demo-preview {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.admin-demo-preview summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.admin-demo-preview iframe {
+  display: block;
+  width: 100%;
+  min-height: 360px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: #101b17;
 }
 
 .admin-edit-form {
@@ -1492,7 +1631,8 @@ button {
   }
 
   .admin-tabs,
-  .admin-fields {
+  .admin-fields,
+  .admin-review-grid {
     grid-template-columns: 1fr;
   }
 
