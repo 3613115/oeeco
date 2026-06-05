@@ -1,12 +1,28 @@
-import { AlertTriangle, Check, ExternalLink, Eye, Link as LinkIcon, Monitor, RotateCcw, Save, Shield, X } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowDownUp,
+  Check,
+  ExternalLink,
+  Eye,
+  Link as LinkIcon,
+  Monitor,
+  RotateCcw,
+  Save,
+  Search,
+  Shield,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { categories, categoryLabels, isCategoryId, type CategoryId } from "@/lib/data";
+import { absoluteUrl } from "@/lib/site";
 import {
   getAdminWorkCounts,
   getAdminWorks,
+  type AdminWork,
   updateAdminWorkDetails,
   updateAdminWorkStatus,
   type AdminWorkStatus,
@@ -25,9 +41,63 @@ const categoryOptions = categories.filter(
   (category): category is [Exclude<CategoryId, "all">, string] => category[0] !== "all",
 );
 
+type AdminSort = "newest" | "oldest" | "views" | "likes" | "ready";
+
+type AdminFilters = {
+  q: string;
+  category: "all" | Exclude<CategoryId, "all">;
+  sort: AdminSort;
+};
+
+const sortOptions: Array<{ id: AdminSort; label: string }> = [
+  { id: "newest", label: "Newest" },
+  { id: "oldest", label: "Oldest" },
+  { id: "views", label: "Most views" },
+  { id: "likes", label: "Most likes" },
+  { id: "ready", label: "Review readiness" },
+];
+
 function parseStatus(value: FormDataEntryValue | string | undefined | null): AdminWorkStatus {
   const next = String(value || "");
   return statusOptions.some((status) => status.id === next) ? (next as AdminWorkStatus) : "pending";
+}
+
+function parseSort(value: FormDataEntryValue | string | undefined | null): AdminSort {
+  const next = String(value || "");
+  return sortOptions.some((sort) => sort.id === next) ? (next as AdminSort) : "newest";
+}
+
+function parseFilterCategory(value: FormDataEntryValue | string | undefined | null): AdminFilters["category"] {
+  const next = String(value || "all");
+  if (next === "all") return "all";
+  return isCategoryId(next) ? next : "all";
+}
+
+function getAdminFilters(input: { q?: string; category?: string; sort?: string }): AdminFilters {
+  return {
+    q: (input.q || "").trim().slice(0, 120),
+    category: parseFilterCategory(input.category),
+    sort: parseSort(input.sort),
+  };
+}
+
+function getAdminFilterParams(filters: AdminFilters) {
+  const params: Record<string, string> = {
+    sort: filters.sort,
+  };
+
+  if (filters.q) params.q = filters.q;
+  if (filters.category !== "all") params.category = filters.category;
+
+  return params;
+}
+
+function getAdminFormContext(formData: FormData): AdminFilters {
+  return {
+    q: cleanText(formData.get("q"), 120),
+    category: parseFilterCategory(formData.get("category")),
+    sort: parseSort(formData.get("sort")),
+  };
 }
 
 function parseCategory(value: FormDataEntryValue | null): Exclude<CategoryId, "all"> {
@@ -84,7 +154,7 @@ function getSafeCoverUrl(value: string | null | undefined) {
   return "/assets/cover-upload.png";
 }
 
-function getReviewChecks(work: Awaited<ReturnType<typeof getAdminWorks>>[number]) {
+function getReviewChecks(work: AdminWork) {
   return [
     {
       label: "Demo URL",
@@ -124,6 +194,50 @@ function adminUrl(key: string, status: AdminWorkStatus, params: Record<string, s
   return `/admin?${query.toString()}`;
 }
 
+function filterAndSortAdminWorks(works: AdminWork[], filters: AdminFilters) {
+  const query = filters.q.toLowerCase();
+  const filtered = works.filter((work) => {
+    if (filters.category !== "all" && work.category !== filters.category) return false;
+    if (!query) return true;
+
+    const creator = work.creator;
+    const searchable = [
+      work.id,
+      work.title,
+      work.summary,
+      work.detail,
+      work.tool,
+      work.type,
+      categoryLabels[work.category],
+      work.demoUrl || "",
+      creator?.id || "",
+      creator?.name || "",
+      creator?.handle || "",
+      ...work.tags,
+    ];
+
+    return searchable.some((value) => value.toLowerCase().includes(query));
+  });
+
+  return filtered.sort((a, b) => {
+    if (filters.sort === "oldest") {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+
+    if (filters.sort === "views") return b.views - a.views;
+    if (filters.sort === "likes") return b.likes - a.likes;
+    if (filters.sort === "ready") {
+      return getReviewReadyScore(b) - getReviewReadyScore(a) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+}
+
+function getReviewReadyScore(work: AdminWork) {
+  return getReviewChecks(work).filter((check) => check.ok).length;
+}
+
 function getAdminErrorMessage(error: string | undefined) {
   if (error === "bad-key") return "Wrong passcode.";
   if (error === "bad-request") return "Action failed. Check the required fields and try again.";
@@ -140,20 +254,27 @@ async function updateStatus(formData: FormData) {
   const id = String(formData.get("id") || "");
   const currentStatus = parseStatus(formData.get("currentStatus"));
   const nextStatus = parseStatus(formData.get("status"));
+  const filters = getAdminFormContext(formData);
 
   if (!process.env.ADMIN_PASSCODE || key !== process.env.ADMIN_PASSCODE) {
     redirect("/admin?error=bad-key");
   }
 
   if (!id) {
-    redirect(adminUrl(key, currentStatus, { error: "bad-request" }));
+    redirect(adminUrl(key, currentStatus, { ...getAdminFilterParams(filters), error: "bad-request" }));
   }
 
   const result = await updateAdminWorkStatus(id, nextStatus);
   revalidatePath("/");
   revalidatePath("/admin");
 
-  redirect(adminUrl(key, nextStatus, result.ok ? { updated: "1" } : { error: "update-failed" }));
+  redirect(
+    adminUrl(
+      key,
+      nextStatus,
+      result.ok ? { ...getAdminFilterParams(filters), updated: "1" } : { ...getAdminFilterParams(filters), error: "update-failed" },
+    ),
+  );
 }
 
 async function saveDetails(formData: FormData) {
@@ -164,13 +285,14 @@ async function saveDetails(formData: FormData) {
   const currentStatus = parseStatus(formData.get("currentStatus"));
   const title = cleanText(formData.get("title"), 80);
   const summary = cleanText(formData.get("summary"), 160);
+  const filters = getAdminFormContext(formData);
 
   if (!process.env.ADMIN_PASSCODE || key !== process.env.ADMIN_PASSCODE) {
     redirect("/admin?error=bad-key");
   }
 
   if (!id || title.length < 2 || summary.length < 2) {
-    redirect(adminUrl(key, currentStatus, { error: "bad-request" }));
+    redirect(adminUrl(key, currentStatus, { ...getAdminFilterParams(filters), error: "bad-request" }));
   }
 
   const demoUrl = optionalUrl(formData.get("demoUrl"), 500);
@@ -179,7 +301,7 @@ async function saveDetails(formData: FormData) {
   const rawCoverUrl = optionalText(formData.get("coverUrl"), 500);
 
   if ((rawDemoUrl && !demoUrl) || (rawCoverUrl && !coverUrl)) {
-    redirect(adminUrl(key, currentStatus, { error: "bad-url" }));
+    redirect(adminUrl(key, currentStatus, { ...getAdminFilterParams(filters), error: "bad-url" }));
   }
 
   const result = await updateAdminWorkDetails(id, {
@@ -198,17 +320,34 @@ async function saveDetails(formData: FormData) {
   revalidatePath(`/works/${id}`);
   revalidatePath(`/play/${id}`);
 
-  redirect(adminUrl(key, currentStatus, result.ok ? { saved: "1" } : { error: "save-failed" }));
+  redirect(
+    adminUrl(
+      key,
+      currentStatus,
+      result.ok ? { ...getAdminFilterParams(filters), saved: "1" } : { ...getAdminFilterParams(filters), error: "save-failed" },
+    ),
+  );
 }
 
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ key?: string; status?: string; error?: string; updated?: string; saved?: string }>;
+  searchParams: Promise<{
+    key?: string;
+    status?: string;
+    q?: string;
+    category?: string;
+    sort?: string;
+    error?: string;
+    updated?: string;
+    saved?: string;
+  }>;
 }) {
   const params = await searchParams;
   const key = params.key || "";
   const activeStatus = parseStatus(params.status);
+  const filters = getAdminFilters(params);
+  const filterParams = getAdminFilterParams(filters);
   const adminReady = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.ADMIN_PASSCODE);
   const authorized = adminReady && key === process.env.ADMIN_PASSCODE;
 
@@ -254,6 +393,7 @@ export default async function AdminPage({
   }
 
   const [works, counts] = await Promise.all([getAdminWorks(activeStatus), getAdminWorkCounts()]);
+  const visibleWorks = filterAndSortAdminWorks(works, filters);
   const activeOption = statusOptions.find((status) => status.id === activeStatus) || statusOptions[0];
 
   return (
@@ -274,7 +414,7 @@ export default async function AdminPage({
         {statusOptions.map((status) => (
           <Link
             className={status.id === activeStatus ? "admin-tab is-active" : "admin-tab"}
-            href={adminUrl(key, status.id)}
+            href={adminUrl(key, status.id, filterParams)}
             key={status.id}
           >
             <span>{status.label}</span>
@@ -287,19 +427,67 @@ export default async function AdminPage({
       {params.saved ? <div className="admin-notice">Work details saved.</div> : null}
       {params.error ? <div className="admin-notice is-error">{getAdminErrorMessage(params.error)}</div> : null}
 
+      <form className="admin-ops-bar" action="/admin">
+        <input type="hidden" name="key" value={key} />
+        <input type="hidden" name="status" value={activeStatus} />
+        <label>
+          <span>
+            <Search size={14} aria-hidden="true" />
+            Search
+          </span>
+          <input name="q" defaultValue={filters.q} placeholder="Title, creator, tag, URL..." />
+        </label>
+        <label>
+          <span>
+            <SlidersHorizontal size={14} aria-hidden="true" />
+            Category
+          </span>
+          <select name="category" defaultValue={filters.category}>
+            <option value="all">All categories</option>
+            {categoryOptions.map(([id, label]) => (
+              <option value={id} key={id}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>
+            <ArrowDownUp size={14} aria-hidden="true" />
+            Sort
+          </span>
+          <select name="sort" defaultValue={filters.sort}>
+            {sortOptions.map((sort) => (
+              <option value={sort.id} key={sort.id}>
+                {sort.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="admin-ops-actions">
+          <button className="solid-button" type="submit">
+            Apply
+          </button>
+          <Link className="ghost-button" href={adminUrl(key, activeStatus)}>
+            Reset
+          </Link>
+        </div>
+      </form>
+
       <div className="admin-section-title">
         <div>
           <h2>{activeOption.label}</h2>
           <p>{activeOption.helper}</p>
         </div>
-        <span>{works.length} works</span>
+        <span>{visibleWorks.length === works.length ? `${works.length} works` : `${visibleWorks.length} of ${works.length} works`}</span>
       </div>
 
-      {works.length ? (
+      {visibleWorks.length ? (
         <div className="admin-list">
-          {works.map((work) => (
+          {visibleWorks.map((work) => (
             <AdminWorkReviewRow
               activeStatus={activeStatus}
+              filters={filters}
               key={work.id}
               keyValue={key}
               updateStatus={updateStatus}
@@ -310,8 +498,8 @@ export default async function AdminPage({
         </div>
       ) : (
         <section className="empty-state">
-          <h2>No works in this status</h2>
-          <p>Switch tabs above, or come back when creators submit new works.</p>
+          <h2>No works match this view</h2>
+          <p>Adjust the search, category, or status filters.</p>
         </section>
       )}
     </section>
@@ -320,21 +508,25 @@ export default async function AdminPage({
 
 function AdminWorkReviewRow({
   activeStatus,
+  filters,
   keyValue,
   saveDetails,
   updateStatus,
   work,
 }: {
   activeStatus: AdminWorkStatus;
+  filters: AdminFilters;
   keyValue: string;
   saveDetails: (formData: FormData) => Promise<void>;
   updateStatus: (formData: FormData) => Promise<void>;
-  work: Awaited<ReturnType<typeof getAdminWorks>>[number];
+  work: AdminWork;
 }) {
   const checks = getReviewChecks(work);
   const passedChecks = checks.filter((check) => check.ok).length;
   const isReady = checks.every((check) => check.ok);
   const coverUrl = getSafeCoverUrl(work.cover);
+  const workUrl = absoluteUrl(`/works/${work.id}`);
+  const playUrl = absoluteUrl(`/play/${work.id}`);
 
   return (
     <article className="admin-row">
@@ -349,6 +541,7 @@ function AdminWorkReviewRow({
           <p>{work.summary}</p>
           <div className="admin-meta">
             <span>{work.creator?.handle || "@creator"}</span>
+            <span>{work.creator?.id || work.creatorId}</span>
             <span>{work.createdAt}</span>
             <span>{categoryLabels[work.category]}</span>
             <span>{work.tool}</span>
@@ -403,12 +596,24 @@ function AdminWorkReviewRow({
             <LinkIcon size={16} aria-hidden="true" />
           </div>
           <label className="admin-copy-field">
+            <span>Work URL</span>
+            <input readOnly value={workUrl} />
+          </label>
+          <label className="admin-copy-field">
+            <span>TRY URL</span>
+            <input readOnly value={playUrl} />
+          </label>
+          <label className="admin-copy-field">
             <span>Demo URL</span>
             <input readOnly value={work.demoUrl || "No demo URL submitted"} />
           </label>
           <label className="admin-copy-field">
             <span>Cover URL</span>
             <input readOnly value={work.cover || "Default cover"} />
+          </label>
+          <label className="admin-copy-field">
+            <span>Creator ID</span>
+            <input readOnly value={work.creator?.id || work.creatorId} />
           </label>
         </div>
       </div>
@@ -433,6 +638,7 @@ function AdminWorkReviewRow({
         <input type="hidden" name="key" value={keyValue} />
         <input type="hidden" name="id" value={work.id} />
         <input type="hidden" name="currentStatus" value={activeStatus} />
+        <AdminContextFields filters={filters} />
         <div className="admin-fields">
           <label>
             <span>Title</span>
@@ -485,6 +691,7 @@ function AdminWorkReviewRow({
             <input type="hidden" name="key" value={keyValue} />
             <input type="hidden" name="id" value={work.id} />
             <input type="hidden" name="currentStatus" value={activeStatus} />
+            <AdminContextFields filters={filters} />
             <button className="solid-button" name="status" value="published" type="submit">
               <Check size={17} aria-hidden="true" />
               Publish
@@ -496,6 +703,7 @@ function AdminWorkReviewRow({
             <input type="hidden" name="key" value={keyValue} />
             <input type="hidden" name="id" value={work.id} />
             <input type="hidden" name="currentStatus" value={activeStatus} />
+            <AdminContextFields filters={filters} />
             <button className="ghost-button" name="status" value="rejected" type="submit">
               <X size={17} aria-hidden="true" />
               Reject
@@ -507,6 +715,7 @@ function AdminWorkReviewRow({
             <input type="hidden" name="key" value={keyValue} />
             <input type="hidden" name="id" value={work.id} />
             <input type="hidden" name="currentStatus" value={activeStatus} />
+            <AdminContextFields filters={filters} />
             <button className="ghost-button" name="status" value="hidden" type="submit">
               <X size={17} aria-hidden="true" />
               Hide
@@ -518,6 +727,7 @@ function AdminWorkReviewRow({
             <input type="hidden" name="key" value={keyValue} />
             <input type="hidden" name="id" value={work.id} />
             <input type="hidden" name="currentStatus" value={activeStatus} />
+            <AdminContextFields filters={filters} />
             <button className="ghost-button" name="status" value="pending" type="submit">
               <RotateCcw size={17} aria-hidden="true" />
               Move to Pending
@@ -526,5 +736,15 @@ function AdminWorkReviewRow({
         ) : null}
       </div>
     </article>
+  );
+}
+
+function AdminContextFields({ filters }: { filters: AdminFilters }) {
+  return (
+    <>
+      <input type="hidden" name="q" value={filters.q} />
+      <input type="hidden" name="category" value={filters.category} />
+      <input type="hidden" name="sort" value={filters.sort} />
+    </>
   );
 }
