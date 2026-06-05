@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
   absoluteUrl,
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <SiteHeader />
         <main className="app-shell">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );
