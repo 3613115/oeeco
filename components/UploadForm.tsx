@@ -22,6 +22,13 @@ type Draft = {
 type SubmitState = "idle" | "loading" | "sent";
 type OAuthState = "idle" | "google";
 
+type SubmittedWork = {
+  id: string;
+  title: string;
+  category: Exclude<CategoryId, "all">;
+  tags: string[];
+};
+
 type PreparedSubmission = {
   title: string;
   summary: string;
@@ -61,6 +68,7 @@ export function UploadForm() {
   const [errors, setErrors] = useState<string[]>([]);
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [oauthState, setOauthState] = useState<OAuthState>("idle");
+  const [submittedWork, setSubmittedWork] = useState<SubmittedWork | null>(null);
 
   const tags = useMemo(() => parseTags(draft.tags), [draft.tags]);
   const previewCover = getPreviewCover(draft.coverUrl);
@@ -100,6 +108,12 @@ export function UploadForm() {
   }, [draft]);
 
   function updateDraft(key: keyof Draft, value: string) {
+    if (submitState === "sent") {
+      setSubmitState("idle");
+      setSubmittedWork(null);
+      setMessage("");
+    }
+
     setDraft((current) => {
       if (key === "category") {
         return {
@@ -209,7 +223,7 @@ export function UploadForm() {
       return;
     }
 
-    if (tags.length) {
+    if (prepared.data.tags.length) {
       const { error: tagError } = await supabase.from("work_tags").insert(
         prepared.data.tags.map((tag) => ({
           work_id: work.id,
@@ -224,6 +238,12 @@ export function UploadForm() {
       }
     }
 
+    setSubmittedWork({
+      id: work.id,
+      title: prepared.data.title,
+      category: prepared.data.category,
+      tags: prepared.data.tags,
+    });
     setSubmitState("sent");
     setMessage("Work submitted. It is now waiting for review.");
     localStorage.removeItem("oeeco-upload-draft");
@@ -239,7 +259,15 @@ export function UploadForm() {
     setDraft(defaultDraft);
     setErrors([]);
     localStorage.removeItem("oeeco-upload-draft");
-    if (clearMessage) setMessage("");
+    if (clearMessage) {
+      setMessage("");
+      setSubmitState("idle");
+      setSubmittedWork(null);
+    }
+  }
+
+  function startAnotherSubmission() {
+    reset();
   }
 
   return (
@@ -289,6 +317,45 @@ export function UploadForm() {
             </button>
           </form>
         )}
+
+        {submitState === "sent" && submittedWork ? (
+          <div className="submission-success-panel" role="status">
+            <div className="submission-success-heading">
+              <CheckCircle size={28} aria-hidden="true" />
+              <div>
+                <span className="section-kicker">Submitted</span>
+                <h2>Submission received</h2>
+                <p>Your work is now in review. You can track its status from Creator Account.</p>
+              </div>
+            </div>
+            <div className="submission-success-meta">
+              <span>{submittedWork.title}</span>
+              <span>{categoryLabels[submittedWork.category]}</span>
+              <span>{submittedWork.tags.join(", ")}</span>
+            </div>
+            <div className="submission-success-steps" aria-label="Submission review steps">
+              <span className="submission-success-step is-done">Submitted</span>
+              <span className="submission-success-step">Admin review</span>
+              <span className="submission-success-step">Published or feedback</span>
+            </div>
+            <div className="submission-success-actions">
+              <Link className="solid-button" href="/account">
+                <CheckCircle size={17} aria-hidden="true" />
+                Track in Account
+              </Link>
+              {user ? (
+                <Link className="ghost-button" href={`/creators/${user.id}`}>
+                  <CircleUserRound size={17} aria-hidden="true" />
+                  Public profile
+                </Link>
+              ) : null}
+              <button className="ghost-button" type="button" onClick={startAnotherSubmission}>
+                <RotateCcw size={17} aria-hidden="true" />
+                Submit another
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         <form className="form-grid" onSubmit={submit} noValidate>
           <div className="field">
@@ -408,18 +475,12 @@ export function UploadForm() {
           <div className="form-actions">
             <button className="solid-button" type="submit" disabled={submitState === "loading"}>
               <Send size={17} aria-hidden="true" />
-              {submitState === "loading" ? "Submitting" : submitState === "sent" ? "Submitted" : "Submit for review"}
+              {submitState === "loading" ? "Submitting" : "Submit for review"}
             </button>
             <button className="ghost-button" type="button" onClick={() => reset()}>
               <RotateCcw size={17} aria-hidden="true" />
               Reset
             </button>
-            {submitState === "sent" ? (
-              <Link className="ghost-button" href="/account">
-                <CheckCircle size={17} aria-hidden="true" />
-                Track status
-              </Link>
-            ) : null}
           </div>
           {message ? <div className="toast" role="status">{message}</div> : null}
         </form>

@@ -1428,6 +1428,70 @@ button {
   padding-left: 20px;
 }
 
+.submission-success-panel {
+  display: grid;
+  gap: 14px;
+  border: 1px solid rgba(12, 122, 85, 0.26);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(85, 214, 168, 0.16), rgba(255, 255, 255, 0.92));
+  padding: 16px;
+}
+
+.submission-success-heading {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.submission-success-heading svg {
+  color: var(--leaf);
+}
+
+.submission-success-heading h2 {
+  margin: 3px 0 4px;
+  font-size: 24px;
+  line-height: 1.18;
+}
+
+.submission-success-heading p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.submission-success-meta,
+.submission-success-steps,
+.submission-success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.submission-success-meta span,
+.submission-success-step {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  padding: 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.submission-success-step {
+  border-color: rgba(12, 122, 85, 0.18);
+}
+
+.submission-success-step.is-done {
+  border-color: rgba(12, 122, 85, 0.28);
+  background: rgba(85, 214, 168, 0.18);
+  color: var(--leaf);
+}
+
 .preview-card {
   overflow: hidden;
   border: 1px solid var(--line);
