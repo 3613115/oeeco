@@ -1,7 +1,20 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { CircleUserRound, ExternalLink, LogOut, Mail, Play, RefreshCw, Save, Send, Upload, UserRound } from "lucide-react";
+import {
+  CircleUserRound,
+  ExternalLink,
+  LogOut,
+  Mail,
+  Pencil,
+  Play,
+  RefreshCw,
+  Save,
+  Send,
+  Upload,
+  UserRound,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -14,11 +27,15 @@ type AccountWorkRow = {
   id: string;
   title: string;
   summary: string;
+  description: string | null;
   category: string;
   status: WorkStatus;
   demo_url: string | null;
+  cover_url: string | null;
+  tool_stack: string | null;
   created_at: string;
   updated_at: string;
+  tags: string[];
 };
 
 type ProfileRow = {
@@ -36,9 +53,21 @@ type ProfileForm = {
   bio: string;
 };
 
+type WorkForm = {
+  title: string;
+  summary: string;
+  detail: string;
+  category: Exclude<CategoryId, "all">;
+  tags: string;
+  demoUrl: string;
+  coverUrl: string;
+  toolStack: string;
+};
+
 type LoadState = "idle" | "loading" | "ready";
 type SubmitState = "idle" | "loading";
 type SaveState = "idle" | "saving";
+type WorkSaveState = "idle" | "saving";
 type OAuthState = "idle" | "google";
 
 const statusMeta: Record<WorkStatus, { label: string; helper: string }> = {
@@ -82,6 +111,10 @@ export function AccountClient() {
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [oauthState, setOauthState] = useState<OAuthState>("idle");
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [workSaveState, setWorkSaveState] = useState<WorkSaveState>("idle");
+  const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
+  const [workForm, setWorkForm] = useState<WorkForm | null>(null);
+  const [workErrors, setWorkErrors] = useState<string[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("idle");
 
   useEffect(() => {
@@ -191,7 +224,7 @@ export function AccountClient() {
     setLoadState("loading");
     const { data, error } = await supabase
       .from("works")
-      .select("id, title, summary, category, status, demo_url, created_at, updated_at")
+      .select("id, title, summary, description, category, status, demo_url, cover_url, tool_stack, created_at, updated_at")
       .eq("creator_id", userId)
       .order("created_at", { ascending: false });
 
@@ -202,7 +235,27 @@ export function AccountClient() {
       return;
     }
 
-    setWorks((data as AccountWorkRow[] | null) || []);
+    const rows = (data as Omit<AccountWorkRow, "tags">[] | null) || [];
+    const ids = rows.map((work) => work.id);
+
+    if (!ids.length) {
+      setWorks([]);
+      setLoadState("ready");
+      return;
+    }
+
+    const { data: tagRows, error: tagError } = await supabase.from("work_tags").select("work_id, tag").in("work_id", ids);
+    if (tagError) {
+      setMessage(tagError.message);
+    }
+
+    const tagsByWork = new Map<string, string[]>();
+    for (const row of (tagRows as Array<{ work_id: string; tag: string }> | null) || []) {
+      if (isInternalTag(row.tag)) continue;
+      tagsByWork.set(row.work_id, [...(tagsByWork.get(row.work_id) || []), row.tag]);
+    }
+
+    setWorks(rows.map((work) => ({ ...work, tags: tagsByWork.get(work.id) || [] })));
     setLoadState("ready");
   }
 
@@ -250,6 +303,122 @@ export function AccountClient() {
       bio: nextProfile.bio || "",
     });
     setMessage("Profile saved.");
+  }
+
+  function startEditingWork(work: AccountWorkRow) {
+    const category = isCategoryId(work.category) ? work.category : "ai";
+    setEditingWorkId(work.id);
+    setWorkErrors([]);
+    setWorkForm({
+      title: work.title,
+      summary: work.summary,
+      detail: work.description || "",
+      category,
+      tags: work.tags.join(", "),
+      demoUrl: work.demo_url || "",
+      coverUrl: work.cover_url || "",
+      toolStack: work.tool_stack || "Codex",
+    });
+  }
+
+  function stopEditingWork() {
+    setEditingWorkId(null);
+    setWorkForm(null);
+    setWorkErrors([]);
+  }
+
+  function updateWorkForm(key: keyof WorkForm, value: string) {
+    setWorkForm((current) => {
+      if (!current) return current;
+      if (key === "category") {
+        return {
+          ...current,
+          category: isCategoryId(value) ? value : current.category,
+        };
+      }
+
+      return {
+        ...current,
+        [key]: value,
+      };
+    });
+    setWorkErrors([]);
+  }
+
+  async function saveWork(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!supabase || !user || !editingWorkId || !workForm) return;
+
+    const prepared = prepareWorkForm(workForm);
+    if (prepared.errors.length) {
+      setWorkErrors(prepared.errors);
+      setMessage("");
+      return;
+    }
+
+    setWorkSaveState("saving");
+    const { data: updatedWork, error } = await supabase
+      .from("works")
+      .update({
+        title: prepared.data.title,
+        summary: prepared.data.summary,
+        description: prepared.data.detail,
+        category: prepared.data.category,
+        demo_url: prepared.data.demoUrl,
+        cover_url: prepared.data.coverUrl || "/assets/cover-upload.png",
+        tool_stack: prepared.data.toolStack,
+        status: "pending",
+      })
+      .eq("id", editingWorkId)
+      .eq("creator_id", user.id)
+      .in("status", ["draft", "pending", "rejected"])
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      setWorkSaveState("idle");
+      setMessage(error.message);
+      return;
+    }
+
+    if (!updatedWork) {
+      setWorkSaveState("idle");
+      setMessage("This work can no longer be edited. Refresh your submissions to see the latest status.");
+      return;
+    }
+
+    const { error: deleteError } = await supabase
+      .from("work_tags")
+      .delete()
+      .eq("work_id", editingWorkId)
+      .not("tag", "like", "oeeco:%");
+    if (deleteError) {
+      setWorkSaveState("idle");
+      setMessage(`Work saved, but old tags were not removed: ${deleteError.message}`);
+      return;
+    }
+
+    const nextTags = prepared.data.tags;
+    if (nextTags.length) {
+      const { error: insertError } = await supabase.from("work_tags").insert(
+        nextTags.map((tag) => ({
+          work_id: editingWorkId,
+          tag,
+        })),
+      );
+
+      if (insertError) {
+        setWorkSaveState("idle");
+        setMessage(`Work saved, but tags were not updated: ${insertError.message}`);
+        return;
+      }
+    }
+
+    await loadWorks(user.id);
+    setWorkSaveState("idle");
+    stopEditingWork();
+    setMessage("Work saved and returned to review.");
   }
 
   async function signOut() {
@@ -432,35 +601,158 @@ export function AccountClient() {
         <div className="account-list">
           {works.map((work) => (
             <article className="account-work" key={work.id}>
-              <div className="account-work-main">
-                <span className={`status-badge is-${work.status}`}>{statusMeta[work.status]?.label || work.status}</span>
-                <h2>{work.title}</h2>
-                <p>{work.summary}</p>
-                <div className="account-meta">
-                  <span>{labelCategory(work.category)}</span>
-                  <span>Submitted {formatDate(work.created_at)}</span>
-                  <span>{statusMeta[work.status]?.helper || "Status updated."}</span>
-                </div>
-              </div>
-              <div className="account-work-actions">
-                {work.status === "published" ? (
-                  <>
-                    <Link className="ghost-button" href={`/works/${work.id}`}>
-                      <ExternalLink size={17} aria-hidden="true" />
-                      Public Page
-                    </Link>
-                    <Link className="solid-button" href={`/play/${work.id}`}>
-                      <Play size={17} aria-hidden="true" />
-                      Play
-                    </Link>
-                  </>
-                ) : work.demo_url ? (
-                  <Link className="ghost-button" href={work.demo_url} target="_blank" rel="noreferrer">
-                    <ExternalLink size={17} aria-hidden="true" />
-                    Open Demo
-                  </Link>
-                ) : null}
-              </div>
+              {editingWorkId === work.id && workForm ? (
+                <form className="account-work-editor" onSubmit={saveWork} noValidate>
+                  <div className="account-editor-heading">
+                    <div>
+                      <span className={`status-badge is-${work.status}`}>{statusMeta[work.status]?.label || work.status}</span>
+                      <h2>Edit submission</h2>
+                      <p>Saving sends this work back to review as pending.</p>
+                    </div>
+                    <button className="ghost-button" type="button" onClick={stopEditingWork}>
+                      <X size={17} aria-hidden="true" />
+                      Cancel
+                    </button>
+                  </div>
+                  <div className="account-editor-grid">
+                    <div className="field">
+                      <label htmlFor={`work-title-${work.id}`}>Title</label>
+                      <input
+                        id={`work-title-${work.id}`}
+                        value={workForm.title}
+                        maxLength={80}
+                        onChange={(event) => updateWorkForm("title", event.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor={`work-category-${work.id}`}>Category</label>
+                      <select
+                        id={`work-category-${work.id}`}
+                        value={workForm.category}
+                        onChange={(event) => updateWorkForm("category", event.target.value)}
+                      >
+                        {categoryOptions.map(([id, label]) => (
+                          <option value={id} key={id}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="field span-2">
+                      <label htmlFor={`work-summary-${work.id}`}>Short summary</label>
+                      <input
+                        id={`work-summary-${work.id}`}
+                        value={workForm.summary}
+                        maxLength={160}
+                        onChange={(event) => updateWorkForm("summary", event.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor={`work-demo-${work.id}`}>Demo URL</label>
+                      <input
+                        id={`work-demo-${work.id}`}
+                        value={workForm.demoUrl}
+                        onChange={(event) => updateWorkForm("demoUrl", event.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor={`work-cover-${work.id}`}>Cover image URL</label>
+                      <input
+                        id={`work-cover-${work.id}`}
+                        value={workForm.coverUrl}
+                        onChange={(event) => updateWorkForm("coverUrl", event.target.value)}
+                        placeholder="https://... or leave blank"
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor={`work-tags-${work.id}`}>Tags</label>
+                      <input
+                        id={`work-tags-${work.id}`}
+                        value={workForm.tags}
+                        onChange={(event) => updateWorkForm("tags", event.target.value)}
+                        placeholder="Codex, Canvas, Casual"
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor={`work-tools-${work.id}`}>Tool stack</label>
+                      <input
+                        id={`work-tools-${work.id}`}
+                        value={workForm.toolStack}
+                        maxLength={120}
+                        onChange={(event) => updateWorkForm("toolStack", event.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="field span-2">
+                      <label htmlFor={`work-detail-${work.id}`}>Creator notes</label>
+                      <textarea
+                        id={`work-detail-${work.id}`}
+                        value={workForm.detail}
+                        maxLength={1200}
+                        onChange={(event) => updateWorkForm("detail", event.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  {workErrors.length ? (
+                    <div className="validation-list" role="alert">
+                      <strong>Before saving</strong>
+                      <ul>
+                        {workErrors.map((error) => (
+                          <li key={error}>{error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  <div className="account-editor-actions">
+                    <button className="solid-button" type="submit" disabled={workSaveState === "saving"}>
+                      <Save size={17} aria-hidden="true" />
+                      {workSaveState === "saving" ? "Saving" : "Save and Resubmit"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <div className="account-work-main">
+                    <span className={`status-badge is-${work.status}`}>{statusMeta[work.status]?.label || work.status}</span>
+                    <h2>{work.title}</h2>
+                    <p>{work.summary}</p>
+                    <div className="account-meta">
+                      <span>{labelCategory(work.category)}</span>
+                      <span>Submitted {formatDate(work.created_at)}</span>
+                      <span>{statusMeta[work.status]?.helper || "Status updated."}</span>
+                    </div>
+                  </div>
+                  <div className="account-work-actions">
+                    {canEditWork(work.status) ? (
+                      <button className="ghost-button" type="button" onClick={() => startEditingWork(work)}>
+                        <Pencil size={17} aria-hidden="true" />
+                        Edit
+                      </button>
+                    ) : null}
+                    {work.status === "published" ? (
+                      <>
+                        <Link className="ghost-button" href={`/works/${work.id}`}>
+                          <ExternalLink size={17} aria-hidden="true" />
+                          Public Page
+                        </Link>
+                        <Link className="solid-button" href={`/play/${work.id}`}>
+                          <Play size={17} aria-hidden="true" />
+                          Play
+                        </Link>
+                      </>
+                    ) : work.demo_url ? (
+                      <Link className="ghost-button" href={work.demo_url} target="_blank" rel="noreferrer">
+                        <ExternalLink size={17} aria-hidden="true" />
+                        Open Demo
+                      </Link>
+                    ) : null}
+                  </div>
+                </>
+              )}
             </article>
           ))}
         </div>
@@ -494,6 +786,73 @@ function formatDate(value: string) {
     day: "numeric",
     year: "numeric",
   }).format(new Date(value));
+}
+
+const categoryOptions: Array<[Exclude<CategoryId, "all">, string]> = [
+  ["game", "Game"],
+  ["tool", "Tool"],
+  ["story", "Interactive"],
+  ["visual", "Visual"],
+  ["ai", "AI Experiment"],
+];
+
+function canEditWork(status: WorkStatus) {
+  return status === "draft" || status === "pending" || status === "rejected";
+}
+
+function parseTags(value: string) {
+  return dedupeTags(value.split(/[,\n]/));
+}
+
+function dedupeTags(tags: string[]) {
+  const seen = new Set<string>();
+  return tags
+    .map((tag) => tag.trim().replace(/\s+/g, " "))
+    .filter(Boolean)
+    .map((tag) => tag.slice(0, 32))
+    .filter((tag) => !isInternalTag(tag))
+    .filter((tag) => {
+      const key = tag.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 8);
+}
+
+function prepareWorkForm(form: WorkForm) {
+  const title = form.title.trim();
+  const summary = form.summary.trim();
+  const detail = form.detail.trim();
+  const demoUrl = form.demoUrl.trim();
+  const coverUrl = form.coverUrl.trim();
+  const toolStack = form.toolStack.trim();
+  const tags = parseTags(form.tags);
+  const errors: string[] = [];
+
+  if (title.length < 3) errors.push("Add a title with at least 3 characters.");
+  if (summary.length < 20) errors.push("Add a short summary with at least 20 characters.");
+  if (detail.length < 30) errors.push("Add creator notes with at least 30 characters.");
+  if (!isHttpUrl(demoUrl)) errors.push("Add a valid public Demo URL starting with http or https.");
+  if (coverUrl && !isHttpUrl(coverUrl) && !coverUrl.startsWith("/")) {
+    errors.push("Use a valid cover image URL, a local path starting with /, or leave it blank.");
+  }
+  if (!toolStack) errors.push("Add the tools used to build the work.");
+  if (!tags.length) errors.push("Add at least one tag.");
+
+  return {
+    data: {
+      title: title.slice(0, 80),
+      summary: summary.slice(0, 160),
+      detail: detail.slice(0, 1200),
+      category: form.category,
+      tags,
+      demoUrl,
+      coverUrl: coverUrl || null,
+      toolStack: toolStack.slice(0, 120),
+    },
+    errors,
+  };
 }
 
 function prepareProfileForm(form: ProfileForm) {
@@ -552,6 +911,19 @@ function isHttpsUrl(value: string) {
   } catch {
     return false;
   }
+}
+
+function isHttpUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isInternalTag(tag: string) {
+  return tag.toLowerCase().startsWith("oeeco:");
 }
 
 function getProfileSaveError(message: string) {

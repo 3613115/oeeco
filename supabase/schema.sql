@@ -80,17 +80,41 @@ create policy "published works are public" on public.works
 create policy "users create own works" on public.works
   for insert with check (auth.uid() = creator_id);
 
-create policy "users update own non-hidden works" on public.works
-  for update using (auth.uid() = creator_id and status <> 'hidden');
+revoke update on public.works from anon, authenticated;
+grant update (title, summary, description, category, cover_url, demo_url, tool_stack, status)
+  on public.works to authenticated;
+
+create policy "creators resubmit own editable works" on public.works
+  for update
+  using (auth.uid() = creator_id and status in ('draft', 'pending', 'rejected'))
+  with check (auth.uid() = creator_id and status = 'pending');
 
 create policy "tags are public" on public.work_tags
   for select using (true);
 
-create policy "creators manage own work tags" on public.work_tags
-  for all using (
-    exists (
+revoke update on public.work_tags from anon, authenticated;
+
+create policy "creators add own display work tags" on public.work_tags
+  for insert
+  with check (
+    tag not like 'oeeco:%'
+    and exists (
       select 1 from public.works
-      where works.id = work_tags.work_id and works.creator_id = auth.uid()
+      where works.id = work_tags.work_id
+        and works.creator_id = auth.uid()
+        and works.status in ('draft', 'pending', 'rejected')
+    )
+  );
+
+create policy "creators delete own display work tags" on public.work_tags
+  for delete
+  using (
+    tag not like 'oeeco:%'
+    and exists (
+      select 1 from public.works
+      where works.id = work_tags.work_id
+        and works.creator_id = auth.uid()
+        and works.status in ('draft', 'pending', 'rejected')
     )
   );
 

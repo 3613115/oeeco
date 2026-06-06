@@ -1085,6 +1085,10 @@ button {
   padding: 16px;
 }
 
+.account-work:has(.account-work-editor) {
+  display: block;
+}
+
 .account-work-main {
   min-width: 0;
 }
@@ -1161,6 +1165,37 @@ button {
 
 .account-empty strong {
   font-size: 18px;
+}
+
+.account-work-editor {
+  display: grid;
+  gap: 16px;
+}
+
+.account-editor-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.account-editor-heading h2 {
+  margin: 8px 0 4px;
+}
+
+.account-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.account-editor-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.account-editor-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .account-login {
@@ -2004,7 +2039,8 @@ button {
   .account-heading,
   .account-work,
   .account-profile-panel,
-  .account-profile-form {
+  .account-profile-form,
+  .account-editor-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2012,9 +2048,14 @@ button {
     flex-direction: column;
   }
 
+  .account-editor-heading {
+    flex-direction: column;
+  }
+
   .account-actions,
   .account-work-actions,
-  .account-profile-actions {
+  .account-profile-actions,
+  .account-editor-actions {
     justify-content: flex-start;
   }
 
