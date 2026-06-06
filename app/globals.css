@@ -1232,14 +1232,26 @@ button {
   color: var(--leaf);
 }
 
+.account-action-pill.is-muted {
+  border-color: rgba(100, 112, 108, 0.26);
+  background: rgba(100, 112, 108, 0.08);
+  color: var(--muted);
+}
+
 .account-next-step {
   display: grid;
-  gap: 4px;
+  gap: 7px;
   margin-top: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--paper);
   padding: 12px;
+}
+
+.account-next-kicker {
+  color: var(--leaf);
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .account-next-step strong {
@@ -1259,6 +1271,22 @@ button {
 .account-next-step.is-good {
   border-color: rgba(12, 122, 85, 0.22);
   background: rgba(85, 214, 168, 0.1);
+}
+
+.account-next-step.is-muted {
+  border-color: rgba(100, 112, 108, 0.22);
+  background: rgba(100, 112, 108, 0.08);
+}
+
+.account-action-list {
+  display: grid;
+  gap: 4px;
+  margin: 2px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.45;
 }
 
 .status-badge {

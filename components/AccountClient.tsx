@@ -795,8 +795,14 @@ export function AccountClient() {
                         </div>
                       ) : null}
                       <div className={`account-next-step is-${action.tone}`}>
+                        <span className="account-next-kicker">{action.next}</span>
                         <strong>{action.title}</strong>
                         <p>{action.helper}</p>
+                        <ul className="account-action-list">
+                          {action.items.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
                     <div className="account-work-actions">
@@ -944,8 +950,10 @@ function getWorkAction(work: AccountWorkRow) {
   if (needsCreatorRevision(work)) {
     return {
       label: "Action needed",
+      next: "Next: revise submission",
       title: "Revise and resubmit",
       helper: "Use the review feedback above, update the submission, and send it back to pending review.",
+      items: ["Open the editor", "Address the review feedback", "Save and resubmit for review"],
       tone: "urgent" as const,
     };
   }
@@ -953,8 +961,10 @@ function getWorkAction(work: AccountWorkRow) {
   if (work.status === "pending") {
     return {
       label: "In review",
+      next: "Next: wait for review",
       title: "Waiting for review",
       helper: "No action is needed right now. You can still edit details while it is pending.",
+      items: ["Keep the demo link live", "Edit only if something important changed", "Watch this page for approval or feedback"],
       tone: "pending" as const,
     };
   }
@@ -962,8 +972,10 @@ function getWorkAction(work: AccountWorkRow) {
   if (work.status === "published") {
     return {
       label: "Live",
+      next: "Next: share or inspect",
       title: "Published on oeeco",
       helper: "Open the public page or TRY route to share and inspect the live listing.",
+      items: ["Check the public page", "Open the TRY route", "Submit another work when ready"],
       tone: "good" as const,
     };
   }
@@ -971,16 +983,20 @@ function getWorkAction(work: AccountWorkRow) {
   if (work.status === "hidden") {
     return {
       label: "Hidden",
+      next: "Next: wait for owner review",
       title: "Currently hidden",
       helper: "This work is not visible publicly. Check admin feedback or contact the site owner before resubmitting.",
+      items: ["Read any feedback above", "Keep the demo safe and reachable", "Wait for owner guidance before editing"],
       tone: "muted" as const,
     };
   }
 
   return {
     label: "Draft",
+    next: "Next: finish and submit",
     title: "Finish the draft",
     helper: "Complete the missing fields and submit it for review when ready.",
+    items: ["Fill in the required fields", "Confirm the public demo URL works", "Save and send it to review"],
     tone: "pending" as const,
   };
 }
