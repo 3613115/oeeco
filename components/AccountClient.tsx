@@ -33,6 +33,7 @@ type AccountWorkRow = {
   demo_url: string | null;
   cover_url: string | null;
   tool_stack: string | null;
+  review_note: string | null;
   created_at: string;
   updated_at: string;
   tags: string[];
@@ -222,11 +223,23 @@ export function AccountClient() {
     if (!supabase) return;
 
     setLoadState("loading");
-    const { data, error } = await supabase
+    const query = supabase
       .from("works")
-      .select("id, title, summary, description, category, status, demo_url, cover_url, tool_stack, created_at, updated_at")
+      .select("id, title, summary, description, category, status, demo_url, cover_url, tool_stack, review_note, created_at, updated_at")
       .eq("creator_id", userId)
       .order("created_at", { ascending: false });
+    let { data, error } = await query;
+    let rowsData = data as Array<Omit<AccountWorkRow, "tags">> | null;
+
+    if (error && error.message.toLowerCase().includes("review_note")) {
+      const fallback = await supabase
+        .from("works")
+        .select("id, title, summary, description, category, status, demo_url, cover_url, tool_stack, created_at, updated_at")
+        .eq("creator_id", userId)
+        .order("created_at", { ascending: false });
+      rowsData = fallback.data as Array<Omit<AccountWorkRow, "tags">> | null;
+      error = fallback.error;
+    }
 
     if (error) {
       setMessage(error.message);
@@ -235,7 +248,7 @@ export function AccountClient() {
       return;
     }
 
-    const rows = (data as Omit<AccountWorkRow, "tags">[] | null) || [];
+    const rows = rowsData || [];
     const ids = rows.map((work) => work.id);
 
     if (!ids.length) {
@@ -358,23 +371,39 @@ export function AccountClient() {
     }
 
     setWorkSaveState("saving");
-    const { data: updatedWork, error } = await supabase
+    const workUpdate = {
+      title: prepared.data.title,
+      summary: prepared.data.summary,
+      description: prepared.data.detail,
+      category: prepared.data.category,
+      demo_url: prepared.data.demoUrl,
+      cover_url: prepared.data.coverUrl || "/assets/cover-upload.png",
+      tool_stack: prepared.data.toolStack,
+      review_note: "",
+      status: "pending",
+    };
+    let { data: updatedWork, error } = await supabase
       .from("works")
-      .update({
-        title: prepared.data.title,
-        summary: prepared.data.summary,
-        description: prepared.data.detail,
-        category: prepared.data.category,
-        demo_url: prepared.data.demoUrl,
-        cover_url: prepared.data.coverUrl || "/assets/cover-upload.png",
-        tool_stack: prepared.data.toolStack,
-        status: "pending",
-      })
+      .update(workUpdate)
       .eq("id", editingWorkId)
       .eq("creator_id", user.id)
       .in("status", ["draft", "pending", "rejected"])
       .select("id")
       .maybeSingle();
+
+    if (error && error.message.toLowerCase().includes("review_note")) {
+      const { review_note: _reviewNote, ...fallbackWorkUpdate } = workUpdate;
+      const fallback = await supabase
+        .from("works")
+        .update(fallbackWorkUpdate)
+        .eq("id", editingWorkId)
+        .eq("creator_id", user.id)
+        .in("status", ["draft", "pending", "rejected"])
+        .select("id")
+        .maybeSingle();
+      updatedWork = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) {
       setWorkSaveState("idle");
@@ -725,6 +754,12 @@ export function AccountClient() {
                       <span>Submitted {formatDate(work.created_at)}</span>
                       <span>{statusMeta[work.status]?.helper || "Status updated."}</span>
                     </div>
+                    {work.review_note ? (
+                      <div className="account-review-note">
+                        <strong>Review feedback</strong>
+                        <p>{work.review_note}</p>
+                      </div>
+                    ) : null}
                   </div>
                   <div className="account-work-actions">
                     {canEditWork(work.status) ? (

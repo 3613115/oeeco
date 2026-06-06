@@ -23,6 +23,7 @@ create table public.works (
   demo_url text,
   tool_stack text default '',
   status public.work_status not null default 'pending',
+  review_note text not null default '',
   views_count integer not null default 0,
   likes_count integer not null default 0,
   collections_count integer not null default 0,
@@ -81,7 +82,7 @@ create policy "users create own works" on public.works
   for insert with check (auth.uid() = creator_id);
 
 revoke update on public.works from anon, authenticated;
-grant update (title, summary, description, category, cover_url, demo_url, tool_stack, status)
+grant update (title, summary, description, category, cover_url, demo_url, tool_stack, status, review_note)
   on public.works to authenticated;
 
 create policy "creators resubmit own editable works" on public.works

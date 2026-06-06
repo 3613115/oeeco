@@ -23,6 +23,7 @@ type WorkRow = {
   demo_url: string | null;
   tool_stack: string | null;
   status: string;
+  review_note: string | null;
   views_count: number | null;
   likes_count: number | null;
   collections_count: number | null;
@@ -46,6 +47,7 @@ export type AdminWorkStatus = "pending" | "published" | "rejected" | "hidden";
 
 export type AdminWork = Work & {
   status: AdminWorkStatus;
+  reviewNote: string;
 };
 
 export type AdminWorkUpdate = {
@@ -166,6 +168,7 @@ export async function getAdminWorks(status: AdminWorkStatus = "pending") {
   return hydrated.map((work, index) => ({
     ...work,
     status: rows[index].status as AdminWorkStatus,
+    reviewNote: rows[index].review_note || "",
   }));
 }
 
@@ -194,13 +197,19 @@ export async function getAdminWorkCounts() {
   return Object.fromEntries(rows) as Record<AdminWorkStatus, number>;
 }
 
-export async function updateAdminWorkStatus(id: string, status: AdminWorkStatus) {
+export async function updateAdminWorkStatus(id: string, status: AdminWorkStatus, reviewNote = "") {
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return { ok: false, message: "Supabase admin key is not configured." };
   }
 
-  const { error } = await supabase.from("works").update({ status }).eq("id", id);
+  const nextReviewNote = status === "rejected" || status === "hidden" ? cleanReviewNote(reviewNote) : "";
+  let { error } = await supabase.from("works").update({ status, review_note: nextReviewNote }).eq("id", id);
+
+  if (error && error.message.toLowerCase().includes("review_note")) {
+    const fallback = await supabase.from("works").update({ status }).eq("id", id);
+    error = fallback.error;
+  }
 
   return {
     ok: !error,
@@ -343,6 +352,7 @@ async function hydrateWorks(rows: WorkRow[], useAdmin = false): Promise<Work[]> 
       summary: row.summary,
       detail: row.description || row.summary,
       demoUrl: row.demo_url,
+      reviewNote: row.review_note || "",
       curation,
       comments: [],
       frame: "upload",
@@ -415,6 +425,10 @@ function buildCurationTags(input: AdminWorkCurationUpdate) {
 
 function cleanCurationLabel(label: string) {
   return label.trim().replace(/\s+/g, " ").slice(0, 19);
+}
+
+function cleanReviewNote(value: string) {
+  return value.trim().replace(/\s+/g, " ").slice(0, 600);
 }
 
 function isCurationTag(tag: string) {

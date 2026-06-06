@@ -495,6 +495,7 @@ function getAdminHealthSummary(works: AdminWork[]) {
 function getAdminErrorMessage(error: string | undefined) {
   if (error === "bad-key") return "Wrong passcode.";
   if (error === "bad-request") return "Action failed. Check the required fields and try again.";
+  if (error === "feedback-required") return "Add feedback before rejecting a work.";
   if (error === "bad-url") return "Use valid http or https URLs. Cover URLs can also use a local path starting with /.";
   if (error === "save-failed") return "Save failed. Check Supabase and try again.";
   if (error === "curation-failed") return "Curation update failed. Check Supabase and try again.";
@@ -509,6 +510,7 @@ async function updateStatus(formData: FormData) {
   const id = String(formData.get("id") || "");
   const currentStatus = parseStatus(formData.get("currentStatus"));
   const nextStatus = parseStatus(formData.get("status"));
+  const reviewNote = cleanText(formData.get("reviewNote"), 600);
   const filters = getAdminFormContext(formData);
 
   if (!process.env.ADMIN_PASSCODE || key !== process.env.ADMIN_PASSCODE) {
@@ -519,7 +521,11 @@ async function updateStatus(formData: FormData) {
     redirect(adminUrl(key, currentStatus, { ...getAdminFilterParams(filters), error: "bad-request" }));
   }
 
-  const result = await updateAdminWorkStatus(id, nextStatus);
+  if (nextStatus === "rejected" && reviewNote.length < 12) {
+    redirect(adminUrl(key, currentStatus, { ...getAdminFilterParams(filters), error: "feedback-required" }));
+  }
+
+  const result = await updateAdminWorkStatus(id, nextStatus, reviewNote);
   revalidatePath("/");
   revalidatePath("/admin");
 
@@ -1021,6 +1027,13 @@ function AdminWorkReviewRow({
         <p>{nextAction.helper}</p>
       </div>
 
+      {work.reviewNote ? (
+        <div className="admin-feedback-note">
+          <span className="section-kicker">Creator Feedback</span>
+          <p>{work.reviewNote}</p>
+        </div>
+      ) : null}
+
       <div className="admin-health-panel">
         <div>
           <span className="section-kicker">Content Health</span>
@@ -1142,11 +1155,22 @@ function AdminWorkReviewRow({
           </form>
         ) : null}
         {work.status !== "rejected" ? (
-          <form action={updateStatus}>
+          <form className="admin-feedback-form" action={updateStatus}>
             <input type="hidden" name="key" value={keyValue} />
             <input type="hidden" name="id" value={work.id} />
             <input type="hidden" name="currentStatus" value={activeStatus} />
             <AdminContextFields filters={filters} />
+            <label>
+              <span>Revision feedback</span>
+              <textarea
+                name="reviewNote"
+                maxLength={600}
+                minLength={12}
+                placeholder="Tell the creator exactly what to fix before resubmitting."
+                required
+                rows={3}
+              />
+            </label>
             <button className="ghost-button" name="status" value="rejected" type="submit">
               <X size={17} aria-hidden="true" />
               Reject
@@ -1154,11 +1178,20 @@ function AdminWorkReviewRow({
           </form>
         ) : null}
         {work.status !== "hidden" && work.status === "published" ? (
-          <form action={updateStatus}>
+          <form className="admin-feedback-form" action={updateStatus}>
             <input type="hidden" name="key" value={keyValue} />
             <input type="hidden" name="id" value={work.id} />
             <input type="hidden" name="currentStatus" value={activeStatus} />
             <AdminContextFields filters={filters} />
+            <label>
+              <span>Hide reason</span>
+              <textarea
+                name="reviewNote"
+                maxLength={600}
+                placeholder="Optional note for why this published work was hidden."
+                rows={3}
+              />
+            </label>
             <button className="ghost-button" name="status" value="hidden" type="submit">
               <X size={17} aria-hidden="true" />
               Hide
