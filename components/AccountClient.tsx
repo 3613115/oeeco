@@ -4,6 +4,7 @@ import type { User } from "@supabase/supabase-js";
 import {
   CircleUserRound,
   ExternalLink,
+  Inbox,
   LogOut,
   Mail,
   Pencil,
@@ -462,6 +463,8 @@ export function AccountClient() {
     }
     return next;
   }, [works]);
+  const actionSummary = useMemo(() => getActionSummary(works), [works]);
+  const sortedWorks = useMemo(() => sortAccountWorks(works), [works]);
 
   if (!supabase || !isSupabaseConfigured) {
     return (
@@ -621,6 +624,28 @@ export function AccountClient() {
         ))}
       </div>
 
+      <section className={actionSummary.urgentCount ? "account-inbox is-urgent" : "account-inbox"}>
+        <div>
+          <span className="section-kicker">Creator Inbox</span>
+          <h2>{actionSummary.title}</h2>
+          <p>{actionSummary.helper}</p>
+        </div>
+        <div className="account-inbox-counts">
+          <span>
+            <strong>{actionSummary.urgentCount}</strong>
+            needs revision
+          </span>
+          <span>
+            <strong>{actionSummary.pendingCount}</strong>
+            in review
+          </span>
+          <span>
+            <strong>{actionSummary.publishedCount}</strong>
+            live
+          </span>
+        </div>
+      </section>
+
       {loadState === "loading" ? (
         <div className="account-empty">
           <strong>Loading submissions</strong>
@@ -628,168 +653,182 @@ export function AccountClient() {
         </div>
       ) : works.length ? (
         <div className="account-list">
-          {works.map((work) => (
-            <article className="account-work" key={work.id}>
-              {editingWorkId === work.id && workForm ? (
-                <form className="account-work-editor" onSubmit={saveWork} noValidate>
-                  <div className="account-editor-heading">
-                    <div>
-                      <span className={`status-badge is-${work.status}`}>{statusMeta[work.status]?.label || work.status}</span>
-                      <h2>Edit submission</h2>
-                      <p>Saving sends this work back to review as pending.</p>
+          {sortedWorks.map((work) => {
+            const action = getWorkAction(work);
+
+            return (
+              <article className="account-work" key={work.id}>
+                {editingWorkId === work.id && workForm ? (
+                  <form className="account-work-editor" onSubmit={saveWork} noValidate>
+                    <div className="account-editor-heading">
+                      <div>
+                        <span className={`status-badge is-${work.status}`}>{statusMeta[work.status]?.label || work.status}</span>
+                        <h2>Edit submission</h2>
+                        <p>Saving sends this work back to review as pending.</p>
+                      </div>
+                      <button className="ghost-button" type="button" onClick={stopEditingWork}>
+                        <X size={17} aria-hidden="true" />
+                        Cancel
+                      </button>
                     </div>
-                    <button className="ghost-button" type="button" onClick={stopEditingWork}>
-                      <X size={17} aria-hidden="true" />
-                      Cancel
-                    </button>
-                  </div>
-                  <div className="account-editor-grid">
-                    <div className="field">
-                      <label htmlFor={`work-title-${work.id}`}>Title</label>
-                      <input
-                        id={`work-title-${work.id}`}
-                        value={workForm.title}
-                        maxLength={80}
-                        onChange={(event) => updateWorkForm("title", event.target.value)}
-                        required
-                      />
+                    <div className="account-editor-grid">
+                      <div className="field">
+                        <label htmlFor={`work-title-${work.id}`}>Title</label>
+                        <input
+                          id={`work-title-${work.id}`}
+                          value={workForm.title}
+                          maxLength={80}
+                          onChange={(event) => updateWorkForm("title", event.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="field">
+                        <label htmlFor={`work-category-${work.id}`}>Category</label>
+                        <select
+                          id={`work-category-${work.id}`}
+                          value={workForm.category}
+                          onChange={(event) => updateWorkForm("category", event.target.value)}
+                        >
+                          {categoryOptions.map(([id, label]) => (
+                            <option value={id} key={id}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="field span-2">
+                        <label htmlFor={`work-summary-${work.id}`}>Short summary</label>
+                        <input
+                          id={`work-summary-${work.id}`}
+                          value={workForm.summary}
+                          maxLength={160}
+                          onChange={(event) => updateWorkForm("summary", event.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="field">
+                        <label htmlFor={`work-demo-${work.id}`}>Demo URL</label>
+                        <input
+                          id={`work-demo-${work.id}`}
+                          value={workForm.demoUrl}
+                          onChange={(event) => updateWorkForm("demoUrl", event.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="field">
+                        <label htmlFor={`work-cover-${work.id}`}>Cover image URL</label>
+                        <input
+                          id={`work-cover-${work.id}`}
+                          value={workForm.coverUrl}
+                          onChange={(event) => updateWorkForm("coverUrl", event.target.value)}
+                          placeholder="https://... or leave blank"
+                        />
+                      </div>
+                      <div className="field">
+                        <label htmlFor={`work-tags-${work.id}`}>Tags</label>
+                        <input
+                          id={`work-tags-${work.id}`}
+                          value={workForm.tags}
+                          onChange={(event) => updateWorkForm("tags", event.target.value)}
+                          placeholder="Codex, Canvas, Casual"
+                        />
+                      </div>
+                      <div className="field">
+                        <label htmlFor={`work-tools-${work.id}`}>Tool stack</label>
+                        <input
+                          id={`work-tools-${work.id}`}
+                          value={workForm.toolStack}
+                          maxLength={120}
+                          onChange={(event) => updateWorkForm("toolStack", event.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="field span-2">
+                        <label htmlFor={`work-detail-${work.id}`}>Creator notes</label>
+                        <textarea
+                          id={`work-detail-${work.id}`}
+                          value={workForm.detail}
+                          maxLength={1200}
+                          onChange={(event) => updateWorkForm("detail", event.target.value)}
+                          required
+                        />
+                      </div>
                     </div>
-                    <div className="field">
-                      <label htmlFor={`work-category-${work.id}`}>Category</label>
-                      <select
-                        id={`work-category-${work.id}`}
-                        value={workForm.category}
-                        onChange={(event) => updateWorkForm("category", event.target.value)}
-                      >
-                        {categoryOptions.map(([id, label]) => (
-                          <option value={id} key={id}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="field span-2">
-                      <label htmlFor={`work-summary-${work.id}`}>Short summary</label>
-                      <input
-                        id={`work-summary-${work.id}`}
-                        value={workForm.summary}
-                        maxLength={160}
-                        onChange={(event) => updateWorkForm("summary", event.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="field">
-                      <label htmlFor={`work-demo-${work.id}`}>Demo URL</label>
-                      <input
-                        id={`work-demo-${work.id}`}
-                        value={workForm.demoUrl}
-                        onChange={(event) => updateWorkForm("demoUrl", event.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="field">
-                      <label htmlFor={`work-cover-${work.id}`}>Cover image URL</label>
-                      <input
-                        id={`work-cover-${work.id}`}
-                        value={workForm.coverUrl}
-                        onChange={(event) => updateWorkForm("coverUrl", event.target.value)}
-                        placeholder="https://... or leave blank"
-                      />
-                    </div>
-                    <div className="field">
-                      <label htmlFor={`work-tags-${work.id}`}>Tags</label>
-                      <input
-                        id={`work-tags-${work.id}`}
-                        value={workForm.tags}
-                        onChange={(event) => updateWorkForm("tags", event.target.value)}
-                        placeholder="Codex, Canvas, Casual"
-                      />
-                    </div>
-                    <div className="field">
-                      <label htmlFor={`work-tools-${work.id}`}>Tool stack</label>
-                      <input
-                        id={`work-tools-${work.id}`}
-                        value={workForm.toolStack}
-                        maxLength={120}
-                        onChange={(event) => updateWorkForm("toolStack", event.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="field span-2">
-                      <label htmlFor={`work-detail-${work.id}`}>Creator notes</label>
-                      <textarea
-                        id={`work-detail-${work.id}`}
-                        value={workForm.detail}
-                        maxLength={1200}
-                        onChange={(event) => updateWorkForm("detail", event.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  {workErrors.length ? (
-                    <div className="validation-list" role="alert">
-                      <strong>Before saving</strong>
-                      <ul>
-                        {workErrors.map((error) => (
-                          <li key={error}>{error}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                  <div className="account-editor-actions">
-                    <button className="solid-button" type="submit" disabled={workSaveState === "saving"}>
-                      <Save size={17} aria-hidden="true" />
-                      {workSaveState === "saving" ? "Saving" : "Save and Resubmit"}
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <>
-                  <div className="account-work-main">
-                    <span className={`status-badge is-${work.status}`}>{statusMeta[work.status]?.label || work.status}</span>
-                    <h2>{work.title}</h2>
-                    <p>{work.summary}</p>
-                    <div className="account-meta">
-                      <span>{labelCategory(work.category)}</span>
-                      <span>Submitted {formatDate(work.created_at)}</span>
-                      <span>{statusMeta[work.status]?.helper || "Status updated."}</span>
-                    </div>
-                    {work.review_note ? (
-                      <div className="account-review-note">
-                        <strong>Review feedback</strong>
-                        <p>{work.review_note}</p>
+                    {workErrors.length ? (
+                      <div className="validation-list" role="alert">
+                        <strong>Before saving</strong>
+                        <ul>
+                          {workErrors.map((error) => (
+                            <li key={error}>{error}</li>
+                          ))}
+                        </ul>
                       </div>
                     ) : null}
-                  </div>
-                  <div className="account-work-actions">
-                    {canEditWork(work.status) ? (
-                      <button className="ghost-button" type="button" onClick={() => startEditingWork(work)}>
-                        <Pencil size={17} aria-hidden="true" />
-                        Edit
+                    <div className="account-editor-actions">
+                      <button className="solid-button" type="submit" disabled={workSaveState === "saving"}>
+                        <Save size={17} aria-hidden="true" />
+                        {workSaveState === "saving" ? "Saving" : "Save and Resubmit"}
                       </button>
-                    ) : null}
-                    {work.status === "published" ? (
-                      <>
-                        <Link className="ghost-button" href={`/works/${work.id}`}>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="account-work-main">
+                      <div className="account-work-status-row">
+                        <span className={`status-badge is-${work.status}`}>{statusMeta[work.status]?.label || work.status}</span>
+                        <span className={`account-action-pill is-${action.tone}`}>
+                          <Inbox size={14} aria-hidden="true" />
+                          {action.label}
+                        </span>
+                      </div>
+                      <h2>{work.title}</h2>
+                      <p>{work.summary}</p>
+                      <div className="account-meta">
+                        <span>{labelCategory(work.category)}</span>
+                        <span>Submitted {formatDate(work.created_at)}</span>
+                        <span>{statusMeta[work.status]?.helper || "Status updated."}</span>
+                      </div>
+                      {work.review_note ? (
+                        <div className="account-review-note">
+                          <strong>Review feedback</strong>
+                          <p>{work.review_note}</p>
+                        </div>
+                      ) : null}
+                      <div className={`account-next-step is-${action.tone}`}>
+                        <strong>{action.title}</strong>
+                        <p>{action.helper}</p>
+                      </div>
+                    </div>
+                    <div className="account-work-actions">
+                      {canEditWork(work.status) ? (
+                        <button className="ghost-button" type="button" onClick={() => startEditingWork(work)}>
+                          <Pencil size={17} aria-hidden="true" />
+                          {work.status === "rejected" || work.review_note ? "Edit and Resubmit" : "Edit"}
+                        </button>
+                      ) : null}
+                      {work.status === "published" ? (
+                        <>
+                          <Link className="ghost-button" href={`/works/${work.id}`}>
+                            <ExternalLink size={17} aria-hidden="true" />
+                            Public Page
+                          </Link>
+                          <Link className="solid-button" href={`/play/${work.id}`}>
+                            <Play size={17} aria-hidden="true" />
+                            Play
+                          </Link>
+                        </>
+                      ) : work.demo_url ? (
+                        <Link className="ghost-button" href={work.demo_url} target="_blank" rel="noreferrer">
                           <ExternalLink size={17} aria-hidden="true" />
-                          Public Page
+                          Open Demo
                         </Link>
-                        <Link className="solid-button" href={`/play/${work.id}`}>
-                          <Play size={17} aria-hidden="true" />
-                          Play
-                        </Link>
-                      </>
-                    ) : work.demo_url ? (
-                      <Link className="ghost-button" href={work.demo_url} target="_blank" rel="noreferrer">
-                        <ExternalLink size={17} aria-hidden="true" />
-                        Open Demo
-                      </Link>
-                    ) : null}
-                  </div>
-                </>
-              )}
-            </article>
-          ))}
+                      ) : null}
+                    </div>
+                  </>
+                )}
+              </article>
+            );
+          })}
         </div>
       ) : (
         <div className="account-empty">
@@ -833,6 +872,117 @@ const categoryOptions: Array<[Exclude<CategoryId, "all">, string]> = [
 
 function canEditWork(status: WorkStatus) {
   return status === "draft" || status === "pending" || status === "rejected";
+}
+
+function getActionSummary(works: AccountWorkRow[]) {
+  const urgentCount = works.filter(needsCreatorRevision).length;
+  const pendingCount = works.filter((work) => work.status === "pending").length;
+  const publishedCount = works.filter((work) => work.status === "published").length;
+
+  if (urgentCount) {
+    return {
+      title: urgentCount === 1 ? "1 work needs revision" : `${urgentCount} works need revision`,
+      helper: "Review feedback is waiting. Update the submission and send it back to the review queue.",
+      urgentCount,
+      pendingCount,
+      publishedCount,
+    };
+  }
+
+  if (pendingCount) {
+    return {
+      title: pendingCount === 1 ? "1 work is in review" : `${pendingCount} works are in review`,
+      helper: "Your latest submissions are waiting for admin review. Published works will appear here when approved.",
+      urgentCount,
+      pendingCount,
+      publishedCount,
+    };
+  }
+
+  if (publishedCount) {
+    return {
+      title: publishedCount === 1 ? "1 work is live" : `${publishedCount} works are live`,
+      helper: "Your published works are visible on oeeco and ready to share.",
+      urgentCount,
+      pendingCount,
+      publishedCount,
+    };
+  }
+
+  return {
+    title: "No active review items",
+    helper: "Submit a new work when you are ready to build your oeeco profile.",
+    urgentCount,
+    pendingCount,
+    publishedCount,
+  };
+}
+
+function sortAccountWorks(works: AccountWorkRow[]) {
+  const priority: Record<WorkStatus, number> = {
+    rejected: 0,
+    hidden: 1,
+    pending: 2,
+    draft: 3,
+    published: 4,
+  };
+
+  return [...works].sort((a, b) => {
+    const aPriority = needsCreatorRevision(a) ? -1 : priority[a.status] ?? 9;
+    const bPriority = needsCreatorRevision(b) ? -1 : priority[b.status] ?? 9;
+    if (aPriority !== bPriority) return aPriority - bPriority;
+
+    return new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime();
+  });
+}
+
+function needsCreatorRevision(work: AccountWorkRow) {
+  return work.status === "rejected" || Boolean(work.review_note && work.status !== "published");
+}
+
+function getWorkAction(work: AccountWorkRow) {
+  if (needsCreatorRevision(work)) {
+    return {
+      label: "Action needed",
+      title: "Revise and resubmit",
+      helper: "Use the review feedback above, update the submission, and send it back to pending review.",
+      tone: "urgent" as const,
+    };
+  }
+
+  if (work.status === "pending") {
+    return {
+      label: "In review",
+      title: "Waiting for review",
+      helper: "No action is needed right now. You can still edit details while it is pending.",
+      tone: "pending" as const,
+    };
+  }
+
+  if (work.status === "published") {
+    return {
+      label: "Live",
+      title: "Published on oeeco",
+      helper: "Open the public page or TRY route to share and inspect the live listing.",
+      tone: "good" as const,
+    };
+  }
+
+  if (work.status === "hidden") {
+    return {
+      label: "Hidden",
+      title: "Currently hidden",
+      helper: "This work is not visible publicly. Check admin feedback or contact the site owner before resubmitting.",
+      tone: "muted" as const,
+    };
+  }
+
+  return {
+    label: "Draft",
+    title: "Finish the draft",
+    helper: "Complete the missing fields and submit it for review when ready.",
+    tone: "pending" as const,
+  };
 }
 
 function parseTags(value: string) {

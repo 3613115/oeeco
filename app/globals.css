@@ -1069,6 +1069,58 @@ button {
   font-weight: 800;
 }
 
+.account-inbox {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  border: 1px solid rgba(12, 122, 85, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(85, 214, 168, 0.1), rgba(255, 255, 255, 0.94));
+  padding: 16px;
+}
+
+.account-inbox.is-urgent {
+  border-color: rgba(244, 180, 63, 0.42);
+  background: linear-gradient(180deg, rgba(244, 180, 63, 0.18), rgba(255, 255, 255, 0.94));
+}
+
+.account-inbox h2 {
+  margin: 4px 0;
+  font-size: 24px;
+  line-height: 1.18;
+}
+
+.account-inbox p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.account-inbox-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(88px, 1fr));
+  gap: 8px;
+}
+
+.account-inbox-counts span {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 820;
+}
+
+.account-inbox-counts strong {
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1;
+}
+
 .account-list {
   display: grid;
   gap: 12px;
@@ -1091,6 +1143,13 @@ button {
 
 .account-work-main {
   min-width: 0;
+}
+
+.account-work-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 }
 
 .account-work h2 {
@@ -1139,6 +1198,67 @@ button {
 
 .account-review-note p {
   color: var(--ink);
+}
+
+.account-action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  padding: 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.account-action-pill.is-urgent {
+  border-color: rgba(244, 180, 63, 0.5);
+  background: rgba(244, 180, 63, 0.18);
+  color: #805600;
+}
+
+.account-action-pill.is-pending {
+  border-color: rgba(40, 92, 214, 0.22);
+  background: rgba(40, 92, 214, 0.08);
+  color: #285cd6;
+}
+
+.account-action-pill.is-good {
+  border-color: rgba(12, 122, 85, 0.28);
+  background: rgba(85, 214, 168, 0.16);
+  color: var(--leaf);
+}
+
+.account-next-step {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 12px;
+}
+
+.account-next-step strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.account-next-step p {
+  font-size: 13px;
+}
+
+.account-next-step.is-urgent {
+  border-color: rgba(244, 180, 63, 0.42);
+  background: rgba(244, 180, 63, 0.12);
+}
+
+.account-next-step.is-good {
+  border-color: rgba(12, 122, 85, 0.22);
+  background: rgba(85, 214, 168, 0.1);
 }
 
 .status-badge {
@@ -2102,6 +2222,7 @@ button {
   }
 
   .account-heading,
+  .account-inbox,
   .account-work,
   .account-profile-panel,
   .account-profile-form,
@@ -2126,6 +2247,10 @@ button {
 
   .account-status-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .account-inbox-counts {
+    width: 100%;
   }
 
   .info-grid {
@@ -2223,6 +2348,10 @@ button {
   }
 
   .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .account-inbox-counts {
     grid-template-columns: 1fr;
   }
 
