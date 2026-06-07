@@ -1,4 +1,4 @@
-import { ExternalLink, Heart, Play, Shield, Share2 } from "lucide-react";
+import { ExternalLink, Flag, Heart, Play, Shield, Share2 } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { formatNumber, getWorkCreator, works } from "@/lib/data";
 import { tagToSlug } from "@/lib/discovery";
 import { getRunnerPolicy } from "@/lib/play-runner";
+import { buildWorkReportHref } from "@/lib/report";
 import { absoluteUrl, defaultOgImage, siteName } from "@/lib/site";
 import { getPublicWork } from "@/lib/work-service";
 
@@ -71,6 +72,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
 
   const creator = getWorkCreator(work);
   const runnerPolicy = getRunnerPolicy(work.demoUrl);
+  const reportHref = buildWorkReportHref(work, "work");
   const workJsonLd = {
     "@context": "https://schema.org",
     "@type": ["CreativeWork", "WebApplication"],
@@ -163,6 +165,10 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
               <Share2 size={17} aria-hidden="true" />
               Share
             </button>
+            <Link className="ghost-button" href={reportHref}>
+              <Flag size={17} aria-hidden="true" />
+              Report
+            </Link>
           </div>
         </div>
       </article>
@@ -201,6 +207,15 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
               </span>
             </div>
           </div>
+        </div>
+        <div className="report-panel">
+          <span className="section-kicker">Report A Problem</span>
+          <strong>Something wrong with this work?</strong>
+          <p>Report broken demos, unsafe links, misleading metadata, or playback problems.</p>
+          <Link className="ghost-button" href={reportHref}>
+            <Flag size={17} aria-hidden="true" />
+            Report Issue
+          </Link>
         </div>
         <div>
           <span className="section-kicker">Work Stats</span>

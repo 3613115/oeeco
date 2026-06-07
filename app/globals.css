@@ -850,6 +850,32 @@ button {
   overflow-wrap: anywhere;
 }
 
+.report-panel {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(244, 180, 63, 0.36);
+  border-radius: 8px;
+  background: rgba(244, 180, 63, 0.1);
+  padding: 14px;
+}
+
+.report-panel strong {
+  color: var(--ink);
+  font-size: 17px;
+}
+
+.report-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.report-panel .ghost-button {
+  width: max-content;
+  margin-top: 2px;
+}
+
 .stat-list {
   display: grid;
   gap: 10px;
@@ -2733,6 +2759,10 @@ button {
   }
 
   .runner-entry-summary .solid-button {
+    width: 100%;
+  }
+
+  .report-panel .ghost-button {
     width: 100%;
   }
 

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { PlayRunner } from "@/components/PlayRunner";
 import { getPlayPreviewHtml } from "@/lib/play-preview";
 import { getRunnerPolicy } from "@/lib/play-runner";
+import { buildWorkReportHref } from "@/lib/report";
 import { works } from "@/lib/data";
 import { getPublicWork } from "@/lib/work-service";
 
@@ -50,6 +51,7 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
   }
 
   const runnerPolicy = getRunnerPolicy(work.demoUrl);
+  const reportHref = buildWorkReportHref(work, "play");
 
   return (
     <section className="play-page">
@@ -85,6 +87,9 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
             <Link className="ghost-button" href={`/works/${work.id}`}>
               Review Details
             </Link>
+            <Link className="ghost-button" href={reportHref}>
+              Report Issue
+            </Link>
           </div>
         </div>
       ) : (
@@ -93,6 +98,7 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
           originLabel={runnerPolicy.originLabel}
           playableDemoUrl={runnerPolicy.playableUrl}
           previewHtml={getPlayPreviewHtml(work)}
+          reportHref={reportHref}
           title={work.title}
         />
       )}
