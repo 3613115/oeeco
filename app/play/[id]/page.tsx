@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PlayRunner } from "@/components/PlayRunner";
 import { getPlayPreviewHtml } from "@/lib/play-preview";
-import { getPlayableDemoUrl, getRunnerOriginLabel } from "@/lib/play-runner";
+import { getRunnerPolicy } from "@/lib/play-runner";
 import { works } from "@/lib/data";
 import { getPublicWork } from "@/lib/work-service";
 
@@ -49,13 +49,7 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
     notFound();
   }
 
-  const playableDemoUrl = getPlayableDemoUrl(work.demoUrl);
-  const runnerOrigin = getRunnerOriginLabel(work.demoUrl);
-  const runnerLabel = playableDemoUrl
-    ? `Sandboxed from ${runnerOrigin}`
-    : work.demoUrl
-      ? "Demo held for safety"
-      : "Sandboxed oeeco preview";
+  const runnerPolicy = getRunnerPolicy(work.demoUrl);
 
   return (
     <section className="play-page">
@@ -78,19 +72,16 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
       <div className="play-runner-bar">
         <span>
           <Shield size={16} aria-hidden="true" />
-          {runnerLabel}
+          {runnerPolicy.label}
         </span>
       </div>
 
-      {work.demoUrl && !playableDemoUrl ? (
+      {runnerPolicy.status === "held" ? (
         <div className="play-window">
           <div className="play-fallback">
             <Shield size={28} aria-hidden="true" />
             <h2>Preview held for safety</h2>
-            <p>
-              This work has a demo link, but the runner only embeds HTTPS demos or local development URLs. Review the
-              work details before opening it outside oeeco.
-            </p>
+            <p>{runnerPolicy.adminHelper}</p>
             <Link className="ghost-button" href={`/works/${work.id}`}>
               Review Details
             </Link>
@@ -98,8 +89,8 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
         </div>
       ) : (
         <PlayRunner
-          originLabel={runnerOrigin}
-          playableDemoUrl={playableDemoUrl}
+          originLabel={runnerPolicy.originLabel}
+          playableDemoUrl={runnerPolicy.playableUrl}
           previewHtml={getPlayPreviewHtml(work)}
           title={work.title}
         />

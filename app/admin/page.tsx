@@ -21,7 +21,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { categories, categoryLabels, getWorkCuration, isCategoryId, type CategoryId } from "@/lib/data";
-import { getPlayableDemoUrl, getRunnerOriginLabel } from "@/lib/play-runner";
+import { getRunnerPolicy } from "@/lib/play-runner";
 import { absoluteUrl } from "@/lib/site";
 import {
   updateAdminWorkCuration,
@@ -239,7 +239,7 @@ function getReviewChecks(work: AdminWork) {
 function getContentHealthChecks(work: AdminWork) {
   const curation = getWorkCuration(work);
   const hasInvalidDemo = Boolean(work.demoUrl && !isHttpUrl(work.demoUrl));
-  const playableDemoUrl = getPlayableDemoUrl(work.demoUrl);
+  const runnerPolicy = getRunnerPolicy(work.demoUrl);
 
   return [
     {
@@ -259,12 +259,8 @@ function getContentHealthChecks(work: AdminWork) {
     },
     {
       label: "Runner source",
-      ok: !work.demoUrl || Boolean(playableDemoUrl),
-      helper: playableDemoUrl
-        ? `Playable from ${getRunnerOriginLabel(work.demoUrl)}.`
-        : work.demoUrl
-          ? "External demo is held by runner policy."
-          : "Uses generated oeeco preview.",
+      ok: runnerPolicy.status !== "held",
+      helper: runnerPolicy.adminHelper,
     },
     {
       label: "Cover asset",
@@ -906,6 +902,7 @@ function AdminWorkReviewRow({
   const curation = getWorkCuration(work);
   const health = getContentHealthReport(work);
   const nextAction = getNextAction(work);
+  const runnerPolicy = getRunnerPolicy(work.demoUrl);
 
   return (
     <article className="admin-row">
@@ -1002,7 +999,20 @@ function AdminWorkReviewRow({
         </div>
       </div>
 
-      {work.demoUrl ? (
+      <div className={`admin-runner-policy is-${runnerPolicy.status}`}>
+        <span>
+          <Shield size={16} aria-hidden="true" />
+          Runner policy
+        </span>
+        <strong>{runnerPolicy.title}</strong>
+        <p>{runnerPolicy.adminHelper}</p>
+        <div>
+          <span>{runnerPolicy.label}</span>
+          <span>{runnerPolicy.originLabel}</span>
+        </div>
+      </div>
+
+      {runnerPolicy.playableUrl ? (
         <details className="admin-demo-preview">
           <summary>
             <Monitor size={17} aria-hidden="true" />
@@ -1012,10 +1022,18 @@ function AdminWorkReviewRow({
             loading="lazy"
             referrerPolicy="no-referrer"
             sandbox="allow-scripts allow-forms allow-popups"
-            src={work.demoUrl}
+            src={runnerPolicy.playableUrl}
             title={`${work.title} admin preview`}
           />
         </details>
+      ) : work.demoUrl ? (
+        <div className="admin-demo-hold">
+          <Shield size={17} aria-hidden="true" />
+          <span>
+            <strong>Sandbox preview blocked</strong>
+            <span>Open the submitted link manually only if you trust the destination.</span>
+          </span>
+        </div>
       ) : null}
 
       <div className={`admin-next-action is-${nextAction.tone}`}>

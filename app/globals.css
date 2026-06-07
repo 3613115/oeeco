@@ -2211,6 +2211,94 @@ button {
   background: #101b17;
 }
 
+.admin-runner-policy,
+.admin-demo-hold {
+  display: grid;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 14px;
+}
+
+.admin-runner-policy > span,
+.admin-demo-hold {
+  color: var(--leaf);
+}
+
+.admin-runner-policy > span,
+.admin-demo-hold {
+  align-items: center;
+}
+
+.admin-runner-policy > span,
+.admin-runner-policy div,
+.admin-demo-hold > span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-runner-policy > span {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-runner-policy strong {
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.admin-runner-policy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.admin-runner-policy div span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  padding: 4px 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 820;
+}
+
+.admin-runner-policy.is-playable {
+  border-color: rgba(12, 122, 85, 0.24);
+  background: rgba(85, 214, 168, 0.1);
+}
+
+.admin-runner-policy.is-held,
+.admin-demo-hold {
+  border-color: rgba(244, 180, 63, 0.42);
+  background: rgba(244, 180, 63, 0.12);
+}
+
+.admin-demo-hold {
+  grid-template-columns: 22px minmax(0, 1fr);
+  color: #805600;
+}
+
+.admin-demo-hold > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin-demo-hold strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.admin-demo-hold span span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 760;
+}
+
 .admin-next-action {
   display: grid;
   gap: 6px;

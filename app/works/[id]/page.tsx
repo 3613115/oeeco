@@ -5,7 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatNumber, getWorkCreator, works } from "@/lib/data";
 import { tagToSlug } from "@/lib/discovery";
-import { getPlayableDemoUrl, getRunnerOriginLabel } from "@/lib/play-runner";
+import { getRunnerPolicy } from "@/lib/play-runner";
 import { absoluteUrl, defaultOgImage, siteName } from "@/lib/site";
 import { getPublicWork } from "@/lib/work-service";
 
@@ -70,20 +70,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
   }
 
   const creator = getWorkCreator(work);
-  const playableDemoUrl = getPlayableDemoUrl(work.demoUrl);
-  const runnerOrigin = getRunnerOriginLabel(work.demoUrl);
-  const isHeldDemo = Boolean(work.demoUrl && !playableDemoUrl);
-  const runnerLabel = playableDemoUrl
-    ? `Sandboxed from ${runnerOrigin}`
-    : isHeldDemo
-      ? "Demo held for safety"
-      : "Sandboxed oeeco preview";
-  const runnerTitle = playableDemoUrl ? "Ready in runner" : isHeldDemo ? "Safety hold" : "Preview ready";
-  const runnerHelper = playableDemoUrl
-    ? "TRY opens this work inside oeeco with a new-tab fallback available."
-    : isHeldDemo
-      ? "TRY shows a safety hold because the submitted demo cannot be embedded by policy."
-      : "TRY opens an oeeco-generated preview while the creator demo is not available.";
+  const runnerPolicy = getRunnerPolicy(work.demoUrl);
   const workJsonLd = {
     "@context": "https://schema.org",
     "@type": ["CreativeWork", "WebApplication"],
@@ -96,7 +83,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
     operatingSystem: "Web browser",
     isAccessibleForFree: true,
     creativeWorkStatus: "Published",
-    sameAs: playableDemoUrl ? [playableDemoUrl] : undefined,
+    sameAs: runnerPolicy.playableUrl ? [runnerPolicy.playableUrl] : undefined,
     creator: {
       "@type": "Person",
       name: creator.name,
@@ -146,13 +133,9 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
           <div className="detail-runner-card">
             <span>
               <Shield size={17} aria-hidden="true" />
-              {runnerLabel}
+              {runnerPolicy.label}
             </span>
-            <p>
-              {isHeldDemo
-                ? "TRY will show a safety hold because this demo is not using an approved playable URL format."
-                : "TRY opens this work in oeeco's isolated runner. External demos are embedded with a restricted iframe sandbox and a new-tab fallback."}
-            </p>
+            <p>{runnerPolicy.helper}</p>
           </div>
           <div className="tag-row">
             {work.tags.map((tag) => (
@@ -166,8 +149,8 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
               <Play size={17} aria-hidden="true" />
               Try It
             </Link>
-            {playableDemoUrl ? (
-              <Link className="ghost-button" href={playableDemoUrl} target="_blank" rel="noreferrer">
+            {runnerPolicy.playableUrl ? (
+              <Link className="ghost-button" href={runnerPolicy.playableUrl} target="_blank" rel="noreferrer">
                 <ExternalLink size={17} aria-hidden="true" />
                 Open Demo
               </Link>
@@ -188,8 +171,8 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
         <div>
           <span className="section-kicker">TRY Experience</span>
           <div className="runner-entry-summary">
-            <strong>{runnerTitle}</strong>
-            <p>{runnerHelper}</p>
+            <strong>{runnerPolicy.title}</strong>
+            <p>{runnerPolicy.helper}</p>
             <Link className="solid-button" href={`/play/${work.id}`}>
               <Play size={17} aria-hidden="true" />
               Try It
@@ -200,7 +183,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
               <Shield size={16} aria-hidden="true" />
               <span>
                 <strong>Runner</strong>
-                <span>{runnerLabel}</span>
+                <span>{runnerPolicy.label}</span>
               </span>
             </div>
             <div className="publish-quality-item is-ready">
@@ -210,11 +193,11 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
                 <span>/play/{work.id}</span>
               </span>
             </div>
-            <div className={work.demoUrl && !playableDemoUrl ? "publish-quality-item" : "publish-quality-item is-ready"}>
+            <div className={runnerPolicy.status === "held" ? "publish-quality-item" : "publish-quality-item is-ready"}>
               <ExternalLink size={16} aria-hidden="true" />
               <span>
                 <strong>Demo source</strong>
-                <span>{playableDemoUrl ? runnerOrigin : work.demoUrl ? "Held for safety" : "oeeco preview"}</span>
+                <span>{runnerPolicy.originLabel}</span>
               </span>
             </div>
           </div>
