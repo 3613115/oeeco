@@ -2,14 +2,9 @@ import { ExternalLink, Info, Shield, Upload } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PlayRunner } from "@/components/PlayRunner";
 import { getPlayPreviewHtml } from "@/lib/play-preview";
-import {
-  externalRunnerSandbox,
-  getPlayableDemoUrl,
-  getRunnerOriginLabel,
-  localPreviewSandbox,
-  runnerAllowPolicy,
-} from "@/lib/play-runner";
+import { getPlayableDemoUrl, getRunnerOriginLabel } from "@/lib/play-runner";
 import { works } from "@/lib/data";
 import { getPublicWork } from "@/lib/work-service";
 
@@ -56,6 +51,11 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
 
   const playableDemoUrl = getPlayableDemoUrl(work.demoUrl);
   const runnerOrigin = getRunnerOriginLabel(work.demoUrl);
+  const runnerLabel = playableDemoUrl
+    ? `Sandboxed from ${runnerOrigin}`
+    : work.demoUrl
+      ? "Demo held for safety"
+      : "Sandboxed oeeco preview";
 
   return (
     <section className="play-page">
@@ -78,7 +78,7 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
       <div className="play-runner-bar">
         <span>
           <Shield size={16} aria-hidden="true" />
-          {playableDemoUrl ? `Sandboxed from ${runnerOrigin}` : "Sandboxed oeeco preview"}
+          {runnerLabel}
         </span>
         {playableDemoUrl ? (
           <Link className="ghost-button" href={playableDemoUrl} target="_blank" rel="noreferrer">
@@ -87,36 +87,29 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
           </Link>
         ) : null}
       </div>
-      <div className="play-window">
-        {playableDemoUrl ? (
-          <iframe
-            allow={runnerAllowPolicy}
-            allowFullScreen
-            className="play-frame"
-            referrerPolicy="no-referrer"
-            sandbox={externalRunnerSandbox}
-            src={playableDemoUrl}
-            title={`${work.title} preview`}
-          />
-        ) : work.demoUrl ? (
+
+      {work.demoUrl && !playableDemoUrl ? (
+        <div className="play-window">
           <div className="play-fallback">
             <Shield size={28} aria-hidden="true" />
             <h2>Preview held for safety</h2>
-            <p>This work has a demo link, but it is not using an approved playable URL format.</p>
+            <p>
+              This work has a demo link, but the runner only embeds HTTPS demos or local development URLs. Review the
+              work details before opening it outside oeeco.
+            </p>
             <Link className="ghost-button" href={`/works/${work.id}`}>
               Review Details
             </Link>
           </div>
-        ) : (
-          <iframe
-            className="play-frame"
-            referrerPolicy="no-referrer"
-            sandbox={localPreviewSandbox}
-            srcDoc={getPlayPreviewHtml(work)}
-            title={`${work.title} preview`}
-          />
-        )}
-      </div>
+        </div>
+      ) : (
+        <PlayRunner
+          originLabel={runnerOrigin}
+          playableDemoUrl={playableDemoUrl}
+          previewHtml={getPlayPreviewHtml(work)}
+          title={work.title}
+        />
+      )}
     </section>
   );
 }

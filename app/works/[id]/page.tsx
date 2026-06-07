@@ -72,7 +72,12 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
   const creator = getWorkCreator(work);
   const playableDemoUrl = getPlayableDemoUrl(work.demoUrl);
   const runnerOrigin = getRunnerOriginLabel(work.demoUrl);
-  const runnerLabel = playableDemoUrl ? `Sandboxed from ${runnerOrigin}` : "Sandboxed oeeco preview";
+  const isHeldDemo = Boolean(work.demoUrl && !playableDemoUrl);
+  const runnerLabel = playableDemoUrl
+    ? `Sandboxed from ${runnerOrigin}`
+    : isHeldDemo
+      ? "Demo held for safety"
+      : "Sandboxed oeeco preview";
   const workJsonLd = {
     "@context": "https://schema.org",
     "@type": ["CreativeWork", "WebApplication"],
@@ -138,8 +143,9 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
               {runnerLabel}
             </span>
             <p>
-              TRY opens this work in oeeco&apos;s isolated runner. External demos are embedded with a restricted iframe
-              sandbox and a new-tab fallback.
+              {isHeldDemo
+                ? "TRY will show a safety hold because this demo is not using an approved playable URL format."
+                : "TRY opens this work in oeeco's isolated runner. External demos are embedded with a restricted iframe sandbox and a new-tab fallback."}
             </p>
           </div>
           <div className="tag-row">
