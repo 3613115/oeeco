@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, RefreshCw, Shield } from "lucide-react";
+import { ExternalLink, Maximize2, Minimize2, RefreshCw, Shield } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { externalRunnerSandbox, localPreviewSandbox, runnerAllowPolicy } from "@/lib/play-runner";
@@ -16,6 +16,7 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml }:
   const [frameKey, setFrameKey] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSlow, setIsSlow] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const isExternal = Boolean(playableDemoUrl);
 
   useEffect(() => {
@@ -29,12 +30,30 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml }:
     return () => window.clearTimeout(timeout);
   }, [frameKey, playableDemoUrl]);
 
+  useEffect(() => {
+    if (!isFocused) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsFocused(false);
+    }
+
+    window.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isFocused]);
+
   function reloadFrame() {
     setFrameKey((value) => value + 1);
   }
 
   return (
-    <div className="play-runner-shell">
+    <div className={isFocused ? "play-runner-shell is-focused" : "play-runner-shell"}>
       <div className="play-runner-status" aria-label="Runner safety status">
         <span>
           <Shield size={16} aria-hidden="true" />
@@ -50,6 +69,15 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml }:
           <button className="ghost-button" type="button" onClick={reloadFrame}>
             <RefreshCw size={17} aria-hidden="true" />
             Reload
+          </button>
+          <button
+            aria-pressed={isFocused}
+            className="ghost-button"
+            type="button"
+            onClick={() => setIsFocused((value) => !value)}
+          >
+            {isFocused ? <Minimize2 size={17} aria-hidden="true" /> : <Maximize2 size={17} aria-hidden="true" />}
+            {isFocused ? "Exit Focus" : "Focus"}
           </button>
           {playableDemoUrl ? (
             <Link className="solid-button" href={playableDemoUrl} target="_blank" rel="noreferrer">

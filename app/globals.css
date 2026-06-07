@@ -932,6 +932,41 @@ button {
   gap: 10px;
 }
 
+.play-runner-shell.is-focused {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 10px;
+  min-width: 320px;
+  background: #101b17;
+  padding: 12px;
+}
+
+.play-runner-shell.is-focused .play-runner-status,
+.play-runner-shell.is-focused .play-runner-controls {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(16, 27, 23, 0.92);
+}
+
+.play-runner-shell.is-focused .play-runner-status span,
+.play-runner-shell.is-focused .play-runner-controls > span {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.play-runner-shell.is-focused .play-window,
+.play-runner-shell.is-focused .play-frame,
+.play-runner-shell.is-focused .play-fallback {
+  min-height: 0;
+  height: 100%;
+}
+
+.play-runner-shell.is-focused .play-window {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
 .play-runner-status {
   display: flex;
   flex-wrap: wrap;
@@ -2555,6 +2590,27 @@ button {
 
   .play-runner-controls > div {
     justify-content: flex-start;
+  }
+
+  .play-runner-shell.is-focused {
+    padding: 8px;
+  }
+
+  .play-runner-shell.is-focused .play-runner-status {
+    display: none;
+  }
+
+  .play-runner-shell.is-focused .play-runner-controls {
+    padding: 8px;
+  }
+
+  .play-runner-shell.is-focused .play-runner-controls > div {
+    width: 100%;
+  }
+
+  .play-runner-shell.is-focused .play-runner-controls .ghost-button,
+  .play-runner-shell.is-focused .play-runner-controls .solid-button {
+    flex: 1 1 130px;
   }
 
   .runner-entry-summary .solid-button {
