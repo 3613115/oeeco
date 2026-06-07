@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Maximize2, Minimize2, RefreshCw, Shield } from "lucide-react";
+import { ExternalLink, Info, Maximize2, Minimize2, RefreshCw, Shield } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { externalRunnerSandbox, localPreviewSandbox, runnerAllowPolicy } from "@/lib/play-runner";
@@ -10,24 +10,34 @@ type PlayRunnerProps = {
   playableDemoUrl: string | null;
   originLabel: string;
   previewHtml: string;
+  detailsHref: string;
 };
 
-export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml }: PlayRunnerProps) {
+export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, detailsHref }: PlayRunnerProps) {
   const [frameKey, setFrameKey] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSlow, setIsSlow] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const isExternal = Boolean(playableDemoUrl);
 
   useEffect(() => {
     setIsLoaded(false);
     setIsSlow(false);
+    setIsBlocked(false);
 
-    const timeout = window.setTimeout(() => {
+    const slowTimeout = window.setTimeout(() => {
       setIsSlow(true);
     }, 8000);
 
-    return () => window.clearTimeout(timeout);
+    const blockedTimeout = window.setTimeout(() => {
+      setIsBlocked(true);
+    }, 18000);
+
+    return () => {
+      window.clearTimeout(slowTimeout);
+      window.clearTimeout(blockedTimeout);
+    };
   }, [frameKey, playableDemoUrl]);
 
   useEffect(() => {
@@ -90,14 +100,26 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml }:
 
       <div className="play-window">
         {!isLoaded ? (
-          <div className="play-loading" aria-live="polite">
+          <div className={isBlocked ? "play-loading is-blocked" : "play-loading"} aria-live="polite">
             <Shield size={24} aria-hidden="true" />
-            <strong>{isSlow ? "Still loading" : "Preparing sandbox"}</strong>
+            <strong>{isBlocked ? "Runner could not confirm loading" : isSlow ? "Still loading" : "Preparing sandbox"}</strong>
             <p>
-              {isSlow
+              {isBlocked
+                ? "This usually means the creator demo blocks iframe embedding, is offline, or needs more time than the runner can confirm."
+                : isSlow
                 ? "Some creator demos block iframe loading. You can retry here or open the work in a new tab."
                 : `Loading ${isExternal ? originLabel : "oeeco preview"} in a restricted runner.`}
             </p>
+            {isBlocked ? (
+              <div className="play-recovery-card">
+                <span>Recovery options</span>
+                <ul>
+                  <li>Retry the sandbox if the site is slow.</li>
+                  <li>Open the creator demo in a new tab when available.</li>
+                  <li>Return to details if the demo keeps blocking the runner.</li>
+                </ul>
+              </div>
+            ) : null}
             {isSlow ? (
               <div className="play-loading-actions">
                 <button className="ghost-button" type="button" onClick={reloadFrame}>
@@ -108,6 +130,12 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml }:
                   <Link className="solid-button" href={playableDemoUrl} target="_blank" rel="noreferrer">
                     <ExternalLink size={17} aria-hidden="true" />
                     Open New Tab
+                  </Link>
+                ) : null}
+                {isBlocked ? (
+                  <Link className="ghost-button" href={detailsHref}>
+                    <Info size={17} aria-hidden="true" />
+                    Details
                   </Link>
                 ) : null}
               </div>

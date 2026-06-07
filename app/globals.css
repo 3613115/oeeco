@@ -1063,12 +1063,43 @@ button {
   color: var(--mint);
 }
 
+.play-loading.is-blocked {
+  background: radial-gradient(circle at center, rgba(244, 180, 63, 0.16), rgba(16, 27, 23, 0.96) 58%);
+}
+
 .play-loading-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
   margin-top: 4px;
+}
+
+.play-recovery-card {
+  display: grid;
+  gap: 8px;
+  width: min(520px, 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.play-recovery-card span {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.play-recovery-card ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .play-fallback {

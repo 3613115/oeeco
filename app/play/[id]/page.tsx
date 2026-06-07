@@ -89,6 +89,7 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
         </div>
       ) : (
         <PlayRunner
+          detailsHref={`/works/${work.id}`}
           originLabel={runnerPolicy.originLabel}
           playableDemoUrl={runnerPolicy.playableUrl}
           previewHtml={getPlayPreviewHtml(work)}
