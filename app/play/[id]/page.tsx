@@ -1,4 +1,4 @@
-import { ExternalLink, Info, Shield, Upload } from "lucide-react";
+import { Info, Shield, Upload } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -80,12 +80,6 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
           <Shield size={16} aria-hidden="true" />
           {runnerLabel}
         </span>
-        {playableDemoUrl ? (
-          <Link className="ghost-button" href={playableDemoUrl} target="_blank" rel="noreferrer">
-            <ExternalLink size={17} aria-hidden="true" />
-            Open New Tab
-          </Link>
-        ) : null}
       </div>
 
       {work.demoUrl && !playableDemoUrl ? (

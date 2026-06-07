@@ -78,6 +78,12 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
     : isHeldDemo
       ? "Demo held for safety"
       : "Sandboxed oeeco preview";
+  const runnerTitle = playableDemoUrl ? "Ready in runner" : isHeldDemo ? "Safety hold" : "Preview ready";
+  const runnerHelper = playableDemoUrl
+    ? "TRY opens this work inside oeeco with a new-tab fallback available."
+    : isHeldDemo
+      ? "TRY shows a safety hold because the submitted demo cannot be embedded by policy."
+      : "TRY opens an oeeco-generated preview while the creator demo is not available.";
   const workJsonLd = {
     "@context": "https://schema.org",
     "@type": ["CreativeWork", "WebApplication"],
@@ -180,7 +186,15 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
 
       <aside className="surface side-panel">
         <div>
-          <span className="section-kicker">Publish Quality</span>
+          <span className="section-kicker">TRY Experience</span>
+          <div className="runner-entry-summary">
+            <strong>{runnerTitle}</strong>
+            <p>{runnerHelper}</p>
+            <Link className="solid-button" href={`/play/${work.id}`}>
+              <Play size={17} aria-hidden="true" />
+              Try It
+            </Link>
+          </div>
           <div className="publish-quality-list">
             <div className="publish-quality-item is-ready">
               <Shield size={16} aria-hidden="true" />

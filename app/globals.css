@@ -791,6 +791,29 @@ button {
   margin-top: 12px;
 }
 
+.runner-entry-summary {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.runner-entry-summary strong {
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.runner-entry-summary p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.runner-entry-summary .solid-button {
+  width: max-content;
+  margin-top: 2px;
+}
+
 .publish-quality-item {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);
@@ -931,6 +954,32 @@ button {
 
 .play-runner-status svg {
   color: var(--leaf);
+}
+
+.play-runner-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 10px 12px;
+}
+
+.play-runner-controls > span {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
+.play-runner-controls > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .play-window {
@@ -2498,9 +2547,18 @@ button {
 
   .filter-row,
   .play-top,
-  .play-runner-bar {
+  .play-runner-bar,
+  .play-runner-controls {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .play-runner-controls > div {
+    justify-content: flex-start;
+  }
+
+  .runner-entry-summary .solid-button {
+    width: 100%;
   }
 
   .play-window,

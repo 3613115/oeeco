@@ -44,6 +44,22 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml }:
         <span>{isExternal ? "External demo" : "oeeco preview"}</span>
       </div>
 
+      <div className="play-runner-controls">
+        <span>{isExternal ? originLabel : "oeeco generated preview"}</span>
+        <div>
+          <button className="ghost-button" type="button" onClick={reloadFrame}>
+            <RefreshCw size={17} aria-hidden="true" />
+            Reload
+          </button>
+          {playableDemoUrl ? (
+            <Link className="solid-button" href={playableDemoUrl} target="_blank" rel="noreferrer">
+              <ExternalLink size={17} aria-hidden="true" />
+              Open New Tab
+            </Link>
+          ) : null}
+        </div>
+      </div>
+
       <div className="play-window">
         {!isLoaded ? (
           <div className="play-loading" aria-live="polite">
