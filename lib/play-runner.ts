@@ -1,6 +1,6 @@
 const localhostHosts = new Set(["localhost", "127.0.0.1", "::1"]);
 
-export const externalRunnerSandbox = "allow-scripts allow-forms allow-popups allow-pointer-lock";
+export const externalRunnerSandbox = "allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock";
 export const localPreviewSandbox = "allow-scripts";
 export const runnerAllowPolicy = "fullscreen; gamepad";
 
@@ -42,7 +42,7 @@ export function getRunnerPolicy(value: string | null | undefined): RunnerPolicy 
       label: `Sandboxed from ${originLabel}`,
       title: "Ready in runner",
       helper: "TRY opens this work inside oeeco with a new-tab fallback available.",
-      adminHelper: "Approved for iframe runner: HTTPS demos and localhost development URLs are allowed.",
+      adminHelper: "Approved for iframe runner: HTTPS demos and localhost development URLs are allowed. Browser storage is enabled for playable demos.",
     };
   }
 
