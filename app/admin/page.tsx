@@ -67,6 +67,37 @@ type AdminGrowthStep = {
   href: string;
 };
 
+type AdminSeedCategory = {
+  id: Exclude<CategoryId, "all">;
+  label: string;
+  liveCount: number;
+  candidateCount: number;
+  target: number;
+  helper: string;
+};
+
+type AdminSeedWork = {
+  id: string;
+  title: string;
+  status: AdminWorkStatus;
+  category: string;
+  score: number;
+  label: string;
+  helper: string;
+  href: string;
+};
+
+type AdminContentSeedPlan = {
+  liveCount: number;
+  candidateCount: number;
+  targetMin: number;
+  targetMax: number;
+  progress: number;
+  categoryCoverage: AdminSeedCategory[];
+  uploadSuggestions: string[];
+  works: AdminSeedWork[];
+};
+
 type AdminFilters = {
   q: string;
   category: "all" | Exclude<CategoryId, "all">;
@@ -661,6 +692,148 @@ function getAdminGrowthLoopReport({
   };
 }
 
+function getAdminContentSeedPlan({
+  key,
+  pendingWorks,
+  publishedWorks,
+}: {
+  key: string;
+  pendingWorks: AdminWork[];
+  publishedWorks: AdminWork[];
+}): AdminContentSeedPlan {
+  const targetMin = 10;
+  const targetMax = 20;
+  const candidates = [...publishedWorks, ...pendingWorks];
+  const liveCount = publishedWorks.length;
+  const candidateCount = candidates.length;
+  const targetPerCategory = 2;
+  const categoryCoverage = categoryOptions.map(([id, label]) => {
+    const liveCategoryCount = publishedWorks.filter((work) => work.category === id).length;
+    const candidateCategoryCount = candidates.filter((work) => work.category === id).length;
+
+    return {
+      id,
+      label,
+      liveCount: liveCategoryCount,
+      candidateCount: candidateCategoryCount,
+      target: targetPerCategory,
+      helper: getSeedCategoryHelper(label, liveCategoryCount, candidateCategoryCount, targetPerCategory),
+    };
+  });
+
+  const uploadSuggestions = getSeedUploadSuggestions(categoryCoverage, liveCount, targetMin, targetMax);
+  const works = candidates
+    .map((work) => getSeedWorkSummary(key, work))
+    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
+    .slice(0, 10);
+
+  return {
+    liveCount,
+    candidateCount,
+    targetMin,
+    targetMax,
+    progress: Math.min(100, Math.round((liveCount / targetMax) * 100)),
+    categoryCoverage,
+    uploadSuggestions,
+    works,
+  };
+}
+
+function getSeedCategoryHelper(label: string, liveCount: number, candidateCount: number, target: number) {
+  if (liveCount >= target) return `${label} has enough live seed works for the first shelf.`;
+  if (candidateCount >= target) return `${label} has candidates; review and publish the strongest ones.`;
+  if (candidateCount > 0) return `${label} has a start. Add ${formatSeedCandidateGap(target - candidateCount)}.`;
+  return `Add the first ${label.toLowerCase()} seed work.`;
+}
+
+function getSeedUploadSuggestions(
+  categoryCoverage: AdminSeedCategory[],
+  liveCount: number,
+  targetMin: number,
+  targetMax: number,
+) {
+  const suggestions = categoryCoverage
+    .filter((category) => category.candidateCount < category.target)
+    .map((category) =>
+      category.candidateCount
+        ? `Add ${formatSeedCandidateGap(category.target - category.candidateCount)} for ${category.label.toLowerCase()}.`
+        : `Upload the first ${category.label.toLowerCase()} candidate.`,
+    );
+
+  if (liveCount < targetMin) {
+    suggestions.unshift(`Reach ${targetMin} published works before the first external push.`);
+  }
+
+  if (liveCount < targetMax) {
+    suggestions.push(`Keep building toward ${targetMax} live works for a fuller first impression.`);
+  }
+
+  if (!suggestions.length) {
+    suggestions.push("The first shelf is full. Replace weak works with stronger pieces or deepen the featured lineup.");
+  }
+
+  return suggestions.slice(0, 6);
+}
+
+function formatSeedCandidateGap(count: number) {
+  return `${count} more candidate${count === 1 ? "" : "s"}`;
+}
+
+function getSeedWorkSummary(key: string, work: AdminWork): AdminSeedWork {
+  const checks = getSeedWorkChecks(work);
+  const passed = checks.filter((check) => check.ok).length;
+  const score = Math.round((passed / checks.length) * 100);
+  const missing = checks.find((check) => !check.ok);
+  const statusLabel = getAdminStatusLabel(work.status);
+
+  return {
+    id: work.id,
+    title: work.title,
+    status: work.status,
+    category: categoryLabels[work.category],
+    score,
+    label: `${score}% seed ready`,
+    helper: missing ? missing.helper : `${statusLabel} work is ready for seed promotion.`,
+    href: adminUrl(key, work.status, { q: work.id }),
+  };
+}
+
+function getSeedWorkChecks(work: AdminWork) {
+  const curation = getWorkCuration(work);
+  const runnerPolicy = getRunnerPolicy(work.demoUrl);
+
+  return [
+    {
+      ok: work.status === "published",
+      helper: "Publish this work before using it as a public seed item.",
+    },
+    {
+      ok: runnerPolicy.status !== "held",
+      helper: "Resolve runner policy before promoting this work.",
+    },
+    {
+      ok: work.summary.trim().length >= 50,
+      helper: "Strengthen the summary for cards, search, and sharing.",
+    },
+    {
+      ok: work.detail.trim().length >= 80,
+      helper: "Add more detail copy for the public work page.",
+    },
+    {
+      ok: work.tags.length >= 2,
+      helper: "Add at least two public tags for discovery.",
+    },
+    {
+      ok: Boolean(work.cover && (work.cover.startsWith("/") || work.cover.startsWith("https://"))),
+      helper: "Use a clean cover image before sharing externally.",
+    },
+    {
+      ok: curation.featured || Boolean(curation.rank || curation.label),
+      helper: "Consider adding home rank or a curation label if this is a strong seed work.",
+    },
+  ];
+}
+
 function getRecentAdminWorks(works: AdminWork[], limit = 6) {
   return [...works].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
 }
@@ -896,6 +1069,7 @@ export default async function AdminPage({
   const queueSummary = getAdminQueueSummary(pendingWorks, publishedWorks);
   const overviewMetrics = getAdminOverviewMetrics({ key, counts, pendingWorks, publishedWorks, allWorks });
   const growthLoop = getAdminGrowthLoopReport({ key, pendingWorks, publishedWorks });
+  const contentSeedPlan = getAdminContentSeedPlan({ key, pendingWorks, publishedWorks });
   const recentWorks = getRecentAdminWorks(allWorks);
   const queueCards: Array<{ id: AdminQueueFilter; label: string; helper: string; count: number }> = [
     { id: "ready", label: "Ready to publish", helper: "Pending works that pass review checks", count: queueSummary.ready },
@@ -1039,6 +1213,111 @@ export default async function AdminPage({
             <ExternalLink size={17} aria-hidden="true" />
             Open Rank
           </Link>
+        </div>
+      </section>
+
+      <section className="admin-seed-panel" aria-label="Content seed plan">
+        <div className="admin-seed-heading">
+          <div>
+            <span className="section-kicker">
+              <Star size={15} aria-hidden="true" />
+              Content Seed Plan
+            </span>
+            <h2>First 10-20 work shelf</h2>
+            <p>
+              Track whether oeeco has enough playable, varied, shareable works before the first serious external push.
+            </p>
+          </div>
+          <div className="admin-seed-progress">
+            <strong>
+              {contentSeedPlan.liveCount}/{contentSeedPlan.targetMax}
+            </strong>
+            <span>{contentSeedPlan.candidateCount} live or pending candidates</span>
+          </div>
+        </div>
+
+        <div className="admin-seed-meter" aria-label={`${contentSeedPlan.progress}% of first shelf target`}>
+          <span style={{ width: `${contentSeedPlan.progress}%` }} />
+        </div>
+
+        <div className="admin-seed-layout">
+          <div className="admin-seed-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Category Coverage</span>
+              <small>Target {contentSeedPlan.categoryCoverage[0]?.target || 2} per category</small>
+            </div>
+            <div className="admin-seed-category-grid">
+              {contentSeedPlan.categoryCoverage.map((category) => (
+                <Link
+                  className={
+                    category.liveCount >= category.target ? "admin-seed-category is-ready" : "admin-seed-category"
+                  }
+                  href={adminUrl(key, "published", { category: category.id })}
+                  key={category.id}
+                >
+                  <span>{category.label}</span>
+                  <strong>
+                    {category.liveCount}/{category.target}
+                  </strong>
+                  <small>{category.helper}</small>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="admin-seed-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Next Uploads</span>
+              <small>Current target {contentSeedPlan.targetMin}-{contentSeedPlan.targetMax}</small>
+            </div>
+            <div className="admin-seed-suggestions">
+              {contentSeedPlan.uploadSuggestions.map((suggestion) => (
+                <div key={suggestion}>
+                  <ArrowDownUp size={15} aria-hidden="true" />
+                  <span>{suggestion}</span>
+                </div>
+              ))}
+            </div>
+            <div className="admin-seed-actions">
+              <AdminCopyButton value={absoluteUrl("/upload")} label="Upload" />
+              <AdminCopyButton value={absoluteUrl("/latest")} label="Latest" />
+              <Link className="ghost-button" href="/upload" target="_blank">
+                <ExternalLink size={17} aria-hidden="true" />
+                Open Upload
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="admin-seed-block">
+          <div className="admin-panel-heading">
+            <span className="section-kicker">Seed Candidates</span>
+            <small>{contentSeedPlan.works.length} shown</small>
+          </div>
+          {contentSeedPlan.works.length ? (
+            <div className="admin-seed-work-list">
+              {contentSeedPlan.works.map((work) => (
+                <Link
+                  className={work.score >= 80 ? "admin-seed-work is-ready" : "admin-seed-work"}
+                  href={work.href}
+                  key={work.id}
+                >
+                  <div>
+                    <strong>{work.title}</strong>
+                    <span>
+                      {getAdminStatusLabel(work.status)} / {work.category}
+                    </span>
+                  </div>
+                  <div>
+                    <strong>{work.label}</strong>
+                    <span>{work.helper}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p>No seed candidates yet. Upload and review the first works to start this plan.</p>
+          )}
         </div>
       </section>
 
