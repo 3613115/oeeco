@@ -3,6 +3,7 @@
 import { ExternalLink, Flag, Info, Maximize2, Minimize2, RefreshCw, Shield } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { TrackedExternalLink } from "@/components/TrackedExternalLink";
 import { externalRunnerSandbox, localPreviewSandbox, runnerAllowPolicy } from "@/lib/play-runner";
 
 type PlayRunnerProps = {
@@ -12,9 +13,10 @@ type PlayRunnerProps = {
   previewHtml: string;
   detailsHref: string;
   reportHref: string;
+  workId: string;
 };
 
-export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, detailsHref, reportHref }: PlayRunnerProps) {
+export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, detailsHref, reportHref, workId }: PlayRunnerProps) {
   const [frameKey, setFrameKey] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSlow, setIsSlow] = useState(false);
@@ -95,10 +97,10 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, d
             Report
           </Link>
           {playableDemoUrl ? (
-            <Link className="solid-button" href={playableDemoUrl} target="_blank" rel="noreferrer">
+            <TrackedExternalLink className="solid-button" href={playableDemoUrl} metric="demo_open" workId={workId}>
               <ExternalLink size={17} aria-hidden="true" />
               Open New Tab
-            </Link>
+            </TrackedExternalLink>
           ) : null}
         </div>
       </div>
@@ -132,10 +134,10 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, d
                   Retry
                 </button>
                 {playableDemoUrl ? (
-                  <Link className="solid-button" href={playableDemoUrl} target="_blank" rel="noreferrer">
+                  <TrackedExternalLink className="solid-button" href={playableDemoUrl} metric="demo_open" workId={workId}>
                     <ExternalLink size={17} aria-hidden="true" />
                     Open New Tab
-                  </Link>
+                  </TrackedExternalLink>
                 ) : null}
                 {isBlocked ? (
                   <Link className="ghost-button" href={detailsHref}>

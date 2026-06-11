@@ -7,7 +7,7 @@ import { getPlayPreviewHtml } from "@/lib/play-preview";
 import { getRunnerPolicy } from "@/lib/play-runner";
 import { buildWorkReportHref } from "@/lib/report";
 import { works } from "@/lib/data";
-import { getPublicWork } from "@/lib/work-service";
+import { getPublicWork, recordWorkEngagement } from "@/lib/work-service";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +49,8 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
   if (!work) {
     notFound();
   }
+
+  await recordWorkEngagement(work.id, "try");
 
   const runnerPolicy = getRunnerPolicy(work.demoUrl);
   const reportHref = buildWorkReportHref(work, "play");
@@ -100,6 +102,7 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
           previewHtml={getPlayPreviewHtml(work)}
           reportHref={reportHref}
           title={work.title}
+          workId={work.id}
         />
       )}
     </section>

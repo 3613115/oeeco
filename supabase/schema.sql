@@ -27,6 +27,9 @@ create table public.works (
   views_count integer not null default 0,
   likes_count integer not null default 0,
   collections_count integer not null default 0,
+  try_clicks_count integer not null default 0,
+  demo_opens_count integer not null default 0,
+  share_clicks_count integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

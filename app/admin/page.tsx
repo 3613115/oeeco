@@ -512,6 +512,9 @@ function getAdminOverviewMetrics({
 }): AdminOverviewMetric[] {
   const totalWorks = Object.values(counts).reduce((sum, count) => sum + count, 0);
   const totalViews = publishedWorks.reduce((sum, work) => sum + work.views, 0);
+  const totalTryClicks = publishedWorks.reduce((sum, work) => sum + work.tryClicks, 0);
+  const totalDemoOpens = publishedWorks.reduce((sum, work) => sum + work.demoOpens, 0);
+  const totalShares = publishedWorks.reduce((sum, work) => sum + work.shares, 0);
   const liveIssues = publishedWorks.filter((work) => getContentHealthReport(work).needsAttention).length;
   const newestWork = getRecentAdminWorks(allWorks, 1)[0];
 
@@ -533,6 +536,24 @@ function getAdminOverviewMetrics({
       label: "Published views",
       value: formatAdminNumber(totalViews),
       helper: "Total views across live works",
+      href: adminUrl(key, "published", { sort: "views" }),
+    },
+    {
+      label: "TRY clicks",
+      value: formatAdminNumber(totalTryClicks),
+      helper: "Play page opens from published works",
+      href: adminUrl(key, "published", { sort: "views" }),
+    },
+    {
+      label: "Demo opens",
+      value: formatAdminNumber(totalDemoOpens),
+      helper: "External demo launches",
+      href: adminUrl(key, "published", { sort: "views" }),
+    },
+    {
+      label: "Shares",
+      value: formatAdminNumber(totalShares),
+      helper: "Share button uses and copy fallbacks",
       href: adminUrl(key, "published", { sort: "views" }),
     },
     {
@@ -1086,6 +1107,10 @@ function AdminWorkReviewRow({
             <span>{work.createdAt}</span>
             <span>{categoryLabels[work.category]}</span>
             <span>{work.tool}</span>
+            <span>{formatAdminNumber(work.views)} views</span>
+            <span>{formatAdminNumber(work.tryClicks)} TRY</span>
+            <span>{formatAdminNumber(work.demoOpens)} demo opens</span>
+            <span>{formatAdminNumber(work.shares)} shares</span>
             {curation.featured ? <span>Featured</span> : null}
             {curation.rank ? <span>Home #{curation.rank}</span> : null}
           </div>

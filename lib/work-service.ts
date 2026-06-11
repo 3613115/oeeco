@@ -27,6 +27,9 @@ type WorkRow = {
   views_count: number | null;
   likes_count: number | null;
   collections_count: number | null;
+  try_clicks_count?: number | null;
+  demo_opens_count?: number | null;
+  share_clicks_count?: number | null;
   created_at: string;
 };
 
@@ -66,6 +69,8 @@ export type AdminWorkCurationUpdate = {
   rank: number | null;
   label: string | null;
 };
+
+export type WorkEngagementMetric = "view" | "try" | "demo_open" | "share";
 
 const CURATION_FEATURED_TAG = "oeeco:featured";
 const CURATION_RANK_PREFIX = "oeeco:rank:";
@@ -302,6 +307,38 @@ export async function updateAdminWorkCuration(id: string, input: AdminWorkCurati
   return { ok: true, message: "Curation saved." };
 }
 
+export async function recordWorkEngagement(id: string, metric: WorkEngagementMetric) {
+  const supabase = getSupabaseAdminClient();
+  const column = getWorkEngagementColumn(metric);
+  if (!supabase || !column || !id) return { ok: false };
+
+  const { data, error } = await supabase
+    .from("works")
+    .select(column)
+    .eq("id", id)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (error || !data) return { ok: false };
+
+  const current = Number((data as Record<string, number | null>)[column] || 0);
+  const { error: updateError } = await supabase
+    .from("works")
+    .update({ [column]: current + 1 })
+    .eq("id", id)
+    .eq("status", "published");
+
+  return { ok: !updateError };
+}
+
+function getWorkEngagementColumn(metric: WorkEngagementMetric) {
+  if (metric === "view") return "views_count";
+  if (metric === "try") return "try_clicks_count";
+  if (metric === "demo_open") return "demo_opens_count";
+  if (metric === "share") return "share_clicks_count";
+  return null;
+}
+
 async function hydrateWorks(rows: WorkRow[], useAdmin = false): Promise<Work[]> {
   if (!rows.length) return [];
 
@@ -345,6 +382,9 @@ async function hydrateWorks(rows: WorkRow[], useAdmin = false): Promise<Work[]> 
       views: row.views_count || 0,
       likes: row.likes_count || 0,
       collections: row.collections_count || 0,
+      tryClicks: row.try_clicks_count || 0,
+      demoOpens: row.demo_opens_count || 0,
+      shares: row.share_clicks_count || 0,
       tool: row.tool_stack || "Codex",
       createdAt: row.created_at.slice(0, 10),
       summary: row.summary,

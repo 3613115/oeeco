@@ -21,6 +21,9 @@ export type Work = {
   views: number;
   likes: number;
   collections: number;
+  tryClicks: number;
+  demoOpens: number;
+  shares: number;
   tool: string;
   createdAt: string;
   summary: string;
