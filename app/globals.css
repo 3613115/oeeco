@@ -1929,6 +1929,118 @@ button {
   box-shadow: 3px 3px 0 var(--ink);
 }
 
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-overview-card {
+  display: grid;
+  gap: 7px;
+  min-height: 108px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 12px;
+}
+
+.admin-overview-card span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-overview-card strong {
+  color: var(--ink);
+  font-size: 25px;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.admin-overview-card small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.admin-overview-card.is-good {
+  border-color: rgba(12, 122, 85, 0.24);
+  background: rgba(85, 214, 168, 0.1);
+}
+
+.admin-overview-card.is-warning {
+  border-color: rgba(244, 180, 63, 0.38);
+  background: rgba(244, 180, 63, 0.14);
+}
+
+.admin-ops-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr);
+  gap: 12px;
+}
+
+.admin-recent-panel,
+.admin-quick-panel {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 14px;
+}
+
+.admin-panel-heading small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.admin-recent-list {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-recent-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+}
+
+.admin-recent-item > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-recent-item strong {
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.admin-recent-item span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.admin-recent-item > div:last-child,
+.admin-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.admin-quick-actions {
+  justify-content: flex-start;
+}
+
 .admin-notice {
   border: 1px solid rgba(0, 120, 76, 0.22);
   border-radius: 8px;
@@ -2229,6 +2341,12 @@ button {
   gap: 6px;
 }
 
+.admin-copy-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+}
+
 .admin-copy-field input {
   width: 100%;
   min-height: 38px;
@@ -2239,6 +2357,29 @@ button {
   padding: 8px 10px;
   font: inherit;
   font-size: 13px;
+}
+
+.admin-copy-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.admin-copy-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .admin-demo-preview {
@@ -2810,11 +2951,14 @@ button {
   .admin-fields,
   .admin-review-grid,
   .admin-ops-bar,
+  .admin-overview-grid,
+  .admin-ops-panels,
   .admin-queue-grid,
   .admin-health-summary,
   .admin-health-panel,
   .admin-health-checks,
   .admin-curation-panel,
+  .admin-recent-item,
   .admin-feedback-form {
     grid-template-columns: 1fr;
   }
@@ -2824,7 +2968,8 @@ button {
   }
 
   .admin-action-bar,
-  .admin-ops-actions {
+  .admin-ops-actions,
+  .admin-recent-item > div:last-child {
     justify-content: flex-start;
   }
 }

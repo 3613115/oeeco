@@ -20,8 +20,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { AdminCopyButton } from "@/components/AdminCopyButton";
 import { categories, categoryLabels, getWorkCuration, isCategoryId, type CategoryId } from "@/lib/data";
-import { getRunnerPolicy } from "@/lib/play-runner";
+import { externalRunnerSandbox, getRunnerPolicy } from "@/lib/play-runner";
 import { absoluteUrl } from "@/lib/site";
 import {
   updateAdminWorkCuration,
@@ -49,6 +50,14 @@ const categoryOptions = categories.filter(
 type AdminSort = "newest" | "oldest" | "views" | "likes" | "ready" | "health";
 type AdminHealthFilter = "all" | "attention" | "curated" | "featured";
 type AdminQueueFilter = "all" | "ready" | "fixes" | "attention" | "home";
+
+type AdminOverviewMetric = {
+  label: string;
+  value: string;
+  helper: string;
+  href: string;
+  tone?: "good" | "warning";
+};
 
 type AdminFilters = {
   q: string;
@@ -488,6 +497,74 @@ function getAdminHealthSummary(works: AdminWork[]) {
   };
 }
 
+function getAdminOverviewMetrics({
+  key,
+  counts,
+  pendingWorks,
+  publishedWorks,
+  allWorks,
+}: {
+  key: string;
+  counts: Record<AdminWorkStatus, number>;
+  pendingWorks: AdminWork[];
+  publishedWorks: AdminWork[];
+  allWorks: AdminWork[];
+}): AdminOverviewMetric[] {
+  const totalWorks = Object.values(counts).reduce((sum, count) => sum + count, 0);
+  const totalViews = publishedWorks.reduce((sum, work) => sum + work.views, 0);
+  const liveIssues = publishedWorks.filter((work) => getContentHealthReport(work).needsAttention).length;
+  const newestWork = getRecentAdminWorks(allWorks, 1)[0];
+
+  return [
+    {
+      label: "Total works",
+      value: String(totalWorks),
+      helper: `${counts.published} live, ${counts.pending} waiting`,
+      href: adminUrl(key, "published"),
+    },
+    {
+      label: "Pending review",
+      value: String(counts.pending),
+      helper: `${pendingWorks.filter(isReviewReady).length} ready to publish`,
+      href: getQueueHref(key, "ready"),
+      tone: counts.pending ? "warning" : "good",
+    },
+    {
+      label: "Published views",
+      value: formatAdminNumber(totalViews),
+      helper: "Total views across live works",
+      href: adminUrl(key, "published", { sort: "views" }),
+    },
+    {
+      label: "Live issues",
+      value: String(liveIssues),
+      helper: liveIssues ? "Published works need repair" : "No live health issues",
+      href: getQueueHref(key, "attention"),
+      tone: liveIssues ? "warning" : "good",
+    },
+    {
+      label: "Latest submit",
+      value: newestWork ? newestWork.createdAt : "None",
+      helper: newestWork ? newestWork.title : "No submissions yet",
+      href: newestWork ? adminUrl(key, newestWork.status, { q: newestWork.id }) : adminUrl(key, "pending"),
+    },
+  ];
+}
+
+function getRecentAdminWorks(works: AdminWork[], limit = 6) {
+  return [...works].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
+}
+
+function getAdminStatusLabel(status: AdminWorkStatus) {
+  return statusOptions.find((option) => option.id === status)?.label || status;
+}
+
+function formatAdminNumber(value: number) {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}m`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`;
+  return String(value);
+}
+
 function getAdminErrorMessage(error: string | undefined) {
   if (error === "bad-key") return "Wrong passcode.";
   if (error === "bad-request") return "Action failed. Check the required fields and try again.";
@@ -688,16 +765,27 @@ export default async function AdminPage({
     );
   }
 
-  const [works, counts, pendingWorks, publishedWorks] = await Promise.all([
-    getAdminWorks(activeStatus),
+  const [counts, pendingWorks, publishedWorks, rejectedWorks, hiddenWorks] = await Promise.all([
     getAdminWorkCounts(),
     getAdminWorks("pending"),
     getAdminWorks("published"),
+    getAdminWorks("rejected"),
+    getAdminWorks("hidden"),
   ]);
+  const worksByStatus: Record<AdminWorkStatus, AdminWork[]> = {
+    pending: pendingWorks,
+    published: publishedWorks,
+    rejected: rejectedWorks,
+    hidden: hiddenWorks,
+  };
+  const works = worksByStatus[activeStatus];
+  const allWorks = [...pendingWorks, ...publishedWorks, ...rejectedWorks, ...hiddenWorks];
   const visibleWorks = filterAndSortAdminWorks(works, filters);
   const activeOption = statusOptions.find((status) => status.id === activeStatus) || statusOptions[0];
-  const healthSummary = getAdminHealthSummary(works);
+  const healthSummary = getAdminHealthSummary(publishedWorks);
   const queueSummary = getAdminQueueSummary(pendingWorks, publishedWorks);
+  const overviewMetrics = getAdminOverviewMetrics({ key, counts, pendingWorks, publishedWorks, allWorks });
+  const recentWorks = getRecentAdminWorks(allWorks);
   const queueCards: Array<{ id: AdminQueueFilter; label: string; helper: string; count: number }> = [
     { id: "ready", label: "Ready to publish", helper: "Pending works that pass review checks", count: queueSummary.ready },
     { id: "fixes", label: "Needs fixes", helper: "Pending works with review blockers", count: queueSummary.fixes },
@@ -717,6 +805,80 @@ export default async function AdminPage({
           <ExternalLink size={17} aria-hidden="true" />
           Open Explore
         </Link>
+      </div>
+
+      <div className="admin-overview-grid" aria-label="Admin overview">
+        {overviewMetrics.map((metric) => (
+          <Link
+            className={`admin-overview-card${metric.tone ? ` is-${metric.tone}` : ""}`}
+            href={metric.href}
+            key={metric.label}
+          >
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+            <small>{metric.helper}</small>
+          </Link>
+        ))}
+      </div>
+
+      <div className="admin-ops-panels">
+        <section className="admin-recent-panel" aria-label="Recent works">
+          <div className="admin-panel-heading">
+            <span className="section-kicker">Recent Works</span>
+            <small>{allWorks.length} tracked</small>
+          </div>
+          {recentWorks.length ? (
+            <div className="admin-recent-list">
+              {recentWorks.map((work) => {
+                const workUrl = absoluteUrl(`/works/${work.id}`);
+                const playUrl = absoluteUrl(`/play/${work.id}`);
+
+                return (
+                  <div className="admin-recent-item" key={work.id}>
+                    <div>
+                      <strong>{work.title}</strong>
+                      <span>
+                        {getAdminStatusLabel(work.status)} / {work.createdAt} / {categoryLabels[work.category]}
+                      </span>
+                    </div>
+                    <div>
+                      {work.status === "published" ? <AdminCopyButton value={workUrl} label="Work" /> : null}
+                      {work.status === "published" ? <AdminCopyButton value={playUrl} label="TRY" /> : null}
+                      <Link className="ghost-button" href={adminUrl(key, work.status, { q: work.id })}>
+                        Open
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p>No submitted works yet.</p>
+          )}
+        </section>
+
+        <section className="admin-quick-panel" aria-label="Quick actions">
+          <div className="admin-panel-heading">
+            <span className="section-kicker">Quick Actions</span>
+            <Activity size={16} aria-hidden="true" />
+          </div>
+          <div className="admin-quick-actions">
+            <Link className="ghost-button" href={getQueueHref(key, "ready")}>
+              Ready queue
+            </Link>
+            <Link className="ghost-button" href={getQueueHref(key, "fixes")}>
+              Fix queue
+            </Link>
+            <Link className="ghost-button" href={adminUrl(key, "published", { sort: "views" })}>
+              Top views
+            </Link>
+            <Link className="ghost-button" href={adminUrl(key, "published", { sort: "health", health: "curated" })}>
+              Home lineup
+            </Link>
+            <AdminCopyButton value={absoluteUrl("/upload")} label="Upload URL" />
+            <AdminCopyButton value={absoluteUrl("/latest")} label="Latest URL" />
+          </div>
+        </section>
       </div>
 
       <nav className="admin-tabs" aria-label="Review status">
@@ -976,26 +1138,41 @@ function AdminWorkReviewRow({
             <span className="section-kicker">Review Links</span>
             <LinkIcon size={16} aria-hidden="true" />
           </div>
-          <label className="admin-copy-field">
+          <div className="admin-copy-field">
             <span>Work URL</span>
-            <input readOnly value={workUrl} />
-          </label>
-          <label className="admin-copy-field">
+            <div className="admin-copy-control">
+              <input readOnly value={workUrl} />
+              <AdminCopyButton value={workUrl} />
+            </div>
+          </div>
+          <div className="admin-copy-field">
             <span>TRY URL</span>
-            <input readOnly value={playUrl} />
-          </label>
-          <label className="admin-copy-field">
+            <div className="admin-copy-control">
+              <input readOnly value={playUrl} />
+              <AdminCopyButton value={playUrl} />
+            </div>
+          </div>
+          <div className="admin-copy-field">
             <span>Demo URL</span>
-            <input readOnly value={work.demoUrl || "No demo URL submitted"} />
-          </label>
-          <label className="admin-copy-field">
+            <div className="admin-copy-control">
+              <input readOnly value={work.demoUrl || "No demo URL submitted"} />
+              <AdminCopyButton value={work.demoUrl || ""} />
+            </div>
+          </div>
+          <div className="admin-copy-field">
             <span>Cover URL</span>
-            <input readOnly value={work.cover || "Default cover"} />
-          </label>
-          <label className="admin-copy-field">
+            <div className="admin-copy-control">
+              <input readOnly value={work.cover || "Default cover"} />
+              <AdminCopyButton value={work.cover || ""} />
+            </div>
+          </div>
+          <div className="admin-copy-field">
             <span>Creator ID</span>
-            <input readOnly value={work.creator?.id || work.creatorId} />
-          </label>
+            <div className="admin-copy-control">
+              <input readOnly value={work.creator?.id || work.creatorId} />
+              <AdminCopyButton value={work.creator?.id || work.creatorId} />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1021,7 +1198,7 @@ function AdminWorkReviewRow({
           <iframe
             loading="lazy"
             referrerPolicy="no-referrer"
-            sandbox="allow-scripts allow-forms allow-popups"
+            sandbox={externalRunnerSandbox}
             src={runnerPolicy.playableUrl}
             title={`${work.title} admin preview`}
           />
