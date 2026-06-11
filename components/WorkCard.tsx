@@ -4,6 +4,7 @@ import { Heart, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { WorkShareButton } from "@/components/WorkShareButton";
 import { formatNumber, getWorkCreator, type Work } from "@/lib/data";
 import { tagToSlug } from "@/lib/discovery";
 
@@ -22,14 +23,24 @@ export function WorkCard({ work }: { work: Work }) {
           <Link className="work-title" href={`/works/${work.id}`}>
             {work.title}
           </Link>
-          <button
-            className="icon-button like-button"
-            type="button"
-            aria-label="Like"
-            onClick={() => setLiked((value) => !value)}
-          >
-            <Heart size={18} fill={liked ? "currentColor" : "none"} />
-          </button>
+          <div className="work-card-actions">
+            <WorkShareButton
+              className="icon-button share-button"
+              iconOnly
+              summary={work.summary}
+              title={work.title}
+              url={`/works/${work.id}`}
+              workId={work.id}
+            />
+            <button
+              className="icon-button like-button"
+              type="button"
+              aria-label={`Like ${work.title}`}
+              onClick={() => setLiked((value) => !value)}
+            >
+              <Heart size={18} fill={liked ? "currentColor" : "none"} />
+            </button>
+          </div>
         </div>
         <Link className="creator-line" href={`/creators/${creator.id}`}>
           <Image src={creator.avatar} width={24} height={24} alt="" />

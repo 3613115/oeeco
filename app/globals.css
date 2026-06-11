@@ -836,6 +836,12 @@ button {
   font-weight: 900;
 }
 
+.work-card-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
 .icon-button {
   display: grid;
   width: 40px;
@@ -846,6 +852,10 @@ button {
   border-radius: 8px;
   background: #fff;
   color: var(--rose);
+}
+
+.share-button {
+  color: var(--blue);
 }
 
 .creator-line {

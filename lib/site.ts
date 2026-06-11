@@ -16,6 +16,11 @@ export function absoluteUrl(path = "/") {
   return `${siteUrl}${nextPath}`;
 }
 
+export function toAbsoluteUrl(url: string) {
+  if (/^https?:\/\//i.test(url)) return url;
+  return absoluteUrl(url);
+}
+
 function normalizeSiteUrl(url: string) {
   return url.replace(/\/+$/, "");
 }

@@ -9,7 +9,7 @@ import { formatNumber, getWorkCreator, works } from "@/lib/data";
 import { tagToSlug } from "@/lib/discovery";
 import { getRunnerPolicy } from "@/lib/play-runner";
 import { buildWorkReportHref } from "@/lib/report";
-import { absoluteUrl, defaultOgImage, siteName } from "@/lib/site";
+import { absoluteUrl, defaultOgImage, siteName, toAbsoluteUrl } from "@/lib/site";
 import { getPublicWork, recordWorkEngagement } from "@/lib/work-service";
 
 export const dynamic = "force-dynamic";
@@ -34,22 +34,31 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const creator = getWorkCreator(work);
   const title = `${work.title} by ${creator.name}`;
-  const description = work.summary || work.detail;
+  const description = getMetaDescription(work.summary || work.detail);
   const image = work.cover || defaultOgImage;
-  const url = `/works/${work.id}`;
+  const path = `/works/${work.id}`;
+  const url = absoluteUrl(path);
+  const imageUrl = toAbsoluteUrl(image);
 
   return {
     title,
     description,
     alternates: {
-      canonical: url,
+      canonical: path,
     },
     openGraph: {
       title,
       description,
       url,
       siteName,
-      images: [image],
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 675,
+          alt: `${work.title} cover`,
+        },
+      ],
       type: "article",
       publishedTime: work.createdAt,
       authors: [creator.name],
@@ -59,7 +68,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       card: "summary_large_image",
       title,
       description,
-      images: [image],
+      images: [imageUrl],
     },
   };
 }
@@ -84,7 +93,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
     name: work.title,
     description: work.summary,
     url: absoluteUrl(`/works/${work.id}`),
-    image: absoluteUrl(work.cover),
+    image: toAbsoluteUrl(work.cover),
     datePublished: work.createdAt,
     applicationCategory: work.type,
     operatingSystem: "Web browser",
@@ -112,6 +121,16 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
         "@type": "InteractionCounter",
         interactionType: "https://schema.org/LikeAction",
         userInteractionCount: work.likes,
+      },
+      {
+        "@type": "InteractionCounter",
+        interactionType: "https://schema.org/PlayAction",
+        userInteractionCount: work.tryClicks,
+      },
+      {
+        "@type": "InteractionCounter",
+        interactionType: "https://schema.org/ShareAction",
+        userInteractionCount: work.shares,
       },
     ],
   };
@@ -281,4 +300,10 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
       </aside>
     </section>
   );
+}
+
+function getMetaDescription(value: string) {
+  const clean = value.trim().replace(/\s+/g, " ");
+  if (clean.length <= 155) return clean;
+  return `${clean.slice(0, 152).trim()}...`;
 }
