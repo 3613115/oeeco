@@ -18,6 +18,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 
-  await recordWorkEngagement(id, metric as WorkEngagementMetric);
-  return NextResponse.json({ ok: true });
+  const result = await recordWorkEngagement(id, metric as WorkEngagementMetric);
+  return NextResponse.json({ ok: result.ok });
 }
