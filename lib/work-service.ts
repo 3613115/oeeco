@@ -94,8 +94,6 @@ export async function getPublicWorksByCreator(creatorId: string) {
 }
 
 export async function getPublicCreator(creatorId: string) {
-  if (creators[creatorId]) return creators[creatorId];
-
   const supabase = getSupabasePublicServerClient();
   if (supabase) {
     const { data } = await supabase

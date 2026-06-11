@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { categories, creators, works, type CategoryId } from "@/lib/data";
+import { categories, works, type CategoryId } from "@/lib/data";
 import { getTagSlugs } from "@/lib/discovery";
 import { absoluteUrl } from "@/lib/site";
 import { getPublishedWorks } from "@/lib/work-service";
@@ -60,7 +60,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  const creatorRoutes: MetadataRoute.Sitemap = Object.keys(creators).map((id) => ({
+  const creatorIds = Array.from(new Set(Array.from(allWorksById.values()).map((work) => work.creatorId)));
+  const creatorRoutes: MetadataRoute.Sitemap = creatorIds.map((id) => ({
     url: absoluteUrl(`/creators/${id}`),
     lastModified: now,
     changeFrequency: "weekly",

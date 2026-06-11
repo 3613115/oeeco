@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { WorkCard } from "@/components/WorkCard";
-import { categories, creators, formatNumber, type CategoryId } from "@/lib/data";
+import { categories, formatNumber, type CategoryId } from "@/lib/data";
 import { tagToSlug } from "@/lib/discovery";
 import { absoluteUrl, defaultOgImage, siteName } from "@/lib/site";
 import { getPublicCreator, getPublicWorksByCreator } from "@/lib/work-service";
@@ -12,7 +12,7 @@ import { getPublicCreator, getPublicWorksByCreator } from "@/lib/work-service";
 export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
-  return Object.keys(creators).map((id) => ({ id }));
+  return [];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {

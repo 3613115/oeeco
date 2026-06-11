@@ -368,7 +368,7 @@ export function UploadForm() {
               maxLength={80}
               value={draft.title}
               onChange={(event) => updateDraft("title", event.target.value)}
-              placeholder="Example: Orbit Focus Clock"
+              placeholder="Example: Neon Puzzle Run"
             />
             <span className="form-hint">{draft.title.trim().length}/80 characters</span>
           </div>
