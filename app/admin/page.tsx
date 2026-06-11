@@ -59,6 +59,14 @@ type AdminOverviewMetric = {
   tone?: "good" | "warning";
 };
 
+type AdminGrowthStep = {
+  label: string;
+  ok: boolean;
+  value: string;
+  helper: string;
+  href: string;
+};
+
 type AdminFilters = {
   q: string;
   category: "all" | Exclude<CategoryId, "all">;
@@ -572,6 +580,87 @@ function getAdminOverviewMetrics({
   ];
 }
 
+function getAdminGrowthLoopReport({
+  key,
+  pendingWorks,
+  publishedWorks,
+}: {
+  key: string;
+  pendingWorks: AdminWork[];
+  publishedWorks: AdminWork[];
+}) {
+  const playableWorks = publishedWorks.filter((work) => getRunnerPolicy(work.demoUrl).status !== "held");
+  const engagedWorks = publishedWorks.filter((work) => work.views > 0 || work.tryClicks > 0 || work.demoOpens > 0);
+  const sharedWorks = publishedWorks.filter((work) => work.shares > 0);
+  const curatedWorks = publishedWorks.filter((work) => {
+    const curation = getWorkCuration(work);
+    return curation.featured || Boolean(curation.rank || curation.label);
+  });
+  const readyPending = pendingWorks.filter(isReviewReady);
+  const totalTryClicks = publishedWorks.reduce((sum, work) => sum + work.tryClicks, 0);
+  const totalShares = publishedWorks.reduce((sum, work) => sum + work.shares, 0);
+
+  const steps: AdminGrowthStep[] = [
+    {
+      label: "Discover",
+      ok: publishedWorks.length > 0,
+      value: `${publishedWorks.length} live`,
+      helper: publishedWorks.length ? "Works are visible on Explore and Latest." : "Publish at least one reviewed work.",
+      href: adminUrl(key, "published"),
+    },
+    {
+      label: "TRY",
+      ok: playableWorks.length > 0,
+      value: `${playableWorks.length} playable`,
+      helper: playableWorks.length ? "At least one live work has an open runner path." : "Fix demo links or runner policy blocks.",
+      href: adminUrl(key, "published", { sort: "health" }),
+    },
+    {
+      label: "Engage",
+      ok: engagedWorks.length > 0,
+      value: `${formatAdminNumber(totalTryClicks)} TRY`,
+      helper: engagedWorks.length ? "Users are opening work or play pages." : "Open and test the public work path after publishing.",
+      href: adminUrl(key, "published", { sort: "views" }),
+    },
+    {
+      label: "Share",
+      ok: sharedWorks.length > 0,
+      value: `${formatAdminNumber(totalShares)} shares`,
+      helper: sharedWorks.length ? "Share actions are being recorded." : "Share the first 2-3 works from cards or detail pages.",
+      href: absoluteUrl("/rank"),
+    },
+    {
+      label: "Rank",
+      ok: engagedWorks.length > 0,
+      value: engagedWorks.length ? "live" : "waiting",
+      helper: engagedWorks.length ? "Leaderboard has real activity signals." : "Rankings will wake up after views, TRY opens, or shares.",
+      href: absoluteUrl("/rank"),
+    },
+    {
+      label: "Curate",
+      ok: curatedWorks.length > 0,
+      value: `${curatedWorks.length} curated`,
+      helper: curatedWorks.length ? "Home lineup has curated works." : "Add rank, label, or featured status to strong published works.",
+      href: getQueueHref(key, "home"),
+    },
+    {
+      label: "Review",
+      ok: pendingWorks.length === 0 || readyPending.length > 0,
+      value: pendingWorks.length ? `${readyPending.length}/${pendingWorks.length} ready` : "clear",
+      helper: pendingWorks.length ? "Keep pending works moving toward publish or fix." : "No pending review backlog.",
+      href: pendingWorks.length ? getQueueHref(key, readyPending.length ? "ready" : "fixes") : adminUrl(key, "pending"),
+    },
+  ];
+
+  const completeCount = steps.filter((step) => step.ok).length;
+
+  return {
+    completeCount,
+    score: Math.round((completeCount / steps.length) * 100),
+    steps,
+  };
+}
+
 function getRecentAdminWorks(works: AdminWork[], limit = 6) {
   return [...works].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
 }
@@ -806,6 +895,7 @@ export default async function AdminPage({
   const healthSummary = getAdminHealthSummary(publishedWorks);
   const queueSummary = getAdminQueueSummary(pendingWorks, publishedWorks);
   const overviewMetrics = getAdminOverviewMetrics({ key, counts, pendingWorks, publishedWorks, allWorks });
+  const growthLoop = getAdminGrowthLoopReport({ key, pendingWorks, publishedWorks });
   const recentWorks = getRecentAdminWorks(allWorks);
   const queueCards: Array<{ id: AdminQueueFilter; label: string; helper: string; count: number }> = [
     { id: "ready", label: "Ready to publish", helper: "Pending works that pass review checks", count: queueSummary.ready },
@@ -901,6 +991,56 @@ export default async function AdminPage({
           </div>
         </section>
       </div>
+
+      <section className="admin-growth-panel" aria-label="Growth loop checklist">
+        <div className="admin-growth-heading">
+          <div>
+            <span className="section-kicker">
+              <Trophy size={15} aria-hidden="true" />
+              Growth Loop
+            </span>
+            <h2>Publish, test, share, rank, curate</h2>
+            <p>Use this checklist after each new batch to confirm the public path is working end to end.</p>
+          </div>
+          <div className="admin-growth-score">
+            <strong>{growthLoop.score}%</strong>
+            <span>
+              {growthLoop.completeCount}/{growthLoop.steps.length} ready
+            </span>
+          </div>
+        </div>
+
+        <div className="admin-growth-meter" aria-hidden="true">
+          <span style={{ width: `${growthLoop.score}%` }} />
+        </div>
+
+        <div className="admin-growth-steps">
+          {growthLoop.steps.map((step) => (
+            <Link
+              className={step.ok ? "admin-growth-step is-ready" : "admin-growth-step"}
+              href={step.href}
+              key={step.label}
+            >
+              {step.ok ? <Check size={16} aria-hidden="true" /> : <AlertTriangle size={16} aria-hidden="true" />}
+              <span>
+                <strong>{step.label}</strong>
+                <small>{step.value}</small>
+              </span>
+              <p>{step.helper}</p>
+            </Link>
+          ))}
+        </div>
+
+        <div className="admin-growth-actions">
+          <AdminCopyButton value={absoluteUrl("/latest")} label="Latest" />
+          <AdminCopyButton value={absoluteUrl("/rank")} label="Rank" />
+          <AdminCopyButton value={absoluteUrl("/upload")} label="Upload" />
+          <Link className="ghost-button" href="/rank" target="_blank">
+            <ExternalLink size={17} aria-hidden="true" />
+            Open Rank
+          </Link>
+        </div>
+      </section>
 
       <nav className="admin-tabs" aria-label="Review status">
         {statusOptions.map((status) => (

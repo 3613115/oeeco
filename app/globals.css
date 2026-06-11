@@ -2371,6 +2371,130 @@ button {
   justify-content: flex-start;
 }
 
+.admin-growth-panel {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 14px;
+}
+
+.admin-growth-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-growth-heading h2 {
+  margin: 6px 0 0;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.admin-growth-heading p {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.admin-growth-score {
+  display: grid;
+  min-width: 112px;
+  gap: 4px;
+  text-align: right;
+}
+
+.admin-growth-score strong {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.admin-growth-score span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.admin-growth-meter {
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+}
+
+.admin-growth-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--mint);
+}
+
+.admin-growth-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.admin-growth-step {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 8px;
+  align-content: start;
+  min-height: 128px;
+  border: 1px solid rgba(244, 180, 63, 0.38);
+  border-radius: 8px;
+  background: rgba(244, 180, 63, 0.13);
+  padding: 12px;
+}
+
+.admin-growth-step.is-ready {
+  border-color: rgba(12, 122, 85, 0.24);
+  background: rgba(85, 214, 168, 0.1);
+}
+
+.admin-growth-step svg {
+  color: var(--amber);
+  margin-top: 2px;
+}
+
+.admin-growth-step.is-ready svg {
+  color: var(--leaf);
+}
+
+.admin-growth-step span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.admin-growth-step strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.admin-growth-step small,
+.admin-growth-step p {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.admin-growth-step p {
+  grid-column: 2;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.admin-growth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .admin-notice {
   border: 1px solid rgba(0, 120, 76, 0.22);
   border-radius: 8px;
@@ -3333,7 +3457,8 @@ button {
 
   .admin-heading,
   .admin-card-header,
-  .admin-section-title {
+  .admin-section-title,
+  .admin-growth-heading {
     flex-direction: column;
   }
 
@@ -3359,7 +3484,16 @@ button {
 
   .admin-action-bar,
   .admin-ops-actions,
+  .admin-growth-actions,
   .admin-recent-item > div:last-child {
     justify-content: flex-start;
+  }
+
+  .admin-growth-score {
+    text-align: left;
+  }
+
+  .admin-growth-step {
+    min-height: auto;
   }
 }
