@@ -1,13 +1,14 @@
--- Creator work management hardening for oeeco.
+-- Review resubmission loop metadata for oeeco.
 -- Run this once in the Supabase SQL Editor for the production project.
 
-drop policy if exists "users update own non-hidden works" on public.works;
-
 alter table public.works
-  add column if not exists review_note text not null default '',
   add column if not exists review_cycle integer not null default 0,
   add column if not exists resubmitted_at timestamptz,
   add column if not exists last_reviewed_at timestamptz;
+
+drop policy if exists "creators resubmit own editable works" on public.works;
+drop policy if exists "creators withdraw own pending works" on public.works;
+drop policy if exists "creators hide own published works" on public.works;
 
 revoke update on public.works from anon, authenticated;
 grant update (
@@ -39,31 +40,3 @@ create policy "creators hide own published works" on public.works
   for update
   using (auth.uid() = creator_id and status = 'published')
   with check (auth.uid() = creator_id and status = 'hidden');
-
-drop policy if exists "creators manage own work tags" on public.work_tags;
-
-revoke update on public.work_tags from anon, authenticated;
-
-create policy "creators add own display work tags" on public.work_tags
-  for insert
-  with check (
-    tag not like 'oeeco:%'
-    and exists (
-      select 1 from public.works
-      where works.id = work_tags.work_id
-        and works.creator_id = auth.uid()
-        and works.status in ('draft', 'pending', 'rejected')
-    )
-  );
-
-create policy "creators delete own display work tags" on public.work_tags
-  for delete
-  using (
-    tag not like 'oeeco:%'
-    and exists (
-      select 1 from public.works
-      where works.id = work_tags.work_id
-        and works.creator_id = auth.uid()
-        and works.status in ('draft', 'pending', 'rejected')
-    )
-  );

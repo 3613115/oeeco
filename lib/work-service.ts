@@ -30,7 +30,11 @@ type WorkRow = {
   try_clicks_count?: number | null;
   demo_opens_count?: number | null;
   share_clicks_count?: number | null;
+  review_cycle?: number | null;
+  resubmitted_at?: string | null;
+  last_reviewed_at?: string | null;
   created_at: string;
+  updated_at?: string | null;
 };
 
 type ProfileRow = {
@@ -51,6 +55,10 @@ export type AdminWorkStatus = "pending" | "published" | "rejected" | "hidden";
 export type AdminWork = Work & {
   status: AdminWorkStatus;
   reviewNote: string;
+  reviewCycle: number;
+  resubmittedAt: string | null;
+  lastReviewedAt: string | null;
+  updatedAt: string;
 };
 
 export type AdminWorkUpdate = {
@@ -172,6 +180,10 @@ export async function getAdminWorks(status: AdminWorkStatus = "pending") {
     ...work,
     status: rows[index].status as AdminWorkStatus,
     reviewNote: rows[index].review_note || "",
+    reviewCycle: rows[index].review_cycle || 0,
+    resubmittedAt: rows[index].resubmitted_at || null,
+    lastReviewedAt: rows[index].last_reviewed_at || null,
+    updatedAt: rows[index].updated_at || rows[index].created_at,
   }));
 }
 
@@ -207,9 +219,14 @@ export async function updateAdminWorkStatus(id: string, status: AdminWorkStatus,
   }
 
   const nextReviewNote = status === "rejected" || status === "hidden" ? cleanReviewNote(reviewNote) : "";
-  let { error } = await supabase.from("works").update({ status, review_note: nextReviewNote }).eq("id", id);
+  const statusUpdate = {
+    status,
+    review_note: nextReviewNote,
+    last_reviewed_at: status === "pending" ? null : new Date().toISOString(),
+  };
+  let { error } = await supabase.from("works").update(statusUpdate).eq("id", id);
 
-  if (error && error.message.toLowerCase().includes("review_note")) {
+  if (error && (error.message.toLowerCase().includes("review_note") || error.message.toLowerCase().includes("last_reviewed_at"))) {
     const fallback = await supabase.from("works").update({ status }).eq("id", id);
     error = fallback.error;
   }

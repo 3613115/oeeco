@@ -46,6 +46,9 @@ type AccountWorkRow = {
   try_clicks_count: number | null;
   demo_opens_count: number | null;
   share_clicks_count: number | null;
+  review_cycle?: number | null;
+  resubmitted_at?: string | null;
+  last_reviewed_at?: string | null;
   created_at: string;
   updated_at: string;
   tags: string[];
@@ -240,20 +243,20 @@ export function AccountClient() {
     if (!supabase) return;
 
     setLoadState("loading");
+    const baseSelect =
+      "id, title, summary, description, category, status, demo_url, cover_url, tool_stack, review_note, views_count, likes_count, try_clicks_count, demo_opens_count, share_clicks_count, created_at, updated_at";
     const query = supabase
       .from("works")
-      .select(
-        "id, title, summary, description, category, status, demo_url, cover_url, tool_stack, review_note, views_count, likes_count, try_clicks_count, demo_opens_count, share_clicks_count, created_at, updated_at",
-      )
+      .select(`${baseSelect}, review_cycle, resubmitted_at, last_reviewed_at`)
       .eq("creator_id", userId)
       .order("created_at", { ascending: false });
     let { data, error } = await query;
     let rowsData = data as Array<Omit<AccountWorkRow, "tags">> | null;
 
-    if (error && error.message.toLowerCase().includes("review_note")) {
+    if (error && isMissingAccountWorkColumnError(error.message)) {
       const fallback = await supabase
         .from("works")
-        .select("id, title, summary, description, category, status, demo_url, cover_url, tool_stack, created_at, updated_at")
+        .select(baseSelect)
         .eq("creator_id", userId)
         .order("created_at", { ascending: false });
       rowsData = fallback.data as Array<Omit<AccountWorkRow, "tags">> | null;
@@ -389,8 +392,10 @@ export function AccountClient() {
       return;
     }
 
+    const originalWork = works.find((work) => work.id === editingWorkId);
+    const isResubmission = Boolean(originalWork && originalWork.status !== "pending");
     setWorkSaveState("saving");
-    const workUpdate = {
+    const baseWorkUpdate = {
       title: prepared.data.title,
       summary: prepared.data.summary,
       description: prepared.data.detail,
@@ -401,23 +406,31 @@ export function AccountClient() {
       review_note: "",
       status: "pending",
     };
+    const workUpdate = {
+      ...baseWorkUpdate,
+      ...(isResubmission
+        ? {
+            review_cycle: (originalWork?.review_cycle || 0) + 1,
+            resubmitted_at: new Date().toISOString(),
+          }
+        : {}),
+    };
     let { data: updatedWork, error } = await supabase
       .from("works")
       .update(workUpdate)
       .eq("id", editingWorkId)
       .eq("creator_id", user.id)
-      .in("status", ["draft", "pending", "rejected"])
+      .in("status", ["draft", "pending", "rejected", "hidden"])
       .select("id")
       .maybeSingle();
 
-    if (error && error.message.toLowerCase().includes("review_note")) {
-      const { review_note: _reviewNote, ...fallbackWorkUpdate } = workUpdate;
+    if (error && isMissingAccountWorkColumnError(error.message)) {
       const fallback = await supabase
         .from("works")
-        .update(fallbackWorkUpdate)
+        .update(baseWorkUpdate)
         .eq("id", editingWorkId)
         .eq("creator_id", user.id)
-        .in("status", ["draft", "pending", "rejected"])
+        .in("status", ["draft", "pending", "rejected", "hidden"])
         .select("id")
         .maybeSingle();
       updatedWork = fallback.data;
@@ -466,7 +479,7 @@ export function AccountClient() {
     await loadWorks(user.id);
     setWorkSaveState("idle");
     stopEditingWork();
-    setMessage("Work saved and returned to review.");
+    setMessage(isResubmission ? "Work resubmitted for review." : "Work saved and returned to review.");
   }
 
   async function updateWorkVisibility(work: AccountWorkRow, action: WorkStatusAction) {
@@ -899,6 +912,9 @@ export function AccountClient() {
                         <span>{labelCategory(work.category)}</span>
                         <span>Submitted {formatDate(work.created_at)}</span>
                         <span>Updated {formatDate(work.updated_at || work.created_at)}</span>
+                        {work.review_cycle ? <span>Review round {work.review_cycle + 1}</span> : null}
+                        {work.resubmitted_at ? <span>Resubmitted {formatDate(work.resubmitted_at)}</span> : null}
+                        {work.last_reviewed_at ? <span>Reviewed {formatDate(work.last_reviewed_at)}</span> : null}
                         <span>{statusMeta[work.status]?.helper || "Status updated."}</span>
                       </div>
                       <div className="account-work-progress" aria-label={`${work.title} progress`}>
@@ -1149,6 +1165,10 @@ function needsCreatorRevision(work: AccountWorkRow) {
   return work.status === "rejected" || Boolean(work.review_note && work.status !== "published");
 }
 
+function isResubmittedWork(work: AccountWorkRow) {
+  return Boolean((work.review_cycle || 0) > 0 || work.resubmitted_at);
+}
+
 function getWorkProgressSteps(work: AccountWorkRow) {
   const submitted = work.status !== "draft";
   const reviewed = work.status === "published" || work.status === "rejected" || work.status === "hidden";
@@ -1186,6 +1206,17 @@ function getWorkAction(work: AccountWorkRow) {
   }
 
   if (work.status === "pending") {
+    if (isResubmittedWork(work)) {
+      return {
+        label: "Resubmitted",
+        next: "Next: follow-up review",
+        title: `Review round ${(work.review_cycle || 0) + 1}`,
+        helper: "Your changes are back in the review queue. Keep the demo live while the update is checked.",
+        items: ["Wait for follow-up review", "Keep the updated demo reachable", "Watch for approval or new feedback"],
+        tone: "pending" as const,
+      };
+    }
+
     return {
       label: "In review",
       next: "Next: wait for review",
@@ -1256,6 +1287,16 @@ function getVisibilityUpdateError(message: string) {
   }
 
   return message;
+}
+
+function isMissingAccountWorkColumnError(message: string) {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("review_note") ||
+    normalized.includes("review_cycle") ||
+    normalized.includes("resubmitted_at") ||
+    normalized.includes("last_reviewed_at")
+  );
 }
 
 function parseTags(value: string) {

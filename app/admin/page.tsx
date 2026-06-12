@@ -526,6 +526,14 @@ function getNextAction(work: AdminWork) {
   const curation = getWorkCuration(work);
   const health = getContentHealthReport(work);
 
+  if (work.status === "pending" && work.reviewCycle > 0) {
+    return {
+      label: "Review resubmission",
+      helper: `This is review round ${work.reviewCycle + 1}. Compare the update with prior feedback before publishing.`,
+      tone: "warning" as const,
+    };
+  }
+
   if (work.status === "pending" && isReviewReady(work)) {
     return {
       label: "Ready to publish",
@@ -1303,6 +1311,30 @@ function formatAdminNumber(value: number) {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}m`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`;
   return String(value);
+}
+
+function formatAdminDate(value: string) {
+  return value.slice(0, 10);
+}
+
+function getAdminReviewLoopLabel(work: AdminWork) {
+  return work.reviewCycle > 0 ? `Resubmitted x${work.reviewCycle}` : "First submission";
+}
+
+function getAdminReviewLoopHelper(work: AdminWork) {
+  if (work.status === "pending" && work.reviewCycle > 0) {
+    return "Creator updated this work after feedback or withdrawal. Review the latest metadata and demo before publishing.";
+  }
+
+  if (work.status === "pending") {
+    return "This appears to be a first review pass. Use feedback if it is not ready.";
+  }
+
+  if (work.lastReviewedAt) {
+    return `Last reviewed on ${formatAdminDate(work.lastReviewedAt)}.`;
+  }
+
+  return "No review timestamp has been recorded yet.";
 }
 
 function getAdminErrorMessage(error: string | undefined) {
@@ -2256,6 +2288,9 @@ function AdminWorkReviewRow({
             <span>{work.creator?.handle || "@creator"}</span>
             <span>{work.creator?.id || work.creatorId}</span>
             <span>{work.createdAt}</span>
+            <span>{getAdminReviewLoopLabel(work)}</span>
+            {work.resubmittedAt ? <span>Resubmitted {formatAdminDate(work.resubmittedAt)}</span> : null}
+            {work.lastReviewedAt ? <span>Reviewed {formatAdminDate(work.lastReviewedAt)}</span> : null}
             <span>{categoryLabels[work.category]}</span>
             <span>{work.tool}</span>
             <span>{formatAdminNumber(work.views)} views</span>
@@ -2404,6 +2439,12 @@ function AdminWorkReviewRow({
           <p>{work.reviewNote}</p>
         </div>
       ) : null}
+
+      <div className="admin-review-loop">
+        <span className="section-kicker">Review Loop</span>
+        <strong>{getAdminReviewLoopLabel(work)}</strong>
+        <p>{getAdminReviewLoopHelper(work)}</p>
+      </div>
 
       <div className="admin-health-panel">
         <div>

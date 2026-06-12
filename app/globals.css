@@ -4050,6 +4050,26 @@ button {
   line-height: 1.55;
 }
 
+.admin-review-loop {
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(40, 92, 214, 0.18);
+  border-radius: 8px;
+  background: rgba(40, 92, 214, 0.07);
+  padding: 12px;
+}
+
+.admin-review-loop strong {
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.admin-review-loop p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .admin-feedback-form {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) auto;

@@ -6,7 +6,19 @@ drop policy if exists "creators withdraw own pending works" on public.works;
 drop policy if exists "creators hide own published works" on public.works;
 
 revoke update on public.works from anon, authenticated;
-grant update (title, summary, description, category, cover_url, demo_url, tool_stack, status, review_note)
+grant update (
+  title,
+  summary,
+  description,
+  category,
+  cover_url,
+  demo_url,
+  tool_stack,
+  status,
+  review_note,
+  review_cycle,
+  resubmitted_at
+)
   on public.works to authenticated;
 
 create policy "creators resubmit own editable works" on public.works
