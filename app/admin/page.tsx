@@ -226,6 +226,32 @@ type AdminLaunchCadencePlan = {
   metrics: AdminLaunchCadenceMetric[];
 };
 
+type AdminLaunchLearningSignal = {
+  label: string;
+  value: string;
+  helper: string;
+  tone: "good" | "warning" | "neutral";
+};
+
+type AdminLaunchLearningWork = {
+  id: string;
+  title: string;
+  score: number;
+  helper: string;
+  href: string;
+  tryHref: string;
+};
+
+type AdminLaunchLearningPlan = {
+  decision: string;
+  nextMove: string;
+  confidence: number;
+  summaryCopy: string;
+  signals: AdminLaunchLearningSignal[];
+  actions: string[];
+  focusWorks: AdminLaunchLearningWork[];
+};
+
 type AdminFilters = {
   q: string;
   category: "all" | Exclude<CategoryId, "all">;
@@ -1749,6 +1775,234 @@ function getAdminLaunchCadencePlan({
   };
 }
 
+function getAdminLaunchLearningPlan({
+  key,
+  pendingWorks,
+  publishedWorks,
+  launchPlan,
+  sharePlan,
+}: {
+  key: string;
+  pendingWorks: AdminWork[];
+  publishedWorks: AdminWork[];
+  launchPlan: AdminLaunchPlan;
+  sharePlan: AdminSharePlan;
+}): AdminLaunchLearningPlan {
+  const totalViews = publishedWorks.reduce((sum, work) => sum + work.views, 0);
+  const totalTrySignals = publishedWorks.reduce((sum, work) => sum + work.tryClicks + work.demoOpens, 0);
+  const totalShares = publishedWorks.reduce((sum, work) => sum + work.shares, 0);
+  const totalLikes = publishedWorks.reduce((sum, work) => sum + work.likes, 0);
+  const activeWorks = publishedWorks.filter((work) => work.views + work.tryClicks + work.demoOpens + work.shares + work.likes > 0);
+  const tryRate = totalViews > 0 ? totalTrySignals / totalViews : 0;
+  const shareRate = totalViews > 0 ? totalShares / totalViews : 0;
+  const confidence = getLaunchLearningConfidence({
+    publishedCount: publishedWorks.length,
+    activeCount: activeWorks.length,
+    totalViews,
+    totalTrySignals,
+    totalShares,
+    launchScore: launchPlan.score,
+  });
+  const focusWorks = getLaunchLearningFocusWorks(key, publishedWorks);
+  const decision = getLaunchLearningDecision({ publishedWorks, totalViews, totalTrySignals, totalShares, activeWorks, tryRate, launchPlan });
+  const nextMove = getLaunchLearningNextMove({ publishedWorks, pendingWorks, totalViews, totalTrySignals, activeWorks, tryRate, sharePlan, launchPlan });
+  const actions = getLaunchLearningActions({ key, publishedWorks, pendingWorks, totalViews, totalTrySignals, totalShares, activeWorks, tryRate, sharePlan, launchPlan });
+  const summaryCopy = [
+    `oeeco learning review: ${decision}`,
+    `${formatAdminNumber(totalViews)} views, ${formatAdminNumber(totalTrySignals)} TRY/demo opens, ${formatAdminNumber(totalShares)} shares, ${formatAdminNumber(totalLikes)} likes.`,
+    `Next move: ${nextMove}`,
+    absoluteUrl("/latest"),
+  ].join("\n");
+
+  return {
+    decision,
+    nextMove,
+    confidence,
+    summaryCopy,
+    signals: [
+      {
+        label: "TRY rate",
+        value: totalViews ? `${Math.round(tryRate * 100)}%` : "N/A",
+        helper: totalViews ? "TRY/demo opens divided by views." : "Needs public page views before this rate is meaningful.",
+        tone: totalViews && tryRate >= 0.18 ? "good" : totalViews ? "warning" : "neutral",
+      },
+      {
+        label: "Share rate",
+        value: totalViews ? `${Math.round(shareRate * 100)}%` : "N/A",
+        helper: totalViews ? "Share actions divided by views." : "Use after the first small traffic test.",
+        tone: totalViews && shareRate >= 0.04 ? "good" : totalViews ? "neutral" : "warning",
+      },
+      {
+        label: "Active works",
+        value: `${activeWorks.length}/${publishedWorks.length}`,
+        helper: activeWorks.length > 1 ? "Signals are not concentrated in only one work." : "Rotate more works before drawing strong conclusions.",
+        tone: activeWorks.length > 1 ? "good" : publishedWorks.length ? "warning" : "neutral",
+      },
+      {
+        label: "Backlog pressure",
+        value: String(pendingWorks.length),
+        helper: pendingWorks.length ? "Review pending work before inviting more creators." : "No pending queue pressure right now.",
+        tone: pendingWorks.length <= 2 ? "good" : "warning",
+      },
+    ],
+    actions,
+    focusWorks,
+  };
+}
+
+function getLaunchLearningConfidence({
+  publishedCount,
+  activeCount,
+  totalViews,
+  totalTrySignals,
+  totalShares,
+  launchScore,
+}: {
+  publishedCount: number;
+  activeCount: number;
+  totalViews: number;
+  totalTrySignals: number;
+  totalShares: number;
+  launchScore: number;
+}) {
+  let score = 0;
+  score += Math.min(24, publishedCount * 3);
+  score += Math.min(24, activeCount * 8);
+  score += Math.min(20, totalViews * 2);
+  score += Math.min(16, totalTrySignals * 4);
+  score += Math.min(8, totalShares * 4);
+  score += Math.min(8, Math.round(launchScore / 12.5));
+  return Math.min(100, score);
+}
+
+function getLaunchLearningDecision({
+  publishedWorks,
+  totalViews,
+  totalTrySignals,
+  totalShares,
+  activeWorks,
+  tryRate,
+  launchPlan,
+}: {
+  publishedWorks: AdminWork[];
+  totalViews: number;
+  totalTrySignals: number;
+  totalShares: number;
+  activeWorks: AdminWork[];
+  tryRate: number;
+  launchPlan: AdminLaunchPlan;
+}) {
+  if (!publishedWorks.length) return "No launch learning yet";
+  if (launchPlan.score < 67) return "Keep preparing before outreach";
+  if (totalViews === 0) return "Traffic test has not started";
+  if (totalTrySignals === 0) return "Traffic is not reaching TRY";
+  if (tryRate >= 0.18 && activeWorks.length >= 2) return "Early signal is worth scaling";
+  if (tryRate >= 0.18) return "One work has a useful hook";
+  if (totalShares > 0 && tryRate < 0.1) return "Share copy works better than TRY hook";
+  return "Keep testing and polishing";
+}
+
+function getLaunchLearningNextMove({
+  publishedWorks,
+  pendingWorks,
+  totalViews,
+  totalTrySignals,
+  activeWorks,
+  tryRate,
+  sharePlan,
+  launchPlan,
+}: {
+  publishedWorks: AdminWork[];
+  pendingWorks: AdminWork[];
+  totalViews: number;
+  totalTrySignals: number;
+  activeWorks: AdminWork[];
+  tryRate: number;
+  sharePlan: AdminSharePlan;
+  launchPlan: AdminLaunchPlan;
+}) {
+  if (!publishedWorks.length) return "Publish the first approved work.";
+  if (launchPlan.score < 67) return "Finish launch readiness gaps before inviting more traffic.";
+  if (publishedWorks.length < 10) return "Keep uploading and publishing toward the first 10 live works.";
+  if (pendingWorks.length > 2) return "Clear the pending review queue before broader outreach.";
+  if (totalViews === 0) return "Send the first narrow traffic test to one trusted group.";
+  if (totalTrySignals === 0) return "Improve the card title, cover, summary, and TRY button path.";
+  if (tryRate >= 0.18 && activeWorks.length >= 2) return "Repeat the winning channel with two more works.";
+  if (sharePlan.readyCount < sharePlan.targetCount) return "Prepare more share-ready works before expanding.";
+  return "Run one more focused share test and compare TRY rate.";
+}
+
+function getLaunchLearningActions({
+  key,
+  publishedWorks,
+  pendingWorks,
+  totalViews,
+  totalTrySignals,
+  totalShares,
+  activeWorks,
+  tryRate,
+  sharePlan,
+  launchPlan,
+}: {
+  key: string;
+  publishedWorks: AdminWork[];
+  pendingWorks: AdminWork[];
+  totalViews: number;
+  totalTrySignals: number;
+  totalShares: number;
+  activeWorks: AdminWork[];
+  tryRate: number;
+  sharePlan: AdminSharePlan;
+  launchPlan: AdminLaunchPlan;
+}) {
+  const actions: string[] = [];
+  const topAsset = sharePlan.assets[0];
+
+  if (!publishedWorks.length) {
+    actions.push("Publish the first approved work, then run the visitor QA path.");
+    return actions;
+  }
+
+  if (launchPlan.score < 67) actions.push("Do not broaden traffic yet; finish the launch readiness checklist first.");
+  if (publishedWorks.length < 10) actions.push(`Add ${10 - publishedWorks.length} more published works to reach the first serious shelf.`);
+  if (pendingWorks.length > 2) actions.push("Review or give feedback on pending submissions before asking for more creators.");
+  if (totalViews === 0 && topAsset) actions.push(`Send "${topAsset.title}" to a small trusted circle and watch views plus TRY opens.`);
+  if (totalViews > 0 && totalTrySignals === 0) actions.push("Rewrite the top card hook and re-test whether visitors click TRY.");
+  if (totalViews > 0 && tryRate < 0.1) actions.push("Improve cover, title, summary, and first-screen promise before posting again.");
+  if (tryRate >= 0.18 && activeWorks.length < 2) actions.push("Rotate a second work so the learning is not based on one item.");
+  if (tryRate >= 0.18 && totalShares > 0) actions.push("Repeat the same channel once more, then compare whether TRY rate stays stable.");
+
+  if (!actions.length) actions.push("Keep the current cadence: one narrow post, one signal review, one content improvement.");
+  return actions.slice(0, 5);
+}
+
+function getLaunchLearningFocusWorks(key: string, works: AdminWork[]): AdminLaunchLearningWork[] {
+  return [...works]
+    .map((work) => {
+      const score = work.tryClicks * 5 + work.demoOpens * 4 + work.shares * 4 + work.likes * 3 + work.views;
+      const helper = getLaunchLearningWorkHelper(work);
+
+      return {
+        id: work.id,
+        title: work.title,
+        score,
+        helper,
+        href: adminUrl(key, "published", { q: work.id }),
+        tryHref: absoluteUrl(`/play/${work.id}`),
+      };
+    })
+    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
+    .slice(0, 4);
+}
+
+function getLaunchLearningWorkHelper(work: AdminWork) {
+  const opens = work.tryClicks + work.demoOpens;
+  if (opens > 0 && work.views > 0) return `${formatAdminNumber(opens)} TRY/demo opens from ${formatAdminNumber(work.views)} views. Keep watching this hook.`;
+  if (work.views > 0) return `${formatAdminNumber(work.views)} views but no TRY opens yet. Improve the public-page hook.`;
+  if (work.shares > 0) return `${formatAdminNumber(work.shares)} shares recorded. Re-open the TRY path before posting again.`;
+  return "No signal yet. Use this only after stronger candidates have been tested.";
+}
+
 function cleanShareText(value: string, maxLength: number) {
   const text = value.replace(/\s+/g, " ").trim();
   if (text.length <= maxLength) return text;
@@ -2035,6 +2289,13 @@ export default async function AdminPage({
     sharePlan,
     journeyPlan,
   });
+  const launchLearningPlan = getAdminLaunchLearningPlan({
+    key,
+    pendingWorks,
+    publishedWorks,
+    launchPlan,
+    sharePlan,
+  });
   const recentWorks = getRecentAdminWorks(allWorks);
   const queueCards: Array<{ id: AdminQueueFilter; label: string; helper: string; count: number }> = [
     { id: "ready", label: "Ready to publish", helper: "Pending works that pass review checks", count: queueSummary.ready },
@@ -2315,6 +2576,86 @@ export default async function AdminPage({
                 Signal queue
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-learning-panel" aria-label="Launch learning">
+        <div className="admin-learning-heading">
+          <div>
+            <span className="section-kicker">
+              <SlidersHorizontal size={15} aria-hidden="true" />
+              Launch Learning
+            </span>
+            <h2>{launchLearningPlan.decision}</h2>
+            <p>{launchLearningPlan.nextMove}</p>
+          </div>
+          <div className="admin-learning-score">
+            <strong>{launchLearningPlan.confidence}%</strong>
+            <span>learning confidence</span>
+          </div>
+        </div>
+
+        <div className="admin-learning-signals" aria-label="Learning signals">
+          {launchLearningPlan.signals.map((signal) => (
+            <div className={`admin-learning-signal is-${signal.tone}`} key={signal.label}>
+              <span>{signal.label}</span>
+              <strong>{signal.value}</strong>
+              <small>{signal.helper}</small>
+            </div>
+          ))}
+        </div>
+
+        <div className="admin-learning-layout">
+          <div className="admin-learning-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Next Iteration</span>
+              <small>{launchLearningPlan.actions.length} actions</small>
+            </div>
+            <div className="admin-learning-actions-list">
+              {launchLearningPlan.actions.map((action) => (
+                <div key={action}>
+                  <RotateCcw size={15} aria-hidden="true" />
+                  <span>{action}</span>
+                </div>
+              ))}
+            </div>
+            <div className="admin-learning-actions">
+              <AdminCopyButton value={launchLearningPlan.summaryCopy} label="Review note" />
+              <Link className="ghost-button" href={adminUrl(key, "published", { sort: "views" })}>
+                Signal queue
+              </Link>
+              <Link className="ghost-button" href={getQueueHref(key, "ready")}>
+                Review queue
+              </Link>
+            </div>
+          </div>
+
+          <div className="admin-learning-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Focus Works</span>
+              <small>{launchLearningPlan.focusWorks.length} tracked</small>
+            </div>
+            {launchLearningPlan.focusWorks.length ? (
+              <div className="admin-learning-work-list">
+                {launchLearningPlan.focusWorks.map((work) => (
+                  <div className="admin-learning-work" key={work.id}>
+                    <div>
+                      <strong>{work.title}</strong>
+                      <span>{work.helper}</span>
+                    </div>
+                    <div className="admin-learning-work-actions">
+                      <Link className="ghost-button" href={work.href}>
+                        Edit
+                      </Link>
+                      <AdminCopyButton value={work.tryHref} label="TRY" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>No published works are ready for learning analysis yet.</p>
+            )}
           </div>
         </div>
       </section>

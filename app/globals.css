@@ -3298,6 +3298,175 @@ button {
   line-height: 1.45;
 }
 
+.admin-learning-panel {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 14px;
+}
+
+.admin-learning-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-learning-heading h2 {
+  margin: 6px 0 0;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.admin-learning-heading p {
+  max-width: 780px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.admin-learning-score {
+  display: grid;
+  min-width: 138px;
+  gap: 4px;
+  text-align: right;
+}
+
+.admin-learning-score strong {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.admin-learning-score span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.admin-learning-signals {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-learning-signal {
+  display: grid;
+  gap: 6px;
+  min-height: 112px;
+  align-content: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+}
+
+.admin-learning-signal.is-good {
+  border-color: rgba(12, 122, 85, 0.24);
+  background: rgba(85, 214, 168, 0.1);
+}
+
+.admin-learning-signal.is-warning {
+  border-color: rgba(244, 180, 63, 0.38);
+  background: rgba(244, 180, 63, 0.12);
+}
+
+.admin-learning-signal.is-neutral {
+  background: var(--paper);
+}
+
+.admin-learning-signal span,
+.admin-learning-signal small,
+.admin-learning-actions-list span,
+.admin-learning-work span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.admin-learning-signal strong {
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.admin-learning-signal small {
+  line-height: 1.45;
+}
+
+.admin-learning-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(300px, 1.05fr);
+  gap: 12px;
+}
+
+.admin-learning-block {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 12px;
+}
+
+.admin-learning-actions-list,
+.admin-learning-work-list {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-learning-actions-list > div {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 10px;
+}
+
+.admin-learning-actions-list svg {
+  color: var(--blue);
+  margin-top: 2px;
+}
+
+.admin-learning-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-learning-work {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 10px;
+}
+
+.admin-learning-work > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.admin-learning-work strong {
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.admin-learning-work-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .admin-seed-panel {
   display: grid;
   gap: 14px;
@@ -4875,8 +5044,13 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .admin-learning-signals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-launch-layout,
   .admin-cadence-layout,
+  .admin-learning-layout,
   .admin-home-layout,
   .admin-home-featured,
   .admin-journey-layout,
@@ -5102,6 +5276,7 @@ button {
   .admin-growth-heading,
   .admin-launch-heading,
   .admin-cadence-heading,
+  .admin-learning-heading,
   .admin-seed-heading,
   .admin-home-heading,
   .admin-journey-heading,
@@ -5123,6 +5298,9 @@ button {
   .admin-launch-layout,
   .admin-cadence-layout,
   .admin-cadence-task,
+  .admin-learning-layout,
+  .admin-learning-signals,
+  .admin-learning-work,
   .admin-seed-layout,
   .admin-seed-category-grid,
   .admin-seed-work,
@@ -5146,6 +5324,8 @@ button {
   .admin-growth-actions,
   .admin-launch-actions,
   .admin-cadence-actions,
+  .admin-learning-actions,
+  .admin-learning-work-actions,
   .admin-share-actions,
   .admin-recent-item > div:last-child {
     justify-content: flex-start;
@@ -5160,6 +5340,10 @@ button {
   }
 
   .admin-cadence-note {
+    text-align: left;
+  }
+
+  .admin-learning-score {
     text-align: left;
   }
 
