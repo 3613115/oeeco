@@ -122,6 +122,23 @@ type AdminHomeCurationPlan = {
   nextActions: string[];
 };
 
+type AdminJourneyStep = {
+  label: string;
+  ok: boolean;
+  value: string;
+  helper: string;
+  href: string;
+};
+
+type AdminJourneyPlan = {
+  score: number;
+  readyCount: number;
+  steps: AdminJourneyStep[];
+  testWork: AdminHomePick | null;
+  testLinks: Array<{ label: string; href: string }>;
+  blockers: string[];
+};
+
 type AdminFilters = {
   q: string;
   category: "all" | Exclude<CategoryId, "all">;
@@ -994,6 +1011,128 @@ function getHomeCurationActions({
   return actions.slice(0, 5);
 }
 
+function getAdminJourneyPlan({
+  key,
+  pendingWorks,
+  publishedWorks,
+}: {
+  key: string;
+  pendingWorks: AdminWork[];
+  publishedWorks: AdminWork[];
+}): AdminJourneyPlan {
+  const picks = publishedWorks.map((work) => getAdminHomePick(key, work)).sort((a, b) => b.score - a.score);
+  const testWork = picks[0] || null;
+  const playableWorks = publishedWorks.filter((work) => getRunnerPolicy(work.demoUrl).status !== "held");
+  const worksWithShareSignal = publishedWorks.filter((work) => work.shares > 0);
+  const worksWithTrySignal = publishedWorks.filter((work) => work.tryClicks > 0 || work.demoOpens > 0);
+  const readyPending = pendingWorks.filter(isReviewReady);
+  const totalTrySignals = publishedWorks.reduce((sum, work) => sum + work.tryClicks + work.demoOpens, 0);
+  const totalShares = publishedWorks.reduce((sum, work) => sum + work.shares, 0);
+
+  const steps: AdminJourneyStep[] = [
+    {
+      label: "Landing",
+      ok: publishedWorks.length > 0,
+      value: `${publishedWorks.length} live`,
+      helper: publishedWorks.length ? "Explore has public work cards to click." : "Publish a work before testing the public path.",
+      href: absoluteUrl("/"),
+    },
+    {
+      label: "Work Detail",
+      ok: Boolean(testWork),
+      value: testWork ? testWork.title : "waiting",
+      helper: testWork ? "Open the best current candidate from a card." : "No public work page is ready to test.",
+      href: testWork?.publicHref || absoluteUrl("/latest"),
+    },
+    {
+      label: "TRY Runner",
+      ok: playableWorks.length > 0,
+      value: `${playableWorks.length} playable`,
+      helper: playableWorks.length ? "At least one work should load through the TRY route." : "Fix runner-held or missing demo paths.",
+      href: testWork?.tryHref || absoluteUrl("/rank"),
+    },
+    {
+      label: "Engagement",
+      ok: totalTrySignals > 0,
+      value: `${formatAdminNumber(totalTrySignals)} opens`,
+      helper: totalTrySignals ? "TRY or demo-open tracking has fired." : "Open a work through TRY once after publishing.",
+      href: adminUrl(key, "published", { sort: "views" }),
+    },
+    {
+      label: "Share",
+      ok: worksWithShareSignal.length > 0,
+      value: `${formatAdminNumber(totalShares)} shares`,
+      helper: worksWithShareSignal.length ? "Share tracking has been verified." : "Use a card or detail share button during QA.",
+      href: testWork?.publicHref || absoluteUrl("/latest"),
+    },
+    {
+      label: "Account",
+      ok: true,
+      value: "enabled",
+      helper: "Open account and confirm Google sign-in is available.",
+      href: absoluteUrl("/account"),
+    },
+    {
+      label: "Submit",
+      ok: true,
+      value: pendingWorks.length ? `${pendingWorks.length} pending` : "open",
+      helper: readyPending.length ? "There are ready submissions waiting for publish." : "Upload flow is the creator conversion path.",
+      href: absoluteUrl("/upload"),
+    },
+  ];
+
+  const blockers = getJourneyBlockers({ publishedWorks, playableWorks, totalTrySignals, totalShares, testWork });
+  const readyCount = steps.filter((step) => step.ok).length;
+  const testLinks = [
+    { label: "Explore", href: absoluteUrl("/") },
+    { label: "Latest", href: absoluteUrl("/latest") },
+    { label: "Rank", href: absoluteUrl("/rank") },
+    { label: "Account", href: absoluteUrl("/account") },
+    { label: "Upload", href: absoluteUrl("/upload") },
+  ];
+
+  if (testWork) {
+    testLinks.splice(2, 0, { label: "Work", href: testWork.publicHref }, { label: "TRY", href: testWork.tryHref });
+  }
+
+  return {
+    score: Math.round((readyCount / steps.length) * 100),
+    readyCount,
+    steps,
+    testWork,
+    testLinks,
+    blockers,
+  };
+}
+
+function getJourneyBlockers({
+  publishedWorks,
+  playableWorks,
+  totalTrySignals,
+  totalShares,
+  testWork,
+}: {
+  publishedWorks: AdminWork[];
+  playableWorks: AdminWork[];
+  totalTrySignals: number;
+  totalShares: number;
+  testWork: AdminHomePick | null;
+}) {
+  const blockers: string[] = [];
+
+  if (!publishedWorks.length) blockers.push("No published works for a first-time visitor to open.");
+  if (!playableWorks.length) blockers.push("No playable TRY route is ready for public testing.");
+  if (!testWork) blockers.push("No selected work for end-to-end QA.");
+  if (publishedWorks.length && totalTrySignals === 0) blockers.push("TRY/demo tracking has not been exercised yet.");
+  if (publishedWorks.length && totalShares === 0) blockers.push("Share tracking has not been exercised yet.");
+
+  if (!blockers.length) {
+    blockers.push("No critical journey blockers detected. Run a manual mobile and desktop pass before posting externally.");
+  }
+
+  return blockers.slice(0, 5);
+}
+
 function getRecentAdminWorks(works: AdminWork[], limit = 6) {
   return [...works].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
 }
@@ -1231,6 +1370,7 @@ export default async function AdminPage({
   const growthLoop = getAdminGrowthLoopReport({ key, pendingWorks, publishedWorks });
   const contentSeedPlan = getAdminContentSeedPlan({ key, pendingWorks, publishedWorks });
   const homeCurationPlan = getAdminHomeCurationPlan({ key, publishedWorks });
+  const journeyPlan = getAdminJourneyPlan({ key, pendingWorks, publishedWorks });
   const recentWorks = getRecentAdminWorks(allWorks);
   const queueCards: Array<{ id: AdminQueueFilter; label: string; helper: string; count: number }> = [
     { id: "ready", label: "Ready to publish", helper: "Pending works that pass review checks", count: queueSummary.ready },
@@ -1590,6 +1730,77 @@ export default async function AdminPage({
               <Link className="ghost-button" href={getQueueHref(key, "home")}>
                 Home lineup
               </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-journey-panel" aria-label="User journey QA">
+        <div className="admin-journey-heading">
+          <div>
+            <span className="section-kicker">
+              <Eye size={15} aria-hidden="true" />
+              User Journey QA
+            </span>
+            <h2>First visitor path test</h2>
+            <p>
+              Run this checklist before each external push: Explore, work detail, TRY, share, account, and submit.
+            </p>
+          </div>
+          <div className="admin-journey-score">
+            <strong>{journeyPlan.score}%</strong>
+            <span>
+              {journeyPlan.readyCount}/{journeyPlan.steps.length} ready
+            </span>
+          </div>
+        </div>
+
+        <div className="admin-journey-meter" aria-hidden="true">
+          <span style={{ width: `${journeyPlan.score}%` }} />
+        </div>
+
+        <div className="admin-journey-layout">
+          <div className="admin-journey-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Journey Steps</span>
+              <small>{journeyPlan.testWork ? journeyPlan.testWork.title : "No test work yet"}</small>
+            </div>
+            <div className="admin-journey-steps">
+              {journeyPlan.steps.map((step) => (
+                <Link
+                  className={step.ok ? "admin-journey-step is-ready" : "admin-journey-step"}
+                  href={step.href}
+                  key={step.label}
+                  target={step.href.startsWith("http") ? "_blank" : undefined}
+                >
+                  {step.ok ? <Check size={16} aria-hidden="true" /> : <AlertTriangle size={16} aria-hidden="true" />}
+                  <span>
+                    <strong>{step.label}</strong>
+                    <small>{step.value}</small>
+                  </span>
+                  <p>{step.helper}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="admin-journey-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">QA Pack</span>
+              <small>{journeyPlan.blockers.length} notes</small>
+            </div>
+            <div className="admin-journey-notes">
+              {journeyPlan.blockers.map((blocker) => (
+                <div key={blocker}>
+                  <Shield size={15} aria-hidden="true" />
+                  <span>{blocker}</span>
+                </div>
+              ))}
+            </div>
+            <div className="admin-journey-links">
+              {journeyPlan.testLinks.map((link) => (
+                <AdminCopyButton value={link.href} label={link.label} key={`${link.label}-${link.href}`} />
+              ))}
             </div>
           </div>
         </div>
