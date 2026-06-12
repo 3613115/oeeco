@@ -2975,6 +2975,174 @@ button {
   gap: 8px;
 }
 
+.admin-launch-panel {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 14px;
+}
+
+.admin-launch-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-launch-heading h2 {
+  margin: 6px 0 0;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.admin-launch-heading p {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.admin-launch-score {
+  display: grid;
+  min-width: 116px;
+  gap: 4px;
+  text-align: right;
+}
+
+.admin-launch-score strong {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.admin-launch-score span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.admin-launch-meter {
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+}
+
+.admin-launch-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue);
+}
+
+.admin-launch-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: 12px;
+}
+
+.admin-launch-block {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 12px;
+}
+
+.admin-launch-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.admin-launch-check {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 8px;
+  align-content: start;
+  min-height: 124px;
+  border: 1px solid rgba(244, 180, 63, 0.38);
+  border-radius: 8px;
+  background: rgba(244, 180, 63, 0.12);
+  padding: 10px;
+}
+
+.admin-launch-check.is-ready {
+  border-color: rgba(12, 122, 85, 0.24);
+  background: rgba(85, 214, 168, 0.1);
+}
+
+.admin-launch-check svg {
+  color: var(--amber);
+  margin-top: 2px;
+}
+
+.admin-launch-check.is-ready svg {
+  color: var(--leaf);
+}
+
+.admin-launch-check span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.admin-launch-check strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.admin-launch-check small,
+.admin-launch-check p,
+.admin-launch-channel span,
+.admin-launch-channel small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.admin-launch-check p {
+  grid-column: 2;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.admin-launch-channels {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-launch-channel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 10px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 10px;
+}
+
+.admin-launch-channel strong {
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.admin-launch-channel small {
+  grid-column: 1 / -1;
+  line-height: 1.45;
+}
+
+.admin-launch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .admin-seed-panel {
   display: grid;
   gap: 14px;
@@ -4552,6 +4720,7 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .admin-launch-layout,
   .admin-home-layout,
   .admin-home-featured,
   .admin-journey-layout,
@@ -4775,6 +4944,7 @@ button {
   .admin-card-header,
   .admin-section-title,
   .admin-growth-heading,
+  .admin-launch-heading,
   .admin-seed-heading,
   .admin-home-heading,
   .admin-journey-heading,
@@ -4793,6 +4963,7 @@ button {
   .admin-health-panel,
   .admin-health-checks,
   .admin-curation-panel,
+  .admin-launch-layout,
   .admin-seed-layout,
   .admin-seed-category-grid,
   .admin-seed-work,
@@ -4814,12 +4985,17 @@ button {
   .admin-action-bar,
   .admin-ops-actions,
   .admin-growth-actions,
+  .admin-launch-actions,
   .admin-share-actions,
   .admin-recent-item > div:last-child {
     justify-content: flex-start;
   }
 
   .admin-growth-score {
+    text-align: left;
+  }
+
+  .admin-launch-score {
     text-align: left;
   }
 
@@ -4848,6 +5024,7 @@ button {
   }
 
   .admin-growth-step,
+  .admin-launch-check,
   .admin-journey-step {
     min-height: auto;
   }

@@ -8,6 +8,7 @@ import {
   Link as LinkIcon,
   Monitor,
   RotateCcw,
+  Rocket,
   Save,
   Search,
   Share2,
@@ -175,6 +176,30 @@ type AdminSharePlan = {
   targetCount: number;
   categoryGaps: string[];
   nextActions: string[];
+};
+
+type AdminLaunchStep = {
+  label: string;
+  ok: boolean;
+  value: string;
+  helper: string;
+  href: string;
+};
+
+type AdminLaunchChannel = {
+  label: string;
+  status: string;
+  helper: string;
+};
+
+type AdminLaunchPlan = {
+  score: number;
+  readyCount: number;
+  decision: string;
+  helper: string;
+  primaryCopy: string;
+  steps: AdminLaunchStep[];
+  channels: AdminLaunchChannel[];
 };
 
 type AdminFilters = {
@@ -1424,6 +1449,148 @@ function getSharePlanActions({
   return actions.slice(0, 5);
 }
 
+function getAdminLaunchPlan({
+  key,
+  pendingWorks,
+  publishedWorks,
+  contentSeedPlan,
+  homeCurationPlan,
+  journeyPlan,
+  sharePlan,
+}: {
+  key: string;
+  pendingWorks: AdminWork[];
+  publishedWorks: AdminWork[];
+  contentSeedPlan: AdminContentSeedPlan;
+  homeCurationPlan: AdminHomeCurationPlan;
+  journeyPlan: AdminJourneyPlan;
+  sharePlan: AdminSharePlan;
+}): AdminLaunchPlan {
+  const totalViews = publishedWorks.reduce((sum, work) => sum + work.views, 0);
+  const totalTrySignals = publishedWorks.reduce((sum, work) => sum + work.tryClicks + work.demoOpens, 0);
+  const totalShares = publishedWorks.reduce((sum, work) => sum + work.shares, 0);
+  const topShareAsset = sharePlan.assets[0] || null;
+  const hasHomeLead = Boolean(homeCurationPlan.recommendedFeatured || homeCurationPlan.featuredCount > 0);
+  const hasEngagementSignal = totalViews + totalTrySignals + totalShares > 0;
+
+  const steps: AdminLaunchStep[] = [
+    {
+      label: "Shelf",
+      ok: contentSeedPlan.launchReady,
+      value: `${contentSeedPlan.liveCount}/${contentSeedPlan.targetMax}`,
+      helper: contentSeedPlan.launchReady ? "First shelf has enough quantity, variety, curation, and share candidates." : contentSeedPlan.primaryAction,
+      href: adminUrl(key, "published"),
+    },
+    {
+      label: "Homepage",
+      ok: homeCurationPlan.curatedCount >= Math.min(3, Math.max(1, homeCurationPlan.liveCount)) && hasHomeLead,
+      value: `${homeCurationPlan.curatedCount} curated`,
+      helper: hasHomeLead ? "Homepage has a clear lead work and curated follow-up slots." : "Pick a lead work for the first screen before posting externally.",
+      href: getQueueHref(key, "home"),
+    },
+    {
+      label: "Journey",
+      ok: journeyPlan.score >= 85,
+      value: `${journeyPlan.score}%`,
+      helper: journeyPlan.score >= 85 ? "Visitor path is ready enough for a controlled push." : "Run the first visitor QA path before sending new traffic.",
+      href: journeyPlan.testWork?.publicHref || absoluteUrl("/latest"),
+    },
+    {
+      label: "Share Pack",
+      ok: sharePlan.readyCount >= sharePlan.targetCount,
+      value: `${sharePlan.readyCount}/${sharePlan.targetCount}`,
+      helper: sharePlan.readyCount >= sharePlan.targetCount ? "Enough works have reusable public copy." : "Prepare more share-ready works before larger outreach.",
+      href: topShareAsset ? adminUrl(key, "published", { q: topShareAsset.id }) : adminUrl(key, "published"),
+    },
+    {
+      label: "Signals",
+      ok: hasEngagementSignal,
+      value: `${formatAdminNumber(totalTrySignals)} opens`,
+      helper: hasEngagementSignal ? "At least one public interaction signal has been recorded." : "Open, TRY, like, or share a live work once during QA.",
+      href: adminUrl(key, "published", { sort: "views" }),
+    },
+    {
+      label: "Backlog",
+      ok: pendingWorks.length === 0 || pendingWorks.length <= Math.max(2, Math.round(publishedWorks.length / 3)),
+      value: `${pendingWorks.length} pending`,
+      helper:
+        pendingWorks.length === 0
+          ? "No review backlog is blocking the push."
+          : "Keep the pending queue small so new creator activity does not stall.",
+      href: adminUrl(key, "pending", { sort: "ready" }),
+    },
+  ];
+  const readyCount = steps.filter((step) => step.ok).length;
+  const score = Math.round((readyCount / steps.length) * 100);
+  const firstGap = steps.find((step) => !step.ok);
+  const decision =
+    score >= 90
+      ? "Green light for a controlled public push"
+      : score >= 67
+        ? "Soft launch only"
+        : "Hold external promotion";
+  const helper =
+    score >= 90
+      ? "Post one work at a time, watch TRY clicks, and rotate the next asset based on response."
+      : firstGap
+        ? `${firstGap.label}: ${firstGap.helper}`
+        : "Review the launch checklist before sharing externally.";
+  const primaryCopy = [
+    `oeeco launch readiness: ${score}%`,
+    `${contentSeedPlan.liveCount} published works, ${sharePlan.readyCount} share-ready, ${journeyPlan.score}% journey QA.`,
+    `Next: ${helper}`,
+    absoluteUrl("/latest"),
+  ].join("\n");
+
+  return {
+    score,
+    readyCount,
+    decision,
+    helper,
+    primaryCopy,
+    steps,
+    channels: getLaunchChannels({ score, topShareAsset, contentSeedPlan, sharePlan }),
+  };
+}
+
+function getLaunchChannels({
+  score,
+  topShareAsset,
+  contentSeedPlan,
+  sharePlan,
+}: {
+  score: number;
+  topShareAsset: AdminShareAsset | null;
+  contentSeedPlan: AdminContentSeedPlan;
+  sharePlan: AdminSharePlan;
+}): AdminLaunchChannel[] {
+  const firstWork = topShareAsset?.title || "the strongest work";
+
+  return [
+    {
+      label: "Personal network",
+      status: score >= 50 ? "Open" : "Wait",
+      helper: score >= 50 ? `Share ${firstWork} with a small trusted circle first.` : "Finish the first shelf basics before asking for outside feedback.",
+    },
+    {
+      label: "Niche communities",
+      status: score >= 67 ? "Careful" : "Wait",
+      helper:
+        score >= 67
+          ? "Use one relevant community post and ask for feedback on the playable result."
+          : "Do not post to communities until TRY, share, and homepage checks are stable.",
+    },
+    {
+      label: "Product Hunt style launch",
+      status: score >= 90 && contentSeedPlan.liveCount >= 10 && sharePlan.readyCount >= sharePlan.targetCount ? "Prepare" : "Later",
+      helper:
+        score >= 90 && contentSeedPlan.liveCount >= 10
+          ? "Collect feedback and screenshots before scheduling a broader launch."
+          : "Wait until the first shelf has at least 10 live works and the share pack is full.",
+    },
+  ];
+}
+
 function cleanShareText(value: string, maxLength: number) {
   const text = value.replace(/\s+/g, " ").trim();
   if (text.length <= maxLength) return text;
@@ -1693,6 +1860,15 @@ export default async function AdminPage({
   const homeCurationPlan = getAdminHomeCurationPlan({ key, publishedWorks });
   const journeyPlan = getAdminJourneyPlan({ key, pendingWorks, publishedWorks });
   const sharePlan = getAdminSharePlan({ key, publishedWorks });
+  const launchPlan = getAdminLaunchPlan({
+    key,
+    pendingWorks,
+    publishedWorks,
+    contentSeedPlan,
+    homeCurationPlan,
+    journeyPlan,
+    sharePlan,
+  });
   const recentWorks = getRecentAdminWorks(allWorks);
   const queueCards: Array<{ id: AdminQueueFilter; label: string; helper: string; count: number }> = [
     { id: "ready", label: "Ready to publish", helper: "Pending works that pass review checks", count: queueSummary.ready },
@@ -1836,6 +2012,76 @@ export default async function AdminPage({
             <ExternalLink size={17} aria-hidden="true" />
             Open Rank
           </Link>
+        </div>
+      </section>
+
+      <section className="admin-launch-panel" aria-label="Launch readiness">
+        <div className="admin-launch-heading">
+          <div>
+            <span className="section-kicker">
+              <Rocket size={15} aria-hidden="true" />
+              Launch Readiness
+            </span>
+            <h2>{launchPlan.decision}</h2>
+            <p>{launchPlan.helper}</p>
+          </div>
+          <div className="admin-launch-score">
+            <strong>{launchPlan.score}%</strong>
+            <span>
+              {launchPlan.readyCount}/{launchPlan.steps.length} checks ready
+            </span>
+          </div>
+        </div>
+
+        <div className="admin-launch-meter" aria-hidden="true">
+          <span style={{ width: `${launchPlan.score}%` }} />
+        </div>
+
+        <div className="admin-launch-layout">
+          <div className="admin-launch-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Go / No-Go Checks</span>
+              <small>Use before each outside push</small>
+            </div>
+            <div className="admin-launch-checks">
+              {launchPlan.steps.map((step) => (
+                <Link
+                  className={step.ok ? "admin-launch-check is-ready" : "admin-launch-check"}
+                  href={step.href}
+                  key={step.label}
+                  target={step.href.startsWith("http") ? "_blank" : undefined}
+                >
+                  {step.ok ? <Check size={16} aria-hidden="true" /> : <AlertTriangle size={16} aria-hidden="true" />}
+                  <span>
+                    <strong>{step.label}</strong>
+                    <small>{step.value}</small>
+                  </span>
+                  <p>{step.helper}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="admin-launch-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Channel Gate</span>
+              <small>Start narrow, then widen</small>
+            </div>
+            <div className="admin-launch-channels">
+              {launchPlan.channels.map((channel) => (
+                <div className="admin-launch-channel" key={channel.label}>
+                  <span>{channel.label}</span>
+                  <strong>{channel.status}</strong>
+                  <small>{channel.helper}</small>
+                </div>
+              ))}
+            </div>
+            <div className="admin-launch-actions">
+              <AdminCopyButton value={launchPlan.primaryCopy} label="Launch note" />
+              <AdminCopyButton value={absoluteUrl("/latest")} label="Latest" />
+              <AdminCopyButton value={absoluteUrl("/rank")} label="Rank" />
+            </div>
+          </div>
         </div>
       </section>
 
