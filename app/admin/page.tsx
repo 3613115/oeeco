@@ -10,6 +10,7 @@ import {
   RotateCcw,
   Save,
   Search,
+  Share2,
   Shield,
   SlidersHorizontal,
   Star,
@@ -137,6 +138,29 @@ type AdminJourneyPlan = {
   testWork: AdminHomePick | null;
   testLinks: Array<{ label: string; href: string }>;
   blockers: string[];
+};
+
+type AdminShareAsset = {
+  id: string;
+  title: string;
+  category: string;
+  score: number;
+  helper: string;
+  workUrl: string;
+  tryUrl: string;
+  headline: string;
+  shortPitch: string;
+  xPost: string;
+  redditPost: string;
+  productHuntTagline: string;
+};
+
+type AdminSharePlan = {
+  assets: AdminShareAsset[];
+  readyCount: number;
+  targetCount: number;
+  categoryGaps: string[];
+  nextActions: string[];
 };
 
 type AdminFilters = {
@@ -1133,6 +1157,140 @@ function getJourneyBlockers({
   return blockers.slice(0, 5);
 }
 
+function getAdminSharePlan({
+  key,
+  publishedWorks,
+}: {
+  key: string;
+  publishedWorks: AdminWork[];
+}): AdminSharePlan {
+  const assets = publishedWorks
+    .map(getAdminShareAsset)
+    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
+    .slice(0, 8);
+  const targetCount = Math.min(6, Math.max(3, publishedWorks.length));
+  const readyCount = assets.filter((asset) => asset.score >= 75).length;
+  const categoryGaps = categoryOptions
+    .filter(([id]) => !publishedWorks.some((work) => work.category === id))
+    .map(([, label]) => label);
+
+  return {
+    assets,
+    readyCount,
+    targetCount,
+    categoryGaps,
+    nextActions: getSharePlanActions({ assets, readyCount, targetCount, categoryGaps, liveCount: publishedWorks.length }),
+  };
+}
+
+function getAdminShareAsset(work: AdminWork): AdminShareAsset {
+  const workUrl = absoluteUrl(`/works/${work.id}`);
+  const tryUrl = absoluteUrl(`/play/${work.id}`);
+  const category = categoryLabels[work.category];
+  const title = cleanShareText(work.title, 72);
+  const summary = cleanShareText(work.summary || work.detail || `${title} is live on oeeco.`, 150);
+  const score = getShareAssetScore(work);
+  const helper = getShareAssetHelper(work, score);
+  const tags = work.tags.slice(0, 3).map((tag) => `#${tag.replace(/[^\w]/g, "")}`).filter((tag) => tag.length > 1);
+  const headline = `${title} - ${category} on oeeco`;
+  const shortPitch = `${summary} Try it instantly on oeeco: ${tryUrl}`;
+  const xPost = [`${title} is live on oeeco.`, summary, `Try it: ${tryUrl}`, tags.join(" ")].filter(Boolean).join("\n");
+  const redditPost = [
+    `I published "${title}" on oeeco.`,
+    "",
+    summary,
+    "",
+    `You can try it here: ${tryUrl}`,
+    `Project page: ${workUrl}`,
+    "",
+    "Feedback on the idea, controls, or first impression is welcome.",
+  ].join("\n");
+
+  return {
+    id: work.id,
+    title,
+    category,
+    score,
+    helper,
+    workUrl,
+    tryUrl,
+    headline,
+    shortPitch,
+    xPost,
+    redditPost,
+    productHuntTagline: cleanShareText(`${title}: ${summary}`, 86),
+  };
+}
+
+function getShareAssetScore(work: AdminWork) {
+  const runnerPolicy = getRunnerPolicy(work.demoUrl);
+  const curation = getWorkCuration(work);
+  let score = 0;
+
+  if (work.status === "published") score += 18;
+  if (runnerPolicy.status !== "held") score += 18;
+  if (work.cover && (work.cover.startsWith("/") || work.cover.startsWith("https://"))) score += 12;
+  if (work.summary.trim().length >= 50) score += 14;
+  if (work.detail.trim().length >= 80) score += 10;
+  if (work.tags.length >= 2) score += 10;
+  if (curation.featured || curation.rank || curation.label) score += 8;
+
+  score += Math.min(6, work.tryClicks + work.demoOpens);
+  score += Math.min(4, work.shares * 2);
+
+  return Math.min(100, score);
+}
+
+function getShareAssetHelper(work: AdminWork, score: number) {
+  const runnerPolicy = getRunnerPolicy(work.demoUrl);
+
+  if (runnerPolicy.status === "held") return "Fix the TRY runner before sharing this work externally.";
+  if (!work.cover) return "Add a clean cover before using this in public posts.";
+  if (work.summary.trim().length < 50) return "Strengthen the summary so the post has a clear hook.";
+  if (work.tags.length < 2) return "Add at least two tags so the post has better context.";
+  if (score >= 80) return "Ready for external sharing. Start with one channel and watch clicks.";
+  return "Usable for light sharing; polish detail copy before bigger promotion.";
+}
+
+function getSharePlanActions({
+  assets,
+  readyCount,
+  targetCount,
+  categoryGaps,
+  liveCount,
+}: {
+  assets: AdminShareAsset[];
+  readyCount: number;
+  targetCount: number;
+  categoryGaps: string[];
+  liveCount: number;
+}) {
+  const actions: string[] = [];
+  const topAsset = assets[0];
+
+  if (!liveCount) {
+    actions.push("Publish the first work before preparing external share posts.");
+    return actions;
+  }
+
+  if (topAsset) actions.push(`Use "${topAsset.title}" as the first share test because it has the strongest current score.`);
+  if (readyCount < targetCount) actions.push(`Prepare ${targetCount - readyCount} more share-ready works before a larger public push.`);
+  if (categoryGaps.length) actions.push(`Avoid one-note promotion by adding: ${categoryGaps.slice(0, 3).join(", ")}.`);
+  if (!assets.some((asset) => asset.xPost.length <= 280)) actions.push("Shorten at least one X post before using it as a launch note.");
+
+  if (!actions.length) {
+    actions.push("Share pack is ready. Rotate one work per channel and compare TRY clicks against views.");
+  }
+
+  return actions.slice(0, 5);
+}
+
+function cleanShareText(value: string, maxLength: number) {
+  const text = value.replace(/\s+/g, " ").trim();
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, Math.max(0, maxLength - 1)).trim()}...`;
+}
+
 function getRecentAdminWorks(works: AdminWork[], limit = 6) {
   return [...works].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
 }
@@ -1371,6 +1529,7 @@ export default async function AdminPage({
   const contentSeedPlan = getAdminContentSeedPlan({ key, pendingWorks, publishedWorks });
   const homeCurationPlan = getAdminHomeCurationPlan({ key, publishedWorks });
   const journeyPlan = getAdminJourneyPlan({ key, pendingWorks, publishedWorks });
+  const sharePlan = getAdminSharePlan({ key, publishedWorks });
   const recentWorks = getRecentAdminWorks(allWorks);
   const queueCards: Array<{ id: AdminQueueFilter; label: string; helper: string; count: number }> = [
     { id: "ready", label: "Ready to publish", helper: "Pending works that pass review checks", count: queueSummary.ready },
@@ -1801,6 +1960,94 @@ export default async function AdminPage({
               {journeyPlan.testLinks.map((link) => (
                 <AdminCopyButton value={link.href} label={link.label} key={`${link.label}-${link.href}`} />
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-share-panel" aria-label="Share materials system">
+        <div className="admin-share-heading">
+          <div>
+            <span className="section-kicker">
+              <Share2 size={15} aria-hidden="true" />
+              Share Materials
+            </span>
+            <h2>External post pack</h2>
+            <p>
+              Generate reusable copy for each published work: work page, TRY link, short pitch, X post, Reddit note,
+              and Product Hunt tagline.
+            </p>
+          </div>
+          <div className="admin-share-score">
+            <strong>
+              {sharePlan.readyCount}/{sharePlan.targetCount}
+            </strong>
+            <span>share-ready works</span>
+          </div>
+        </div>
+
+        <div className="admin-share-layout">
+          <div className="admin-share-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Promotion Queue</span>
+              <small>{sharePlan.assets.length} assets shown</small>
+            </div>
+            {sharePlan.assets.length ? (
+              <div className="admin-share-grid">
+                {sharePlan.assets.map((asset) => (
+                  <article className={asset.score >= 75 ? "admin-share-card is-ready" : "admin-share-card"} key={asset.id}>
+                    <div className="admin-share-card-heading">
+                      <div>
+                        <strong>{asset.title}</strong>
+                        <span>
+                          {asset.category} / {asset.score}% ready
+                        </span>
+                      </div>
+                      <Link className="ghost-button" href={adminUrl(key, "published", { q: asset.id })}>
+                        Edit
+                      </Link>
+                    </div>
+                    <p>{asset.helper}</p>
+                    <div className="admin-share-copy-grid">
+                      <AdminCopyButton value={asset.workUrl} label="Work" />
+                      <AdminCopyButton value={asset.tryUrl} label="TRY" />
+                      <AdminCopyButton value={asset.shortPitch} label="Pitch" />
+                      <AdminCopyButton value={asset.xPost} label="X Post" />
+                      <AdminCopyButton value={asset.redditPost} label="Reddit" />
+                      <AdminCopyButton value={asset.productHuntTagline} label="PH Tagline" />
+                    </div>
+                    <div className="admin-share-preview">
+                      <span>{asset.headline}</span>
+                      <small>{asset.shortPitch}</small>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p>No published works yet. Publish a reviewed work to generate the first share pack.</p>
+            )}
+          </div>
+
+          <div className="admin-share-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Launch Notes</span>
+              <small>{sharePlan.categoryGaps.length} category gaps</small>
+            </div>
+            <div className="admin-share-actions-list">
+              {sharePlan.nextActions.map((action) => (
+                <div key={action}>
+                  <Share2 size={15} aria-hidden="true" />
+                  <span>{action}</span>
+                </div>
+              ))}
+            </div>
+            <div className="admin-share-actions">
+              <AdminCopyButton value={absoluteUrl("/latest")} label="Latest" />
+              <AdminCopyButton value={absoluteUrl("/rank")} label="Rank" />
+              <Link className="ghost-button" href="/latest" target="_blank">
+                <ExternalLink size={17} aria-hidden="true" />
+                Open Latest
+              </Link>
             </div>
           </div>
         </div>
