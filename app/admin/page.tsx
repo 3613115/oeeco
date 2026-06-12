@@ -275,6 +275,22 @@ type AdminLaunchBriefPlan = {
   assets: AdminLaunchBriefAsset[];
 };
 
+type AdminLaunchCommandStep = {
+  label: string;
+  value: string;
+  helper: string;
+  href: string;
+  tone: "good" | "warning" | "neutral";
+};
+
+type AdminLaunchCommandPlan = {
+  mode: string;
+  helper: string;
+  score: number;
+  primaryCopy: string;
+  steps: AdminLaunchCommandStep[];
+};
+
 type AdminFilters = {
   q: string;
   category: "all" | Exclude<CategoryId, "all">;
@@ -2186,6 +2202,95 @@ function getLaunchBriefAsks({
   return asks.slice(0, 4);
 }
 
+function getAdminLaunchCommandPlan({
+  contentSeedPlan,
+  launchPlan,
+  launchCadencePlan,
+  launchLearningPlan,
+  launchBriefPlan,
+}: {
+  contentSeedPlan: AdminContentSeedPlan;
+  launchPlan: AdminLaunchPlan;
+  launchCadencePlan: AdminLaunchCadencePlan;
+  launchLearningPlan: AdminLaunchLearningPlan;
+  launchBriefPlan: AdminLaunchBriefPlan;
+}): AdminLaunchCommandPlan {
+  const cadenceReadyCount = launchCadencePlan.tasks.filter((task) => task.tone === "ready").length;
+  const cadenceScore = Math.round((cadenceReadyCount / launchCadencePlan.tasks.length) * 100);
+  const briefReady = launchBriefPlan.assets.length >= 4 && launchBriefPlan.asks.length > 0;
+  const score = Math.round(
+    (contentSeedPlan.progress + launchPlan.score + cadenceScore + launchLearningPlan.confidence + (briefReady ? 100 : 50)) / 5,
+  );
+  const mode =
+    launchPlan.score >= 90 && launchLearningPlan.confidence >= 60
+      ? "Scale the controlled push"
+      : launchPlan.score >= 67
+        ? "Run the soft-launch loop"
+        : "Prepare before outreach";
+  const firstWarning =
+    !contentSeedPlan.launchReady
+      ? contentSeedPlan.primaryAction
+      : launchPlan.score < 90
+        ? launchPlan.helper
+        : launchLearningPlan.nextMove;
+  const helper =
+    score >= 80
+      ? "The launch operating system is ready enough to run weekly: execute, watch signals, then brief the next move."
+      : firstWarning;
+  const primaryCopy = [
+    `oeeco launch command: ${mode}`,
+    `Command score: ${score}%`,
+    `Launch readiness: ${launchPlan.score}%`,
+    `Learning confidence: ${launchLearningPlan.confidence}%`,
+    `Next: ${helper}`,
+    absoluteUrl("/latest"),
+  ].join("\n");
+
+  return {
+    mode,
+    helper,
+    score,
+    primaryCopy,
+    steps: [
+      {
+        label: "Shelf",
+        value: `${contentSeedPlan.liveCount}/${contentSeedPlan.targetMax}`,
+        helper: contentSeedPlan.primaryAction,
+        href: "#content-seed",
+        tone: contentSeedPlan.launchReady ? "good" : "warning",
+      },
+      {
+        label: "Launch",
+        value: `${launchPlan.score}%`,
+        helper: launchPlan.decision,
+        href: "#launch-readiness",
+        tone: launchPlan.score >= 90 ? "good" : launchPlan.score >= 67 ? "neutral" : "warning",
+      },
+      {
+        label: "Cadence",
+        value: `${cadenceReadyCount}/${launchCadencePlan.tasks.length}`,
+        helper: launchCadencePlan.primaryAction,
+        href: "#launch-cadence",
+        tone: cadenceReadyCount >= 4 ? "good" : cadenceReadyCount >= 2 ? "neutral" : "warning",
+      },
+      {
+        label: "Learning",
+        value: `${launchLearningPlan.confidence}%`,
+        helper: launchLearningPlan.decision,
+        href: "#launch-learning",
+        tone: launchLearningPlan.confidence >= 60 ? "good" : launchLearningPlan.confidence >= 30 ? "neutral" : "warning",
+      },
+      {
+        label: "Brief",
+        value: String(launchBriefPlan.assets.length),
+        helper: launchBriefPlan.asks[0] || launchBriefPlan.subhead,
+        href: "#launch-brief",
+        tone: briefReady ? "good" : "warning",
+      },
+    ],
+  };
+}
+
 function cleanShareText(value: string, maxLength: number) {
   const text = value.replace(/\s+/g, " ").trim();
   if (text.length <= maxLength) return text;
@@ -2487,6 +2592,13 @@ export default async function AdminPage({
     launchLearningPlan,
     sharePlan,
   });
+  const launchCommandPlan = getAdminLaunchCommandPlan({
+    contentSeedPlan,
+    launchPlan,
+    launchCadencePlan,
+    launchLearningPlan,
+    launchBriefPlan,
+  });
   const recentWorks = getRecentAdminWorks(allWorks);
   const queueCards: Array<{ id: AdminQueueFilter; label: string; helper: string; count: number }> = [
     { id: "ready", label: "Ready to publish", helper: "Pending works that pass review checks", count: queueSummary.ready },
@@ -2522,6 +2634,43 @@ export default async function AdminPage({
           </Link>
         ))}
       </div>
+
+      <section className="admin-command-panel" aria-label="Launch command center">
+        <div className="admin-command-heading">
+          <div>
+            <span className="section-kicker">
+              <Activity size={15} aria-hidden="true" />
+              Launch Command Center
+            </span>
+            <h2>{launchCommandPlan.mode}</h2>
+            <p>{launchCommandPlan.helper}</p>
+          </div>
+          <div className="admin-command-score">
+            <strong>{launchCommandPlan.score}%</strong>
+            <span>operating score</span>
+          </div>
+        </div>
+
+        <div className="admin-command-grid">
+          {launchCommandPlan.steps.map((step) => (
+            <Link className={`admin-command-card is-${step.tone}`} href={step.href} key={step.label}>
+              <span>{step.label}</span>
+              <strong>{step.value}</strong>
+              <small>{step.helper}</small>
+            </Link>
+          ))}
+        </div>
+
+        <div className="admin-command-actions">
+          <AdminCopyButton value={launchCommandPlan.primaryCopy} label="Command note" />
+          <Link className="ghost-button" href="#launch-cadence">
+            Cadence
+          </Link>
+          <Link className="ghost-button" href="#launch-brief">
+            Brief pack
+          </Link>
+        </div>
+      </section>
 
       <div className="admin-ops-panels">
         <section className="admin-recent-panel" aria-label="Recent works">
@@ -2633,7 +2782,7 @@ export default async function AdminPage({
         </div>
       </section>
 
-      <section className="admin-launch-panel" aria-label="Launch readiness">
+      <section className="admin-launch-panel" id="launch-readiness" aria-label="Launch readiness">
         <div className="admin-launch-heading">
           <div>
             <span className="section-kicker">
@@ -2703,7 +2852,7 @@ export default async function AdminPage({
         </div>
       </section>
 
-      <section className="admin-cadence-panel" aria-label="Launch cadence">
+      <section className="admin-cadence-panel" id="launch-cadence" aria-label="Launch cadence">
         <div className="admin-cadence-heading">
           <div>
             <span className="section-kicker">
@@ -2771,7 +2920,7 @@ export default async function AdminPage({
         </div>
       </section>
 
-      <section className="admin-learning-panel" aria-label="Launch learning">
+      <section className="admin-learning-panel" id="launch-learning" aria-label="Launch learning">
         <div className="admin-learning-heading">
           <div>
             <span className="section-kicker">
@@ -2851,7 +3000,7 @@ export default async function AdminPage({
         </div>
       </section>
 
-      <section className="admin-brief-panel" aria-label="Launch brief pack">
+      <section className="admin-brief-panel" id="launch-brief" aria-label="Launch brief pack">
         <div className="admin-brief-heading">
           <div>
             <span className="section-kicker">
@@ -2914,7 +3063,7 @@ export default async function AdminPage({
         </div>
       </section>
 
-      <section className="admin-seed-panel" aria-label="Content seed plan">
+      <section className="admin-seed-panel" id="content-seed" aria-label="Content seed plan">
         <div className="admin-seed-heading">
           <div>
             <span className="section-kicker">

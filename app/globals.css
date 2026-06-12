@@ -2851,6 +2851,108 @@ button {
   justify-content: flex-start;
 }
 
+.admin-command-panel {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 14px;
+}
+
+.admin-command-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-command-heading h2 {
+  margin: 6px 0 0;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.admin-command-heading p {
+  max-width: 800px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.admin-command-score {
+  display: grid;
+  min-width: 130px;
+  gap: 4px;
+  text-align: right;
+}
+
+.admin-command-score strong {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.admin-command-score span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.admin-command-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-command-card {
+  display: grid;
+  gap: 6px;
+  min-height: 118px;
+  align-content: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+  color: var(--ink);
+}
+
+.admin-command-card.is-good {
+  border-color: rgba(12, 122, 85, 0.24);
+  background: rgba(85, 214, 168, 0.1);
+}
+
+.admin-command-card.is-warning {
+  border-color: rgba(244, 180, 63, 0.38);
+  background: rgba(244, 180, 63, 0.12);
+}
+
+.admin-command-card.is-neutral {
+  background: var(--paper);
+}
+
+.admin-command-card span,
+.admin-command-card small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.admin-command-card strong {
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.admin-command-card small {
+  line-height: 1.45;
+}
+
+.admin-command-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .admin-growth-panel {
   display: grid;
   gap: 14px;
@@ -5194,6 +5296,10 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .admin-command-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-learning-signals {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -5428,6 +5534,7 @@ button {
   .admin-heading,
   .admin-card-header,
   .admin-section-title,
+  .admin-command-heading,
   .admin-growth-heading,
   .admin-launch-heading,
   .admin-cadence-heading,
@@ -5451,6 +5558,7 @@ button {
   .admin-health-panel,
   .admin-health-checks,
   .admin-curation-panel,
+  .admin-command-grid,
   .admin-launch-layout,
   .admin-cadence-layout,
   .admin-cadence-task,
@@ -5480,6 +5588,7 @@ button {
 
   .admin-action-bar,
   .admin-ops-actions,
+  .admin-command-actions,
   .admin-growth-actions,
   .admin-launch-actions,
   .admin-cadence-actions,
@@ -5492,6 +5601,10 @@ button {
   }
 
   .admin-growth-score {
+    text-align: left;
+  }
+
+  .admin-command-score {
     text-align: left;
   }
 
