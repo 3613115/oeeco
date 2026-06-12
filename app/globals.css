@@ -1564,6 +1564,143 @@ button {
   line-height: 1;
 }
 
+.account-management-panel {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 16px;
+}
+
+.account-management-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.account-management-heading h2 {
+  margin: 4px 0;
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.account-management-heading p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.account-priority-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.account-priority-card {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 12px;
+}
+
+.account-priority-card svg {
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.account-priority-card.is-urgent {
+  border-color: rgba(244, 180, 63, 0.42);
+  background: rgba(244, 180, 63, 0.12);
+}
+
+.account-priority-card.is-urgent svg {
+  color: #805600;
+}
+
+.account-priority-card.is-pending {
+  border-color: rgba(40, 92, 214, 0.22);
+  background: rgba(40, 92, 214, 0.08);
+}
+
+.account-priority-card.is-pending svg {
+  color: #285cd6;
+}
+
+.account-priority-card.is-good {
+  border-color: rgba(12, 122, 85, 0.24);
+  background: rgba(85, 214, 168, 0.1);
+}
+
+.account-priority-card.is-good svg {
+  color: var(--leaf);
+}
+
+.account-priority-card span,
+.account-priority-card small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.account-priority-card strong {
+  display: block;
+  margin: 2px 0;
+  color: var(--ink);
+  font-size: 26px;
+  line-height: 1;
+}
+
+.account-status-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.account-status-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  padding: 0 12px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.account-status-tab strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.account-status-tab.is-active {
+  border-color: rgba(12, 122, 85, 0.28);
+  background: var(--leaf);
+  color: #fff;
+}
+
+.account-status-tab.is-active strong {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
 .account-list {
   display: grid;
   gap: 12px;
@@ -1622,6 +1759,39 @@ button {
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 4px 8px;
+}
+
+.account-work-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.account-work-progress span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  padding: 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.account-work-progress span.is-done {
+  border-color: rgba(12, 122, 85, 0.22);
+  background: rgba(85, 214, 168, 0.12);
+  color: var(--leaf);
+}
+
+.account-work-progress span.is-current {
+  border-color: rgba(40, 92, 214, 0.24);
+  background: rgba(40, 92, 214, 0.08);
+  color: #285cd6;
 }
 
 .account-review-note {
@@ -1711,6 +1881,11 @@ button {
   background: rgba(244, 180, 63, 0.12);
 }
 
+.account-next-step.is-pending {
+  border-color: rgba(40, 92, 214, 0.2);
+  background: rgba(40, 92, 214, 0.07);
+}
+
 .account-next-step.is-good {
   border-color: rgba(12, 122, 85, 0.22);
   background: rgba(85, 214, 168, 0.1);
@@ -1730,6 +1905,37 @@ button {
   font-size: 13px;
   font-weight: 760;
   line-height: 1.45;
+}
+
+.account-work-details,
+.account-work-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.account-work-details span,
+.account-work-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  padding: 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.account-work-stats span {
+  background: rgba(85, 214, 168, 0.08);
+}
+
+.account-work-stats svg {
+  color: var(--leaf);
 }
 
 .status-badge {
@@ -3918,6 +4124,7 @@ button {
 
   .account-heading,
   .account-inbox,
+  .account-management-heading,
   .account-work,
   .account-profile-panel,
   .account-profile-form,
@@ -3938,6 +4145,10 @@ button {
   .account-profile-actions,
   .account-editor-actions {
     justify-content: flex-start;
+  }
+
+  .account-priority-grid {
+    grid-template-columns: 1fr;
   }
 
   .account-status-grid {

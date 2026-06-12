@@ -2,8 +2,12 @@
 
 import type { User } from "@supabase/supabase-js";
 import {
+  BarChart3,
+  CheckCircle2,
   CircleUserRound,
+  Clock3,
   ExternalLink,
+  Heart,
   Inbox,
   LogOut,
   Mail,
@@ -12,6 +16,7 @@ import {
   RefreshCw,
   Save,
   Send,
+  Share2,
   Upload,
   UserRound,
   X,
@@ -35,6 +40,11 @@ type AccountWorkRow = {
   cover_url: string | null;
   tool_stack: string | null;
   review_note: string | null;
+  views_count: number | null;
+  likes_count: number | null;
+  try_clicks_count: number | null;
+  demo_opens_count: number | null;
+  share_clicks_count: number | null;
   created_at: string;
   updated_at: string;
   tags: string[];
@@ -71,6 +81,7 @@ type SubmitState = "idle" | "loading";
 type SaveState = "idle" | "saving";
 type WorkSaveState = "idle" | "saving";
 type OAuthState = "idle" | "google";
+type AccountStatusFilter = "all" | WorkStatus;
 
 const statusMeta: Record<WorkStatus, { label: string; helper: string }> = {
   pending: {
@@ -96,6 +107,7 @@ const statusMeta: Record<WorkStatus, { label: string; helper: string }> = {
 };
 
 const statusOrder: WorkStatus[] = ["pending", "published", "rejected", "hidden", "draft"];
+const allStatusFilters: AccountStatusFilter[] = ["all", ...statusOrder];
 
 export function AccountClient() {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
@@ -118,6 +130,7 @@ export function AccountClient() {
   const [workForm, setWorkForm] = useState<WorkForm | null>(null);
   const [workErrors, setWorkErrors] = useState<string[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("idle");
+  const [statusFilter, setStatusFilter] = useState<AccountStatusFilter>("all");
 
   useEffect(() => {
     if (!supabase) return;
@@ -226,7 +239,9 @@ export function AccountClient() {
     setLoadState("loading");
     const query = supabase
       .from("works")
-      .select("id, title, summary, description, category, status, demo_url, cover_url, tool_stack, review_note, created_at, updated_at")
+      .select(
+        "id, title, summary, description, category, status, demo_url, cover_url, tool_stack, review_note, views_count, likes_count, try_clicks_count, demo_opens_count, share_clicks_count, created_at, updated_at",
+      )
       .eq("creator_id", userId)
       .order("created_at", { ascending: false });
     let { data, error } = await query;
@@ -465,6 +480,11 @@ export function AccountClient() {
   }, [works]);
   const actionSummary = useMemo(() => getActionSummary(works), [works]);
   const sortedWorks = useMemo(() => sortAccountWorks(works), [works]);
+  const visibleWorks = useMemo(
+    () => (statusFilter === "all" ? sortedWorks : sortedWorks.filter((work) => work.status === statusFilter)),
+    [sortedWorks, statusFilter],
+  );
+  const priorityActions = useMemo(() => getPriorityActions(works), [works]);
 
   if (!supabase || !isSupabaseConfigured) {
     return (
@@ -646,6 +666,53 @@ export function AccountClient() {
         </div>
       </section>
 
+      <section className="account-management-panel" aria-label="Work management">
+        <div className="account-management-heading">
+          <div>
+            <span className="section-kicker">Work Manager</span>
+            <h2>Submission command center</h2>
+            <p>Filter your works by status, follow the next recommended action, and open the live or playable route.</p>
+          </div>
+          <Link className="solid-button" href="/upload">
+            <Upload size={17} aria-hidden="true" />
+            New Work
+          </Link>
+        </div>
+
+        <div className="account-priority-grid">
+          {priorityActions.map((item) => (
+            <div className={`account-priority-card is-${item.tone}`} key={item.label}>
+              {item.icon === "live" ? (
+                <CheckCircle2 size={18} aria-hidden="true" />
+              ) : item.icon === "review" ? (
+                <Clock3 size={18} aria-hidden="true" />
+              ) : (
+                <Inbox size={18} aria-hidden="true" />
+              )}
+              <div>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+                <small>{item.helper}</small>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="account-status-tabs" aria-label="Filter works by status">
+          {allStatusFilters.map((status) => (
+            <button
+              className={statusFilter === status ? "account-status-tab is-active" : "account-status-tab"}
+              type="button"
+              onClick={() => setStatusFilter(status)}
+              key={status}
+            >
+              <span>{status === "all" ? "All" : statusMeta[status].label}</span>
+              <strong>{status === "all" ? works.length : counts[status]}</strong>
+            </button>
+          ))}
+        </div>
+      </section>
+
       {loadState === "loading" ? (
         <div className="account-empty">
           <strong>Loading submissions</strong>
@@ -653,8 +720,15 @@ export function AccountClient() {
         </div>
       ) : works.length ? (
         <div className="account-list">
-          {sortedWorks.map((work) => {
+          {visibleWorks.length ? null : (
+            <div className="account-empty">
+              <strong>No works in this status</strong>
+              <p>Choose another status tab or submit a new work when you are ready.</p>
+            </div>
+          )}
+          {visibleWorks.map((work) => {
             const action = getWorkAction(work);
+            const progressSteps = getWorkProgressSteps(work);
 
             return (
               <article className="account-work" key={work.id}>
@@ -786,7 +860,16 @@ export function AccountClient() {
                       <div className="account-meta">
                         <span>{labelCategory(work.category)}</span>
                         <span>Submitted {formatDate(work.created_at)}</span>
+                        <span>Updated {formatDate(work.updated_at || work.created_at)}</span>
                         <span>{statusMeta[work.status]?.helper || "Status updated."}</span>
+                      </div>
+                      <div className="account-work-progress" aria-label={`${work.title} progress`}>
+                        {progressSteps.map((step) => (
+                          <span className={step.ok ? "is-done" : step.current ? "is-current" : ""} key={step.label}>
+                            {step.ok ? <CheckCircle2 size={14} aria-hidden="true" /> : <Clock3 size={14} aria-hidden="true" />}
+                            {step.label}
+                          </span>
+                        ))}
                       </div>
                       {work.review_note ? (
                         <div className="account-review-note">
@@ -804,6 +887,30 @@ export function AccountClient() {
                           ))}
                         </ul>
                       </div>
+                      <div className="account-work-details">
+                        <span>{work.tool_stack || "Tool stack not set"}</span>
+                        {work.tags.length ? work.tags.slice(0, 4).map((tag) => <span key={tag}>#{tag}</span>) : <span>No tags yet</span>}
+                      </div>
+                      {work.status === "published" ? (
+                        <div className="account-work-stats" aria-label={`${work.title} public signals`}>
+                          <span>
+                            <BarChart3 size={14} aria-hidden="true" />
+                            {formatNumber(work.views_count || 0)} views
+                          </span>
+                          <span>
+                            <Play size={14} aria-hidden="true" />
+                            {formatNumber((work.try_clicks_count || 0) + (work.demo_opens_count || 0))} opens
+                          </span>
+                          <span>
+                            <Heart size={14} aria-hidden="true" />
+                            {formatNumber(work.likes_count || 0)} likes
+                          </span>
+                          <span>
+                            <Share2 size={14} aria-hidden="true" />
+                            {formatNumber(work.share_clicks_count || 0)} shares
+                          </span>
+                        </div>
+                      ) : null}
                     </div>
                     <div className="account-work-actions">
                       {canEditWork(work.status) ? (
@@ -820,7 +927,7 @@ export function AccountClient() {
                           </Link>
                           <Link className="solid-button" href={`/play/${work.id}`}>
                             <Play size={17} aria-hidden="true" />
-                            Play
+                            TRY
                           </Link>
                         </>
                       ) : work.demo_url ? (
@@ -868,6 +975,12 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function formatNumber(value: number) {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}m`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`;
+  return String(value);
+}
+
 const categoryOptions: Array<[Exclude<CategoryId, "all">, string]> = [
   ["game", "Game"],
   ["tool", "Tool"],
@@ -878,6 +991,36 @@ const categoryOptions: Array<[Exclude<CategoryId, "all">, string]> = [
 
 function canEditWork(status: WorkStatus) {
   return status === "draft" || status === "pending" || status === "rejected";
+}
+
+function getPriorityActions(works: AccountWorkRow[]) {
+  const revisionCount = works.filter(needsCreatorRevision).length;
+  const pendingCount = works.filter((work) => work.status === "pending").length;
+  const liveCount = works.filter((work) => work.status === "published").length;
+
+  return [
+    {
+      label: "Needs action",
+      value: String(revisionCount),
+      helper: revisionCount ? "Revise these first so they can return to review." : "No review feedback is blocking you.",
+      tone: revisionCount ? "urgent" : "good",
+      icon: "action",
+    },
+    {
+      label: "In review",
+      value: String(pendingCount),
+      helper: pendingCount ? "Keep demos available while admin reviews them." : "No work is waiting for review right now.",
+      tone: pendingCount ? "pending" : "muted",
+      icon: "review",
+    },
+    {
+      label: "Live portfolio",
+      value: String(liveCount),
+      helper: liveCount ? "Open public pages, test TRY, and share the strongest work." : "Published works will appear here after approval.",
+      tone: liveCount ? "good" : "muted",
+      icon: "live",
+    },
+  ];
 }
 
 function getActionSummary(works: AccountWorkRow[]) {
@@ -944,6 +1087,30 @@ function sortAccountWorks(works: AccountWorkRow[]) {
 
 function needsCreatorRevision(work: AccountWorkRow) {
   return work.status === "rejected" || Boolean(work.review_note && work.status !== "published");
+}
+
+function getWorkProgressSteps(work: AccountWorkRow) {
+  const submitted = work.status !== "draft";
+  const reviewed = work.status === "published" || work.status === "rejected" || work.status === "hidden";
+  const live = work.status === "published";
+
+  return [
+    {
+      label: "Submitted",
+      ok: submitted,
+      current: work.status === "draft",
+    },
+    {
+      label: "Reviewed",
+      ok: reviewed,
+      current: work.status === "pending",
+    },
+    {
+      label: "Public",
+      ok: live,
+      current: work.status === "published",
+    },
+  ];
 }
 
 function getWorkAction(work: AccountWorkRow) {
