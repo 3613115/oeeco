@@ -3037,6 +3037,91 @@ button {
   background: var(--blue);
 }
 
+.admin-seed-command {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid rgba(244, 180, 63, 0.4);
+  border-radius: 8px;
+  background: rgba(244, 180, 63, 0.12);
+  padding: 14px;
+}
+
+.admin-seed-command.is-ready {
+  border-color: rgba(12, 122, 85, 0.28);
+  background: rgba(85, 214, 168, 0.12);
+}
+
+.admin-seed-command h3 {
+  margin: 6px 0 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.admin-seed-command p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.admin-seed-command-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.admin-seed-readiness {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-seed-readiness-card {
+  display: grid;
+  gap: 6px;
+  min-height: 118px;
+  align-content: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+  color: var(--ink);
+}
+
+.admin-seed-readiness-card.is-good {
+  border-color: rgba(12, 122, 85, 0.24);
+  background: rgba(85, 214, 168, 0.1);
+}
+
+.admin-seed-readiness-card.is-warning {
+  border-color: rgba(244, 180, 63, 0.38);
+  background: rgba(244, 180, 63, 0.12);
+}
+
+.admin-seed-readiness-card.is-neutral {
+  background: var(--paper);
+}
+
+.admin-seed-readiness-card span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.admin-seed-readiness-card strong {
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.admin-seed-readiness-card small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .admin-seed-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.18fr) minmax(260px, 0.82fr);
@@ -4463,6 +4548,10 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .admin-seed-readiness {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-home-layout,
   .admin-home-featured,
   .admin-journey-layout,
@@ -4734,8 +4823,21 @@ button {
     text-align: left;
   }
 
+  .admin-seed-command {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-seed-command-actions {
+    justify-content: flex-start;
+  }
+
   .admin-seed-progress {
     text-align: left;
+  }
+
+  .admin-seed-readiness {
+    grid-template-columns: 1fr;
   }
 
   .admin-home-score,

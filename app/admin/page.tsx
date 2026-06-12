@@ -88,12 +88,26 @@ type AdminSeedWork = {
   href: string;
 };
 
+type AdminSeedReadiness = {
+  label: string;
+  value: string;
+  helper: string;
+  href: string;
+  tone: "good" | "warning" | "neutral";
+};
+
 type AdminContentSeedPlan = {
   liveCount: number;
   candidateCount: number;
   targetMin: number;
   targetMax: number;
   progress: number;
+  categoryReadyCount: number;
+  curatedCount: number;
+  shareReadyCount: number;
+  launchReady: boolean;
+  primaryAction: string;
+  readiness: AdminSeedReadiness[];
   categoryCoverage: AdminSeedCategory[];
   uploadSuggestions: string[];
   works: AdminSeedWork[];
@@ -795,10 +809,27 @@ function getAdminContentSeedPlan({
   });
 
   const uploadSuggestions = getSeedUploadSuggestions(categoryCoverage, liveCount, targetMin, targetMax);
+  const categoryReadyCount = categoryCoverage.filter((category) => category.liveCount >= category.target).length;
+  const curatedCount = publishedWorks.filter((work) => {
+    const curation = getWorkCuration(work);
+    return curation.featured || Boolean(curation.rank || curation.label);
+  }).length;
+  const shareReadyCount = publishedWorks.filter(isSeedShareReady).length;
+  const launchReady = liveCount >= targetMin && categoryReadyCount >= 3 && curatedCount >= 3 && shareReadyCount >= 3;
   const works = candidates
     .map((work) => getSeedWorkSummary(key, work))
     .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
     .slice(0, 10);
+  const readiness = getSeedReadinessCards({
+    key,
+    liveCount,
+    targetMin,
+    targetMax,
+    categoryReadyCount,
+    curatedCount,
+    shareReadyCount,
+    pendingCount: pendingWorks.length,
+  });
 
   return {
     liveCount,
@@ -806,10 +837,110 @@ function getAdminContentSeedPlan({
     targetMin,
     targetMax,
     progress: Math.min(100, Math.round((liveCount / targetMax) * 100)),
+    categoryReadyCount,
+    curatedCount,
+    shareReadyCount,
+    launchReady,
+    primaryAction: getSeedPrimaryAction({ liveCount, targetMin, categoryReadyCount, curatedCount, shareReadyCount }),
+    readiness,
     categoryCoverage,
     uploadSuggestions,
     works,
   };
+}
+
+function getSeedReadinessCards({
+  key,
+  liveCount,
+  targetMin,
+  targetMax,
+  categoryReadyCount,
+  curatedCount,
+  shareReadyCount,
+  pendingCount,
+}: {
+  key: string;
+  liveCount: number;
+  targetMin: number;
+  targetMax: number;
+  categoryReadyCount: number;
+  curatedCount: number;
+  shareReadyCount: number;
+  pendingCount: number;
+}): AdminSeedReadiness[] {
+  return [
+    {
+      label: "Published shelf",
+      value: `${liveCount}/${targetMax}`,
+      helper:
+        liveCount >= targetMin
+          ? "Enough live works for a first external push."
+          : `Publish ${targetMin - liveCount} more to reach the minimum shelf.`,
+      href: adminUrl(key, liveCount >= targetMin ? "published" : "pending"),
+      tone: liveCount >= targetMin ? "good" : "warning",
+    },
+    {
+      label: "Category mix",
+      value: `${categoryReadyCount}/5`,
+      helper:
+        categoryReadyCount >= 3
+          ? "The first shelf has useful variety."
+          : "Add or publish works in more categories before larger promotion.",
+      href: adminUrl(key, "published", { sort: "health" }),
+      tone: categoryReadyCount >= 3 ? "good" : "warning",
+    },
+    {
+      label: "Homepage slots",
+      value: String(curatedCount),
+      helper: curatedCount >= 3 ? "Homepage has enough curated anchors." : "Give strong works rank, label, or featured status.",
+      href: getQueueHref(key, "home"),
+      tone: curatedCount >= 3 ? "good" : "warning",
+    },
+    {
+      label: "Share candidates",
+      value: String(shareReadyCount),
+      helper: shareReadyCount >= 3 ? "There are enough works to share in rotation." : "Strengthen summaries, covers, tags, and TRY quality.",
+      href: adminUrl(key, "published", { sort: "views" }),
+      tone: shareReadyCount >= 3 ? "good" : "warning",
+    },
+    {
+      label: "Review backlog",
+      value: String(pendingCount),
+      helper: pendingCount ? "Move pending works into publish or feedback before promotion." : "No pending queue blocking the shelf.",
+      href: adminUrl(key, "pending"),
+      tone: pendingCount ? "neutral" : "good",
+    },
+  ];
+}
+
+function getSeedPrimaryAction({
+  liveCount,
+  targetMin,
+  categoryReadyCount,
+  curatedCount,
+  shareReadyCount,
+}: {
+  liveCount: number;
+  targetMin: number;
+  categoryReadyCount: number;
+  curatedCount: number;
+  shareReadyCount: number;
+}) {
+  if (liveCount < targetMin) return "Publish more approved works before promotion.";
+  if (categoryReadyCount < 3) return "Balance the first shelf across more categories.";
+  if (curatedCount < 3) return "Set homepage rank or labels for the strongest works.";
+  if (shareReadyCount < 3) return "Prepare at least three works for external sharing.";
+  return "First shelf is ready for controlled external promotion.";
+}
+
+function isSeedShareReady(work: AdminWork) {
+  return (
+    work.status === "published" &&
+    getRunnerPolicy(work.demoUrl).status !== "held" &&
+    work.summary.trim().length >= 50 &&
+    work.tags.length >= 2 &&
+    Boolean(work.cover && (work.cover.startsWith("/") || work.cover.startsWith("https://")))
+  );
 }
 
 function getSeedCategoryHelper(label: string, liveCount: number, candidateCount: number, target: number) {
@@ -1730,6 +1861,31 @@ export default async function AdminPage({
 
         <div className="admin-seed-meter" aria-label={`${contentSeedPlan.progress}% of first shelf target`}>
           <span style={{ width: `${contentSeedPlan.progress}%` }} />
+        </div>
+
+        <div className={contentSeedPlan.launchReady ? "admin-seed-command is-ready" : "admin-seed-command"}>
+          <div>
+            <span className="section-kicker">Batch Operating Status</span>
+            <h3>{contentSeedPlan.launchReady ? "Ready for a controlled push" : "Build the first shelf before promotion"}</h3>
+            <p>{contentSeedPlan.primaryAction}</p>
+          </div>
+          <div className="admin-seed-command-actions">
+            <AdminCopyButton value={absoluteUrl("/latest")} label="Latest" />
+            <AdminCopyButton value={absoluteUrl("/rank")} label="Rank" />
+            <Link className="ghost-button" href={getQueueHref(key, "home")}>
+              Home lineup
+            </Link>
+          </div>
+        </div>
+
+        <div className="admin-seed-readiness" aria-label="First shelf readiness">
+          {contentSeedPlan.readiness.map((item) => (
+            <Link className={`admin-seed-readiness-card is-${item.tone}`} href={item.href} key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <small>{item.helper}</small>
+            </Link>
+          ))}
         </div>
 
         <div className="admin-seed-layout">
