@@ -137,6 +137,8 @@ export function AccountClient() {
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [statusFilter, setStatusFilter] = useState<AccountStatusFilter>("all");
   const [statusActionId, setStatusActionId] = useState<string | null>(null);
+  const [handoffWorkId, setHandoffWorkId] = useState<string | null>(null);
+  const [handoffDismissed, setHandoffDismissed] = useState(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -163,6 +165,27 @@ export function AccountClient() {
     loadWorks(user.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const submitted = params.get("submitted");
+    if (submitted) {
+      setHandoffWorkId(submitted);
+      setHandoffDismissed(false);
+      setStatusFilter("pending");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!handoffWorkId || !works.length) return;
+    const handoffWork = works.find((work) => work.id === handoffWorkId);
+    if (!handoffWork) return;
+
+    setStatusFilter(handoffWork.status);
+    window.setTimeout(() => {
+      document.getElementById(`work-${handoffWork.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  }, [handoffWorkId, works]);
 
   async function sendMagicLink(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -536,6 +559,7 @@ export function AccountClient() {
     [sortedWorks, statusFilter],
   );
   const priorityActions = useMemo(() => getPriorityActions(works), [works]);
+  const handoffWork = handoffWorkId ? works.find((work) => work.id === handoffWorkId) || null : null;
 
   if (!supabase || !isSupabaseConfigured) {
     return (
@@ -717,6 +741,32 @@ export function AccountClient() {
         </div>
       </section>
 
+      {handoffWorkId && !handoffDismissed ? (
+        <section className="account-handoff-panel" aria-live="polite">
+          <div>
+            <span className="section-kicker">Submission received</span>
+            <h2>{handoffWork ? handoffWork.title : "Your latest submission"}</h2>
+            <p>
+              {handoffWork
+                ? getHandoffMessage(handoffWork)
+                : "The new work is being loaded into your account. Refresh if it does not appear in a moment."}
+            </p>
+          </div>
+          <div className="account-handoff-actions">
+            {handoffWork ? (
+              <a className="ghost-button" href={`#work-${handoffWork.id}`}>
+                <Inbox size={17} aria-hidden="true" />
+                View status
+              </a>
+            ) : null}
+            <button className="ghost-button" type="button" onClick={() => setHandoffDismissed(true)}>
+              <X size={17} aria-hidden="true" />
+              Dismiss
+            </button>
+          </div>
+        </section>
+      ) : null}
+
       <section className="account-management-panel" aria-label="Work management">
         <div className="account-management-heading">
           <div>
@@ -782,7 +832,11 @@ export function AccountClient() {
             const progressSteps = getWorkProgressSteps(work);
 
             return (
-              <article className="account-work" key={work.id}>
+              <article
+                className={work.id === handoffWorkId && !handoffDismissed ? "account-work is-highlighted" : "account-work"}
+                id={`work-${work.id}`}
+                key={work.id}
+              >
                 {editingWorkId === work.id && workForm ? (
                   <form className="account-work-editor" onSubmit={saveWork} noValidate>
                     <div className="account-editor-heading">
@@ -1141,6 +1195,26 @@ function getActionSummary(works: AccountWorkRow[]) {
     pendingCount,
     publishedCount,
   };
+}
+
+function getHandoffMessage(work: AccountWorkRow) {
+  if (work.status === "pending") {
+    return "It is now in the review queue. No action is needed unless the demo URL changes before review.";
+  }
+
+  if (work.status === "published") {
+    return "It has already been approved and published. Open the public page or TRY route when you are ready to share it.";
+  }
+
+  if (work.status === "rejected") {
+    return "Review feedback is ready. Edit the submission, address the note, and resubmit it for another review.";
+  }
+
+  if (work.status === "hidden") {
+    return "It is hidden from public pages. Edit and resubmit it when you want it reviewed again.";
+  }
+
+  return "It is saved as a draft. Complete the required fields and submit it when ready.";
 }
 
 function sortAccountWorks(works: AccountWorkRow[]) {

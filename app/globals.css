@@ -1573,6 +1573,37 @@ button {
   line-height: 1;
 }
 
+.account-handoff-panel {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(40, 92, 214, 0.24);
+  border-radius: 8px;
+  background: rgba(40, 92, 214, 0.07);
+  padding: 16px;
+}
+
+.account-handoff-panel h2 {
+  margin: 4px 0;
+  font-size: 22px;
+  line-height: 1.18;
+}
+
+.account-handoff-panel p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.account-handoff-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .account-management-panel {
   display: grid;
   gap: 14px;
@@ -1724,6 +1755,11 @@ button {
   border-radius: 8px;
   background: #fff;
   padding: 16px;
+}
+
+.account-work.is-highlighted {
+  border-color: rgba(40, 92, 214, 0.36);
+  box-shadow: 0 0 0 3px rgba(40, 92, 214, 0.08);
 }
 
 .account-work:has(.account-work-editor) {
@@ -2169,13 +2205,59 @@ button {
 }
 
 .submission-success-step {
+  display: inline-grid;
+  gap: 2px;
+  align-content: center;
+  min-width: 148px;
+  min-height: 54px;
   border-color: rgba(12, 122, 85, 0.18);
+  border-radius: 8px;
 }
 
 .submission-success-step.is-done {
   border-color: rgba(12, 122, 85, 0.28);
   background: rgba(85, 214, 168, 0.18);
   color: var(--leaf);
+}
+
+.submission-success-step.is-current {
+  border-color: rgba(40, 92, 214, 0.24);
+  background: rgba(40, 92, 214, 0.08);
+  color: #285cd6;
+}
+
+.submission-success-step strong {
+  color: currentColor;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.submission-success-step small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 780;
+  line-height: 1.35;
+}
+
+.submission-success-note {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(40, 92, 214, 0.18);
+  border-radius: 8px;
+  background: rgba(40, 92, 214, 0.06);
+  padding: 12px;
+}
+
+.submission-success-note strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.submission-success-note p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .preview-card {
@@ -4152,6 +4234,7 @@ button {
   }
 
   .account-heading,
+  .account-handoff-panel,
   .account-inbox,
   .account-management-heading,
   .account-work,
@@ -4165,11 +4248,16 @@ button {
     flex-direction: column;
   }
 
+  .account-handoff-panel {
+    flex-direction: column;
+  }
+
   .account-editor-heading {
     flex-direction: column;
   }
 
   .account-actions,
+  .account-handoff-actions,
   .account-work-actions,
   .account-profile-actions,
   .account-editor-actions {

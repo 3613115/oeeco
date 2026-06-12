@@ -334,12 +334,28 @@ export function UploadForm() {
               <span>{submittedWork.tags.join(", ")}</span>
             </div>
             <div className="submission-success-steps" aria-label="Submission review steps">
-              <span className="submission-success-step is-done">Submitted</span>
-              <span className="submission-success-step">Admin review</span>
-              <span className="submission-success-step">Published or feedback</span>
+              <span className="submission-success-step is-done">
+                <strong>Submitted</strong>
+                <small>Saved to your account</small>
+              </span>
+              <span className="submission-success-step is-current">
+                <strong>Admin review</strong>
+                <small>Keep the demo URL reachable</small>
+              </span>
+              <span className="submission-success-step">
+                <strong>Decision</strong>
+                <small>Published or feedback</small>
+              </span>
+            </div>
+            <div className="submission-success-note">
+              <strong>What happens next</strong>
+              <p>
+                The work is private while it is pending. If review feedback is added, it will appear in your account so
+                you can edit the submission and send it back to review.
+              </p>
             </div>
             <div className="submission-success-actions">
-              <Link className="solid-button" href="/account">
+              <Link className="solid-button" href={`/account?submitted=${submittedWork.id}`}>
                 <CheckCircle size={17} aria-hidden="true" />
                 Track in Account
               </Link>
