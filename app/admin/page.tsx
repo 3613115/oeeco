@@ -6,6 +6,7 @@ import {
   Check,
   ExternalLink,
   Eye,
+  FileText,
   Link as LinkIcon,
   Monitor,
   RotateCcw,
@@ -250,6 +251,28 @@ type AdminLaunchLearningPlan = {
   signals: AdminLaunchLearningSignal[];
   actions: string[];
   focusWorks: AdminLaunchLearningWork[];
+};
+
+type AdminLaunchBriefMetric = {
+  label: string;
+  value: string;
+  helper: string;
+  tone: "good" | "warning" | "neutral";
+};
+
+type AdminLaunchBriefAsset = {
+  label: string;
+  audience: string;
+  helper: string;
+  copy: string;
+};
+
+type AdminLaunchBriefPlan = {
+  headline: string;
+  subhead: string;
+  metrics: AdminLaunchBriefMetric[];
+  asks: string[];
+  assets: AdminLaunchBriefAsset[];
 };
 
 type AdminFilters = {
@@ -2003,6 +2026,166 @@ function getLaunchLearningWorkHelper(work: AdminWork) {
   return "No signal yet. Use this only after stronger candidates have been tested.";
 }
 
+function getAdminLaunchBriefPlan({
+  pendingWorks,
+  publishedWorks,
+  contentSeedPlan,
+  launchPlan,
+  launchLearningPlan,
+  sharePlan,
+}: {
+  pendingWorks: AdminWork[];
+  publishedWorks: AdminWork[];
+  contentSeedPlan: AdminContentSeedPlan;
+  launchPlan: AdminLaunchPlan;
+  launchLearningPlan: AdminLaunchLearningPlan;
+  sharePlan: AdminSharePlan;
+}): AdminLaunchBriefPlan {
+  const totalViews = publishedWorks.reduce((sum, work) => sum + work.views, 0);
+  const totalTrySignals = publishedWorks.reduce((sum, work) => sum + work.tryClicks + work.demoOpens, 0);
+  const totalShares = publishedWorks.reduce((sum, work) => sum + work.shares, 0);
+  const totalLikes = publishedWorks.reduce((sum, work) => sum + work.likes, 0);
+  const topAsset = sharePlan.assets[0] || null;
+  const latestUrl = absoluteUrl("/latest");
+  const rankUrl = absoluteUrl("/rank");
+  const uploadUrl = absoluteUrl("/upload");
+  const headline =
+    launchPlan.score >= 90
+      ? "oeeco is ready for a controlled public push"
+      : launchPlan.score >= 67
+        ? "oeeco is in soft-launch learning mode"
+        : "oeeco is still preparing its first public shelf";
+  const subhead = `${contentSeedPlan.liveCount}/${contentSeedPlan.targetMax} works live, ${sharePlan.readyCount}/${sharePlan.targetCount} share-ready, ${launchPlan.score}% launch readiness.`;
+  const asks = getLaunchBriefAsks({ publishedWorks, pendingWorks, launchPlan, launchLearningPlan, sharePlan });
+  const founderUpdate = [
+    headline,
+    "",
+    subhead,
+    `Learning: ${launchLearningPlan.decision}.`,
+    `Next move: ${launchLearningPlan.nextMove}`,
+    "",
+    `Signals: ${formatAdminNumber(totalViews)} views, ${formatAdminNumber(totalTrySignals)} TRY/demo opens, ${formatAdminNumber(totalShares)} shares, ${formatAdminNumber(totalLikes)} likes.`,
+    `Current ask: ${asks[0] || "Keep testing the first shelf."}`,
+    "",
+    latestUrl,
+  ].join("\n");
+  const testerInvite = topAsset
+    ? [
+        `I am testing an early oeeco work: ${topAsset.title}`,
+        "",
+        topAsset.shortPitch,
+        "",
+        "Could you try it once and tell me whether the first click, loading, and core idea are clear?",
+      ].join("\n")
+    : [
+        "I am collecting feedback on oeeco's first playable AI-made works.",
+        "",
+        `Latest works: ${latestUrl}`,
+        "",
+        "Could you open one work and tell me whether the TRY flow feels clear?",
+      ].join("\n");
+  const creatorInvite = [
+    "oeeco is opening its first shelf of playable AI-made works.",
+    "",
+    "I am looking for small, clear, playable submissions with a working demo link, a readable cover, and a short explanation of how it was made.",
+    `Submit here: ${uploadUrl}`,
+    "",
+    `Current shelf: ${latestUrl}`,
+  ].join("\n");
+  const weeklyLog = [
+    `oeeco weekly launch log`,
+    `Status: ${launchPlan.decision}`,
+    `Learning: ${launchLearningPlan.decision}`,
+    `Next: ${launchLearningPlan.nextMove}`,
+    `Works: ${contentSeedPlan.liveCount} live / ${pendingWorks.length} pending`,
+    `Signals: ${formatAdminNumber(totalViews)} views, ${formatAdminNumber(totalTrySignals)} opens, ${formatAdminNumber(totalShares)} shares`,
+    `Links: ${latestUrl} / ${rankUrl}`,
+  ].join("\n");
+
+  return {
+    headline,
+    subhead,
+    metrics: [
+      {
+        label: "Launch",
+        value: `${launchPlan.score}%`,
+        helper: launchPlan.decision,
+        tone: launchPlan.score >= 90 ? "good" : launchPlan.score >= 67 ? "neutral" : "warning",
+      },
+      {
+        label: "Shelf",
+        value: `${contentSeedPlan.liveCount}/${contentSeedPlan.targetMax}`,
+        helper: contentSeedPlan.primaryAction,
+        tone: contentSeedPlan.launchReady ? "good" : "warning",
+      },
+      {
+        label: "Learning",
+        value: `${launchLearningPlan.confidence}%`,
+        helper: launchLearningPlan.decision,
+        tone: launchLearningPlan.confidence >= 60 ? "good" : launchLearningPlan.confidence >= 30 ? "neutral" : "warning",
+      },
+      {
+        label: "Share pack",
+        value: `${sharePlan.readyCount}/${sharePlan.targetCount}`,
+        helper: sharePlan.readyCount >= sharePlan.targetCount ? "Ready to rotate posts." : "Prepare more share-ready works.",
+        tone: sharePlan.readyCount >= sharePlan.targetCount ? "good" : "warning",
+      },
+    ],
+    asks,
+    assets: [
+      {
+        label: "Founder update",
+        audience: "Founder log / advisor",
+        helper: "Use this as a concise operating snapshot.",
+        copy: founderUpdate,
+      },
+      {
+        label: "Tester invite",
+        audience: "Trusted testers",
+        helper: "Use for the first narrow feedback circle.",
+        copy: testerInvite,
+      },
+      {
+        label: "Creator invite",
+        audience: "Potential creators",
+        helper: "Use when asking people to submit works.",
+        copy: creatorInvite,
+      },
+      {
+        label: "Weekly log",
+        audience: "Internal record",
+        helper: "Paste into your operating notes after each week.",
+        copy: weeklyLog,
+      },
+    ],
+  };
+}
+
+function getLaunchBriefAsks({
+  publishedWorks,
+  pendingWorks,
+  launchPlan,
+  launchLearningPlan,
+  sharePlan,
+}: {
+  publishedWorks: AdminWork[];
+  pendingWorks: AdminWork[];
+  launchPlan: AdminLaunchPlan;
+  launchLearningPlan: AdminLaunchLearningPlan;
+  sharePlan: AdminSharePlan;
+}) {
+  const asks: string[] = [];
+
+  if (publishedWorks.length < 10) asks.push(`Help reach 10 live works by adding ${10 - publishedWorks.length} more strong submissions.`);
+  if (pendingWorks.length > 0) asks.push(`Review ${pendingWorks.length} pending work${pendingWorks.length === 1 ? "" : "s"} before inviting more traffic.`);
+  if (launchPlan.score < 67) asks.push("Finish launch readiness blockers before posting publicly.");
+  if (sharePlan.readyCount < sharePlan.targetCount) asks.push("Prepare more polished works for the share rotation.");
+  if (launchLearningPlan.confidence < 40) asks.push("Run a narrow tester pass to collect the first useful signals.");
+  if (!asks.length) asks.push("Send one controlled share test and compare TRY opens against views.");
+
+  return asks.slice(0, 4);
+}
+
 function cleanShareText(value: string, maxLength: number) {
   const text = value.replace(/\s+/g, " ").trim();
   if (text.length <= maxLength) return text;
@@ -2294,6 +2477,14 @@ export default async function AdminPage({
     pendingWorks,
     publishedWorks,
     launchPlan,
+    sharePlan,
+  });
+  const launchBriefPlan = getAdminLaunchBriefPlan({
+    pendingWorks,
+    publishedWorks,
+    contentSeedPlan,
+    launchPlan,
+    launchLearningPlan,
     sharePlan,
   });
   const recentWorks = getRecentAdminWorks(allWorks);
@@ -2656,6 +2847,69 @@ export default async function AdminPage({
             ) : (
               <p>No published works are ready for learning analysis yet.</p>
             )}
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-brief-panel" aria-label="Launch brief pack">
+        <div className="admin-brief-heading">
+          <div>
+            <span className="section-kicker">
+              <FileText size={15} aria-hidden="true" />
+              Launch Brief Pack
+            </span>
+            <h2>{launchBriefPlan.headline}</h2>
+            <p>{launchBriefPlan.subhead}</p>
+          </div>
+          <div className="admin-brief-actions">
+            <AdminCopyButton value={launchBriefPlan.assets[0]?.copy || launchBriefPlan.subhead} label="Founder update" />
+            <AdminCopyButton value={absoluteUrl("/latest")} label="Latest" />
+          </div>
+        </div>
+
+        <div className="admin-brief-metrics" aria-label="Brief metrics">
+          {launchBriefPlan.metrics.map((metric) => (
+            <div className={`admin-brief-metric is-${metric.tone}`} key={metric.label}>
+              <span>{metric.label}</span>
+              <strong>{metric.value}</strong>
+              <small>{metric.helper}</small>
+            </div>
+          ))}
+        </div>
+
+        <div className="admin-brief-layout">
+          <div className="admin-brief-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Current Asks</span>
+              <small>{launchBriefPlan.asks.length} priorities</small>
+            </div>
+            <div className="admin-brief-asks">
+              {launchBriefPlan.asks.map((ask) => (
+                <div key={ask}>
+                  <LinkIcon size={15} aria-hidden="true" />
+                  <span>{ask}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="admin-brief-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Copy Assets</span>
+              <small>{launchBriefPlan.assets.length} briefs</small>
+            </div>
+            <div className="admin-brief-assets">
+              {launchBriefPlan.assets.map((asset) => (
+                <article className="admin-brief-asset" key={asset.label}>
+                  <div>
+                    <strong>{asset.label}</strong>
+                    <span>{asset.audience}</span>
+                    <p>{asset.helper}</p>
+                  </div>
+                  <AdminCopyButton value={asset.copy} label="Copy" />
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </section>
