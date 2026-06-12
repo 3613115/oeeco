@@ -1,9 +1,10 @@
 "use client";
 
-import { ExternalLink, Flag, Info, Maximize2, Minimize2, RefreshCw, Shield } from "lucide-react";
+import { ExternalLink, Info, Maximize2, Minimize2, RefreshCw, Shield } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { TrackedExternalLink } from "@/components/TrackedExternalLink";
+import { WorkReportButton } from "@/components/WorkReportButton";
 import { externalRunnerSandbox, localPreviewSandbox, runnerAllowPolicy } from "@/lib/play-runner";
 
 type PlayRunnerProps = {
@@ -12,11 +13,10 @@ type PlayRunnerProps = {
   originLabel: string;
   previewHtml: string;
   detailsHref: string;
-  reportHref: string;
   workId: string;
 };
 
-export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, detailsHref, reportHref, workId }: PlayRunnerProps) {
+export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, detailsHref, workId }: PlayRunnerProps) {
   const [frameKey, setFrameKey] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSlow, setIsSlow] = useState(false);
@@ -92,10 +92,7 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, d
             {isFocused ? <Minimize2 size={17} aria-hidden="true" /> : <Maximize2 size={17} aria-hidden="true" />}
             {isFocused ? "Exit Focus" : "Focus"}
           </button>
-          <Link className="ghost-button" href={reportHref}>
-            <Flag size={17} aria-hidden="true" />
-            Report
-          </Link>
+          <WorkReportButton context="play" work={{ id: workId, title }} />
           {playableDemoUrl ? (
             <TrackedExternalLink className="solid-button" href={playableDemoUrl} metric="demo_open" workId={workId}>
               <ExternalLink size={17} aria-hidden="true" />
@@ -146,10 +143,7 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, d
                   </Link>
                 ) : null}
                 {isBlocked ? (
-                  <Link className="ghost-button" href={reportHref}>
-                    <Flag size={17} aria-hidden="true" />
-                    Report Issue
-                  </Link>
+                  <WorkReportButton context="play" label="Report Issue" work={{ id: workId, title }} />
                 ) : null}
               </div>
             ) : null}

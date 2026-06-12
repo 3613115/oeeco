@@ -1119,6 +1119,75 @@ button {
   margin-top: 2px;
 }
 
+.report-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: rgba(24, 32, 29, 0.5);
+  padding: 20px;
+}
+
+.report-modal {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 560px);
+  max-height: min(720px, calc(100vh - 40px));
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(24, 32, 29, 0.28);
+  padding: 18px;
+}
+
+.report-modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.report-modal-heading h2 {
+  margin: 4px 0;
+  font-size: 26px;
+  line-height: 1.14;
+}
+
+.report-modal-heading p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.report-modal-work {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(244, 180, 63, 0.36);
+  border-radius: 8px;
+  background: rgba(244, 180, 63, 0.1);
+  padding: 12px;
+}
+
+.report-modal-work span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.report-modal-work strong {
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.report-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .stat-list {
   display: grid;
   gap: 10px;

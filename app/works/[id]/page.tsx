@@ -1,14 +1,14 @@
-import { ExternalLink, Flag, Heart, Play, Shield } from "lucide-react";
+import { ExternalLink, Heart, Play, Shield } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TrackedExternalLink } from "@/components/TrackedExternalLink";
+import { WorkReportButton } from "@/components/WorkReportButton";
 import { WorkShareButton } from "@/components/WorkShareButton";
 import { formatNumber, getWorkCreator, works } from "@/lib/data";
 import { tagToSlug } from "@/lib/discovery";
 import { getRunnerPolicy } from "@/lib/play-runner";
-import { buildWorkReportHref } from "@/lib/report";
 import { absoluteUrl, defaultOgImage, siteName, toAbsoluteUrl } from "@/lib/site";
 import { getPublicWork, recordWorkEngagement } from "@/lib/work-service";
 
@@ -85,7 +85,6 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
 
   const creator = getWorkCreator(work);
   const runnerPolicy = getRunnerPolicy(work.demoUrl);
-  const reportHref = buildWorkReportHref(work, "work");
   const shareUrl = absoluteUrl(`/works/${work.id}`);
   const workJsonLd = {
     "@context": "https://schema.org",
@@ -186,10 +185,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
               Like {formatNumber(work.likes)}
             </button>
             <WorkShareButton summary={work.summary} title={work.title} url={shareUrl} workId={work.id} />
-            <Link className="ghost-button" href={reportHref}>
-              <Flag size={17} aria-hidden="true" />
-              Report
-            </Link>
+            <WorkReportButton context="work" work={work} />
           </div>
         </div>
       </article>
@@ -233,10 +229,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
           <span className="section-kicker">Report A Problem</span>
           <strong>Something wrong with this work?</strong>
           <p>Report broken demos, unsafe links, misleading metadata, or playback problems.</p>
-          <Link className="ghost-button" href={reportHref}>
-            <Flag size={17} aria-hidden="true" />
-            Report Issue
-          </Link>
+          <WorkReportButton context="work" label="Report Issue" work={work} />
         </div>
         <div>
           <span className="section-kicker">Work Stats</span>

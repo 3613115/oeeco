@@ -9,14 +9,30 @@ type ReportWork = {
   title: string;
 };
 
-export function buildWorkReportHref(work: ReportWork, context: ReportContext) {
+type WorkReportOptions = {
+  category?: string;
+  details?: string;
+};
+
+export const reportReasons = [
+  "Broken demo or loading problem",
+  "Unsafe or suspicious link",
+  "Misleading title or description",
+  "Privacy, rights, or ownership concern",
+  "Other issue",
+] as const;
+
+export function buildWorkReportHref(work: ReportWork, context: ReportContext, options: WorkReportOptions = {}) {
   const subject = `[oeeco report] ${work.title}`;
   const body = [
     "What happened?",
     "",
-    "",
+    options.details || "",
     "Report type:",
     context === "play" ? "TRY / Play issue" : "Work detail issue",
+    "",
+    "Issue category:",
+    options.category || "Not selected",
     "",
     "Work:",
     work.title,
