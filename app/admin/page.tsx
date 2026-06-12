@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   Activity,
   ArrowDownUp,
+  CalendarDays,
   Check,
   ExternalLink,
   Eye,
@@ -200,6 +201,29 @@ type AdminLaunchPlan = {
   primaryCopy: string;
   steps: AdminLaunchStep[];
   channels: AdminLaunchChannel[];
+};
+
+type AdminLaunchCadenceTask = {
+  day: string;
+  label: string;
+  channel: string;
+  action: string;
+  href: string;
+  copy: string;
+  tone: "ready" | "hold" | "neutral";
+};
+
+type AdminLaunchCadenceMetric = {
+  label: string;
+  value: string;
+  helper: string;
+};
+
+type AdminLaunchCadencePlan = {
+  summary: string;
+  primaryAction: string;
+  tasks: AdminLaunchCadenceTask[];
+  metrics: AdminLaunchCadenceMetric[];
 };
 
 type AdminFilters = {
@@ -1591,6 +1615,140 @@ function getLaunchChannels({
   ];
 }
 
+function getAdminLaunchCadencePlan({
+  key,
+  pendingWorks,
+  publishedWorks,
+  launchPlan,
+  sharePlan,
+  journeyPlan,
+}: {
+  key: string;
+  pendingWorks: AdminWork[];
+  publishedWorks: AdminWork[];
+  launchPlan: AdminLaunchPlan;
+  sharePlan: AdminSharePlan;
+  journeyPlan: AdminJourneyPlan;
+}): AdminLaunchCadencePlan {
+  const topAsset = sharePlan.assets[0] || null;
+  const secondAsset = sharePlan.assets[1] || topAsset;
+  const thirdAsset = sharePlan.assets[2] || secondAsset;
+  const totalViews = publishedWorks.reduce((sum, work) => sum + work.views, 0);
+  const totalTrySignals = publishedWorks.reduce((sum, work) => sum + work.tryClicks + work.demoOpens, 0);
+  const totalShares = publishedWorks.reduce((sum, work) => sum + work.shares, 0);
+  const readyToShare = launchPlan.score >= 67 && Boolean(topAsset);
+  const primaryAction = readyToShare
+    ? `Start with "${topAsset?.title}" and keep the first push narrow.`
+    : "Hold broad posting; finish the missing launch checks first.";
+  const summary =
+    launchPlan.score >= 90
+      ? "Use this as a controlled 7-day launch rhythm: post lightly, watch behavior, then widen only if TRY clicks respond."
+      : "Use this as a pre-launch operating rhythm: test, polish, and collect the first small signals before broader posting.";
+
+  const latestUrl = absoluteUrl("/latest");
+  const rankUrl = absoluteUrl("/rank");
+  const uploadUrl = absoluteUrl("/upload");
+  const fallbackCopy = [
+    "oeeco is collecting its first playable AI-made works.",
+    "Try the latest works here:",
+    latestUrl,
+  ].join("\n");
+
+  const tasks: AdminLaunchCadenceTask[] = [
+    {
+      day: "Day 0",
+      label: "Final QA pass",
+      channel: "Internal",
+      action: "Open Explore, one work page, TRY, Account, Upload, and one share action before inviting traffic.",
+      href: journeyPlan.testWork?.tryHref || latestUrl,
+      copy: `QA path: ${[absoluteUrl("/"), journeyPlan.testWork?.publicHref, journeyPlan.testWork?.tryHref, absoluteUrl("/account"), uploadUrl].filter(Boolean).join(" / ")}`,
+      tone: journeyPlan.score >= 85 ? "ready" : "hold",
+    },
+    {
+      day: "Day 1",
+      label: "Trusted circle",
+      channel: "Direct",
+      action: topAsset ? `Send "${topAsset.title}" to a few trusted people and ask whether TRY loads clearly.` : "Wait for a share-ready work, then send it to a few trusted people.",
+      href: topAsset?.tryUrl || latestUrl,
+      copy: topAsset?.shortPitch || fallbackCopy,
+      tone: readyToShare ? "ready" : "hold",
+    },
+    {
+      day: "Day 2",
+      label: "Public profile check",
+      channel: "oeeco",
+      action: "Check Latest and Rank after the first shares. The best work should be easy to find without explanation.",
+      href: rankUrl,
+      copy: `Latest: ${latestUrl}\nRank: ${rankUrl}`,
+      tone: publishedWorks.length >= 3 ? "ready" : "neutral",
+    },
+    {
+      day: "Day 3",
+      label: "Signal review",
+      channel: "Admin",
+      action: "Compare views, TRY opens, shares, and pending submissions. Promote only if TRY clicks move.",
+      href: adminUrl(key, "published", { sort: "views" }),
+      copy: `Current signals: ${formatAdminNumber(totalViews)} views, ${formatAdminNumber(totalTrySignals)} opens, ${formatAdminNumber(totalShares)} shares, ${pendingWorks.length} pending.`,
+      tone: totalViews + totalTrySignals + totalShares > 0 ? "ready" : "neutral",
+    },
+    {
+      day: "Day 4",
+      label: "Second work rotation",
+      channel: "Direct",
+      action: secondAsset ? `Share a different angle with "${secondAsset.title}" so feedback is not based on one work.` : "Prepare a second share-ready work before rotating messages.",
+      href: secondAsset?.tryUrl || adminUrl(key, "published"),
+      copy: secondAsset?.shortPitch || fallbackCopy,
+      tone: sharePlan.readyCount >= 2 ? "ready" : "hold",
+    },
+    {
+      day: "Day 5",
+      label: "Niche community test",
+      channel: "Community",
+      action: thirdAsset ? `Use one careful feedback post around "${thirdAsset.title}". Do not cross-post everywhere.` : "Wait until the share pack has enough variety for a community test.",
+      href: thirdAsset?.workUrl || latestUrl,
+      copy: thirdAsset?.redditPost || fallbackCopy,
+      tone: launchPlan.score >= 67 && sharePlan.readyCount >= 2 ? "ready" : "hold",
+    },
+    {
+      day: "Day 7",
+      label: "Decision review",
+      channel: "Admin",
+      action: "Decide whether to keep polishing, upload more works, or prepare a broader launch page/post.",
+      href: adminUrl(key, "published", { sort: "views" }),
+      copy: launchPlan.primaryCopy,
+      tone: launchPlan.score >= 90 ? "ready" : "neutral",
+    },
+  ];
+
+  return {
+    summary,
+    primaryAction,
+    tasks,
+    metrics: [
+      {
+        label: "Views",
+        value: formatAdminNumber(totalViews),
+        helper: "Watch whether external links create public page traffic.",
+      },
+      {
+        label: "TRY opens",
+        value: formatAdminNumber(totalTrySignals),
+        helper: "Best early signal that people actually try the works.",
+      },
+      {
+        label: "Shares",
+        value: formatAdminNumber(totalShares),
+        helper: "Shows whether the share flow is being used.",
+      },
+      {
+        label: "Pending",
+        value: String(pendingWorks.length),
+        helper: "Keep this low so creator interest does not stall.",
+      },
+    ],
+  };
+}
+
 function cleanShareText(value: string, maxLength: number) {
   const text = value.replace(/\s+/g, " ").trim();
   if (text.length <= maxLength) return text;
@@ -1869,6 +2027,14 @@ export default async function AdminPage({
     journeyPlan,
     sharePlan,
   });
+  const launchCadencePlan = getAdminLaunchCadencePlan({
+    key,
+    pendingWorks,
+    publishedWorks,
+    launchPlan,
+    sharePlan,
+    journeyPlan,
+  });
   const recentWorks = getRecentAdminWorks(allWorks);
   const queueCards: Array<{ id: AdminQueueFilter; label: string; helper: string; count: number }> = [
     { id: "ready", label: "Ready to publish", helper: "Pending works that pass review checks", count: queueSummary.ready },
@@ -2080,6 +2246,74 @@ export default async function AdminPage({
               <AdminCopyButton value={launchPlan.primaryCopy} label="Launch note" />
               <AdminCopyButton value={absoluteUrl("/latest")} label="Latest" />
               <AdminCopyButton value={absoluteUrl("/rank")} label="Rank" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-cadence-panel" aria-label="Launch cadence">
+        <div className="admin-cadence-heading">
+          <div>
+            <span className="section-kicker">
+              <CalendarDays size={15} aria-hidden="true" />
+              Launch Cadence
+            </span>
+            <h2>7-day controlled push plan</h2>
+            <p>{launchCadencePlan.summary}</p>
+          </div>
+          <div className="admin-cadence-note">
+            <strong>{launchCadencePlan.tasks.filter((task) => task.tone === "ready").length}</strong>
+            <span>{launchCadencePlan.primaryAction}</span>
+          </div>
+        </div>
+
+        <div className="admin-cadence-layout">
+          <div className="admin-cadence-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Daily Moves</span>
+              <small>{launchCadencePlan.tasks.length} steps</small>
+            </div>
+            <div className="admin-cadence-timeline">
+              {launchCadencePlan.tasks.map((task) => (
+                <article className={`admin-cadence-task is-${task.tone}`} key={`${task.day}-${task.label}`}>
+                  <div className="admin-cadence-day">
+                    <span>{task.day}</span>
+                    <strong>{task.channel}</strong>
+                  </div>
+                  <div>
+                    <h3>{task.label}</h3>
+                    <p>{task.action}</p>
+                    <div className="admin-cadence-actions">
+                      <AdminCopyButton value={task.copy} label="Copy" />
+                      <Link className="ghost-button" href={task.href} target={task.href.startsWith("http") ? "_blank" : undefined}>
+                        Open
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div className="admin-cadence-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Watchlist</span>
+              <small>Review after each post</small>
+            </div>
+            <div className="admin-cadence-metrics">
+              {launchCadencePlan.metrics.map((metric) => (
+                <div className="admin-cadence-metric" key={metric.label}>
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                  <small>{metric.helper}</small>
+                </div>
+              ))}
+            </div>
+            <div className="admin-cadence-actions">
+              <AdminCopyButton value={launchCadencePlan.primaryAction} label="Next action" />
+              <Link className="ghost-button" href={adminUrl(key, "published", { sort: "views" })}>
+                Signal queue
+              </Link>
             </div>
           </div>
         </div>

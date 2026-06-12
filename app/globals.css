@@ -3143,6 +3143,161 @@ button {
   gap: 8px;
 }
 
+.admin-cadence-panel {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 14px;
+}
+
+.admin-cadence-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-cadence-heading h2 {
+  margin: 6px 0 0;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.admin-cadence-heading p {
+  max-width: 780px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.admin-cadence-note {
+  display: grid;
+  min-width: 180px;
+  gap: 4px;
+  text-align: right;
+}
+
+.admin-cadence-note strong {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.admin-cadence-note span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.admin-cadence-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: 12px;
+}
+
+.admin-cadence-block {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 12px;
+}
+
+.admin-cadence-timeline {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-cadence-task {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 10px;
+}
+
+.admin-cadence-task.is-ready {
+  border-color: rgba(12, 122, 85, 0.24);
+  background: rgba(85, 214, 168, 0.1);
+}
+
+.admin-cadence-task.is-hold {
+  border-color: rgba(244, 180, 63, 0.38);
+  background: rgba(244, 180, 63, 0.12);
+}
+
+.admin-cadence-day {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+}
+
+.admin-cadence-day span,
+.admin-cadence-metric span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.admin-cadence-day strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.admin-cadence-task h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.admin-cadence-task p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+  line-height: 1.5;
+}
+
+.admin-cadence-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.admin-cadence-metrics {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-cadence-metric {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 10px;
+}
+
+.admin-cadence-metric strong {
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.admin-cadence-metric small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+  line-height: 1.45;
+}
+
 .admin-seed-panel {
   display: grid;
   gap: 14px;
@@ -4721,6 +4876,7 @@ button {
   }
 
   .admin-launch-layout,
+  .admin-cadence-layout,
   .admin-home-layout,
   .admin-home-featured,
   .admin-journey-layout,
@@ -4945,6 +5101,7 @@ button {
   .admin-section-title,
   .admin-growth-heading,
   .admin-launch-heading,
+  .admin-cadence-heading,
   .admin-seed-heading,
   .admin-home-heading,
   .admin-journey-heading,
@@ -4964,6 +5121,8 @@ button {
   .admin-health-checks,
   .admin-curation-panel,
   .admin-launch-layout,
+  .admin-cadence-layout,
+  .admin-cadence-task,
   .admin-seed-layout,
   .admin-seed-category-grid,
   .admin-seed-work,
@@ -4986,6 +5145,7 @@ button {
   .admin-ops-actions,
   .admin-growth-actions,
   .admin-launch-actions,
+  .admin-cadence-actions,
   .admin-share-actions,
   .admin-recent-item > div:last-child {
     justify-content: flex-start;
@@ -4996,6 +5156,10 @@ button {
   }
 
   .admin-launch-score {
+    text-align: left;
+  }
+
+  .admin-cadence-note {
     text-align: left;
   }
 
