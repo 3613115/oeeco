@@ -556,6 +556,15 @@ button {
   color: var(--ink);
 }
 
+.ghost-button.is-warning {
+  border-color: rgba(244, 93, 143, 0.42);
+  color: #9a254e;
+}
+
+.ghost-button.is-warning:hover {
+  background: rgba(244, 93, 143, 0.08);
+}
+
 .metric-strip {
   flex-wrap: wrap;
   gap: 14px;

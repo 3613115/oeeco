@@ -17,6 +17,7 @@ import {
   Save,
   Send,
   Share2,
+  Undo2,
   Upload,
   UserRound,
   X,
@@ -82,6 +83,7 @@ type SaveState = "idle" | "saving";
 type WorkSaveState = "idle" | "saving";
 type OAuthState = "idle" | "google";
 type AccountStatusFilter = "all" | WorkStatus;
+type WorkStatusAction = "withdraw" | "hide";
 
 const statusMeta: Record<WorkStatus, { label: string; helper: string }> = {
   pending: {
@@ -131,6 +133,7 @@ export function AccountClient() {
   const [workErrors, setWorkErrors] = useState<string[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [statusFilter, setStatusFilter] = useState<AccountStatusFilter>("all");
+  const [statusActionId, setStatusActionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!supabase) return;
@@ -464,6 +467,41 @@ export function AccountClient() {
     setWorkSaveState("idle");
     stopEditingWork();
     setMessage("Work saved and returned to review.");
+  }
+
+  async function updateWorkVisibility(work: AccountWorkRow, action: WorkStatusAction) {
+    if (!supabase || !user) return;
+
+    const transition = getWorkStatusTransition(work, action);
+    if (!transition) return;
+
+    if (!window.confirm(transition.confirm)) return;
+
+    setStatusActionId(`${work.id}:${action}`);
+    const { data, error } = await supabase
+      .from("works")
+      .update({ status: transition.nextStatus })
+      .eq("id", work.id)
+      .eq("creator_id", user.id)
+      .eq("status", transition.fromStatus)
+      .select("id")
+      .maybeSingle();
+    setStatusActionId(null);
+
+    if (error) {
+      setMessage(getVisibilityUpdateError(error.message));
+      return;
+    }
+
+    if (!data) {
+      setMessage("This work status changed before the action completed. Refresh and try again.");
+      return;
+    }
+
+    await loadWorks(user.id);
+    setEditingWorkId(null);
+    setWorkForm(null);
+    setMessage(transition.success);
   }
 
   async function signOut() {
@@ -916,7 +954,29 @@ export function AccountClient() {
                       {canEditWork(work.status) ? (
                         <button className="ghost-button" type="button" onClick={() => startEditingWork(work)}>
                           <Pencil size={17} aria-hidden="true" />
-                          {work.status === "rejected" || work.review_note ? "Edit and Resubmit" : "Edit"}
+                          {work.status === "rejected" || work.status === "hidden" || work.review_note ? "Edit and Resubmit" : "Edit"}
+                        </button>
+                      ) : null}
+                      {work.status === "pending" ? (
+                        <button
+                          className="ghost-button"
+                          type="button"
+                          onClick={() => updateWorkVisibility(work, "withdraw")}
+                          disabled={statusActionId === `${work.id}:withdraw`}
+                        >
+                          <Undo2 size={17} aria-hidden="true" />
+                          {statusActionId === `${work.id}:withdraw` ? "Withdrawing" : "Withdraw"}
+                        </button>
+                      ) : null}
+                      {work.status === "published" ? (
+                        <button
+                          className="ghost-button is-warning"
+                          type="button"
+                          onClick={() => updateWorkVisibility(work, "hide")}
+                          disabled={statusActionId === `${work.id}:hide`}
+                        >
+                          <X size={17} aria-hidden="true" />
+                          {statusActionId === `${work.id}:hide` ? "Hiding" : "Hide from Public"}
                         </button>
                       ) : null}
                       {work.status === "published" ? (
@@ -990,7 +1050,7 @@ const categoryOptions: Array<[Exclude<CategoryId, "all">, string]> = [
 ];
 
 function canEditWork(status: WorkStatus) {
-  return status === "draft" || status === "pending" || status === "rejected";
+  return status === "draft" || status === "pending" || status === "rejected" || status === "hidden";
 }
 
 function getPriorityActions(works: AccountWorkRow[]) {
@@ -1150,10 +1210,10 @@ function getWorkAction(work: AccountWorkRow) {
   if (work.status === "hidden") {
     return {
       label: "Hidden",
-      next: "Next: wait for owner review",
+      next: "Next: revise or resubmit",
       title: "Currently hidden",
-      helper: "This work is not visible publicly. Check admin feedback or contact the site owner before resubmitting.",
-      items: ["Read any feedback above", "Keep the demo safe and reachable", "Wait for owner guidance before editing"],
+      helper: "This work is not visible publicly. Edit it and resubmit when it is ready for review again.",
+      items: ["Review the current demo", "Edit details if needed", "Save and resubmit for review"],
       tone: "muted" as const,
     };
   }
@@ -1166,6 +1226,36 @@ function getWorkAction(work: AccountWorkRow) {
     items: ["Fill in the required fields", "Confirm the public demo URL works", "Save and send it to review"],
     tone: "pending" as const,
   };
+}
+
+function getWorkStatusTransition(work: AccountWorkRow, action: WorkStatusAction) {
+  if (action === "withdraw" && work.status === "pending") {
+    return {
+      fromStatus: "pending" as const,
+      nextStatus: "draft" as const,
+      confirm: "Withdraw this work from review and move it back to Draft?",
+      success: "Work withdrawn from review and moved to Draft.",
+    };
+  }
+
+  if (action === "hide" && work.status === "published") {
+    return {
+      fromStatus: "published" as const,
+      nextStatus: "hidden" as const,
+      confirm: "Hide this published work from public pages? You can edit and resubmit it later.",
+      success: "Work hidden from public pages.",
+    };
+  }
+
+  return null;
+}
+
+function getVisibilityUpdateError(message: string) {
+  if (message.toLowerCase().includes("row-level security")) {
+    return "Status change was blocked by Supabase permissions. Run the creator withdraw/hide policy SQL, then try again.";
+  }
+
+  return message;
 }
 
 function parseTags(value: string) {
