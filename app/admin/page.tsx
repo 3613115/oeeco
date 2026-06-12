@@ -98,6 +98,30 @@ type AdminContentSeedPlan = {
   works: AdminSeedWork[];
 };
 
+type AdminHomePick = {
+  id: string;
+  title: string;
+  category: string;
+  score: number;
+  label: string;
+  helper: string;
+  href: string;
+  publicHref: string;
+  tryHref: string;
+  isFeatured: boolean;
+  rank: number | null;
+};
+
+type AdminHomeCurationPlan = {
+  liveCount: number;
+  curatedCount: number;
+  featuredCount: number;
+  recommendedFeatured: AdminHomePick | null;
+  lineup: AdminHomePick[];
+  categoryGaps: string[];
+  nextActions: string[];
+};
+
 type AdminFilters = {
   q: string;
   category: "all" | Exclude<CategoryId, "all">;
@@ -834,6 +858,142 @@ function getSeedWorkChecks(work: AdminWork) {
   ];
 }
 
+function getAdminHomeCurationPlan({
+  key,
+  publishedWorks,
+}: {
+  key: string;
+  publishedWorks: AdminWork[];
+}): AdminHomeCurationPlan {
+  const categoryGaps = categoryOptions
+    .filter(([id]) => !publishedWorks.some((work) => work.category === id))
+    .map(([, label]) => label);
+  const curatedWorks = publishedWorks.filter((work) => {
+    const curation = getWorkCuration(work);
+    return curation.featured || Boolean(curation.rank || curation.label);
+  });
+  const featuredWorks = publishedWorks.filter((work) => getWorkCuration(work).featured);
+  const lineup = publishedWorks
+    .map((work) => getAdminHomePick(key, work))
+    .sort((a, b) => b.score - a.score || (a.rank || 999) - (b.rank || 999))
+    .slice(0, 6);
+  const recommendedFeatured = lineup[0] || null;
+  const nextActions = getHomeCurationActions({
+    liveCount: publishedWorks.length,
+    curatedCount: curatedWorks.length,
+    featuredCount: featuredWorks.length,
+    categoryGaps,
+    recommendedFeatured,
+  });
+
+  return {
+    liveCount: publishedWorks.length,
+    curatedCount: curatedWorks.length,
+    featuredCount: featuredWorks.length,
+    recommendedFeatured,
+    lineup,
+    categoryGaps,
+    nextActions,
+  };
+}
+
+function getAdminHomePick(key: string, work: AdminWork): AdminHomePick {
+  const curation = getWorkCuration(work);
+  const score = getHomeCurationScore(work);
+  const runnerPolicy = getRunnerPolicy(work.demoUrl);
+  const helper = getHomeCurationHelper(work, score);
+
+  return {
+    id: work.id,
+    title: work.title,
+    category: categoryLabels[work.category],
+    score,
+    label: runnerPolicy.status === "held" ? "Fix before featuring" : `${score}% home fit`,
+    helper,
+    href: adminUrl(key, "published", { q: work.id }),
+    publicHref: absoluteUrl(`/works/${work.id}`),
+    tryHref: absoluteUrl(`/play/${work.id}`),
+    isFeatured: curation.featured,
+    rank: curation.rank,
+  };
+}
+
+function getHomeCurationScore(work: AdminWork) {
+  const curation = getWorkCuration(work);
+  const runnerPolicy = getRunnerPolicy(work.demoUrl);
+  let score = 0;
+
+  if (runnerPolicy.status !== "held") score += 24;
+  if (work.cover && (work.cover.startsWith("/") || work.cover.startsWith("https://"))) score += 12;
+  if (work.summary.trim().length >= 50) score += 12;
+  if (work.detail.trim().length >= 80) score += 10;
+  if (work.tags.length >= 2) score += 10;
+  if (curation.featured) score += 12;
+  if (curation.rank) score += 8;
+  if (curation.label) score += 6;
+
+  score += Math.min(8, work.tryClicks * 2);
+  score += Math.min(6, Math.floor(work.views / 2));
+  score += Math.min(6, work.shares * 3);
+
+  return Math.min(100, score);
+}
+
+function getHomeCurationHelper(work: AdminWork, score: number) {
+  const curation = getWorkCuration(work);
+  const runnerPolicy = getRunnerPolicy(work.demoUrl);
+
+  if (runnerPolicy.status === "held") return "Runner is held. Fix the play path before homepage promotion.";
+  if (!curation.featured && score >= 72) return "Strong candidate for Featured or a top home rank.";
+  if (!curation.rank && !curation.label) return "Add rank or curation label if this should appear high on Explore.";
+  if (work.tryClicks === 0 && work.views === 0) return "Open and test the public path before external promotion.";
+  if (curation.featured) return "Featured now. Keep the cover, TRY path, and summary sharp.";
+  return "Good homepage candidate. Compare with other categories before featuring.";
+}
+
+function getHomeCurationActions({
+  liveCount,
+  curatedCount,
+  featuredCount,
+  categoryGaps,
+  recommendedFeatured,
+}: {
+  liveCount: number;
+  curatedCount: number;
+  featuredCount: number;
+  categoryGaps: string[];
+  recommendedFeatured: AdminHomePick | null;
+}) {
+  const actions: string[] = [];
+
+  if (!liveCount) {
+    actions.push("Publish at least one reviewed work before tuning the homepage.");
+    return actions;
+  }
+
+  if (!featuredCount && recommendedFeatured) {
+    actions.push(`Feature "${recommendedFeatured.title}" or assign it home rank #1.`);
+  }
+
+  if (curatedCount < Math.min(3, liveCount)) {
+    actions.push("Curate at least three homepage slots as soon as enough works are live.");
+  }
+
+  if (liveCount < 5) {
+    actions.push("Keep the homepage copy in first-shelf mode until at least five live works exist.");
+  }
+
+  if (categoryGaps.length) {
+    actions.push(`Next uploads should cover: ${categoryGaps.slice(0, 3).join(", ")}.`);
+  }
+
+  if (!actions.length) {
+    actions.push("Homepage strategy is healthy. Rotate Featured based on TRY and share signals.");
+  }
+
+  return actions.slice(0, 5);
+}
+
 function getRecentAdminWorks(works: AdminWork[], limit = 6) {
   return [...works].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
 }
@@ -1070,6 +1230,7 @@ export default async function AdminPage({
   const overviewMetrics = getAdminOverviewMetrics({ key, counts, pendingWorks, publishedWorks, allWorks });
   const growthLoop = getAdminGrowthLoopReport({ key, pendingWorks, publishedWorks });
   const contentSeedPlan = getAdminContentSeedPlan({ key, pendingWorks, publishedWorks });
+  const homeCurationPlan = getAdminHomeCurationPlan({ key, publishedWorks });
   const recentWorks = getRecentAdminWorks(allWorks);
   const queueCards: Array<{ id: AdminQueueFilter; label: string; helper: string; count: number }> = [
     { id: "ready", label: "Ready to publish", helper: "Pending works that pass review checks", count: queueSummary.ready },
@@ -1318,6 +1479,119 @@ export default async function AdminPage({
           ) : (
             <p>No seed candidates yet. Upload and review the first works to start this plan.</p>
           )}
+        </div>
+      </section>
+
+      <section className="admin-home-panel" aria-label="Homepage curation strategy">
+        <div className="admin-home-heading">
+          <div>
+            <span className="section-kicker">
+              <Monitor size={15} aria-hidden="true" />
+              Home Strategy
+            </span>
+            <h2>Featured and first-screen lineup</h2>
+            <p>
+              Decide which work should lead Explore, which pieces need rank labels, and which categories should be
+              uploaded next.
+            </p>
+          </div>
+          <div className="admin-home-score">
+            <strong>{homeCurationPlan.curatedCount}</strong>
+            <span>
+              curated / {homeCurationPlan.liveCount} live, {homeCurationPlan.featuredCount} featured
+            </span>
+          </div>
+        </div>
+
+        {homeCurationPlan.recommendedFeatured ? (
+          <div className="admin-home-featured">
+            <div>
+              <span className="section-kicker">Recommended Lead</span>
+              <h3>{homeCurationPlan.recommendedFeatured.title}</h3>
+              <p>{homeCurationPlan.recommendedFeatured.helper}</p>
+              <div className="admin-home-meta">
+                <span>{homeCurationPlan.recommendedFeatured.category}</span>
+                <span>{homeCurationPlan.recommendedFeatured.label}</span>
+                {homeCurationPlan.recommendedFeatured.isFeatured ? <span>Featured now</span> : null}
+                {homeCurationPlan.recommendedFeatured.rank ? (
+                  <span>Home #{homeCurationPlan.recommendedFeatured.rank}</span>
+                ) : null}
+              </div>
+            </div>
+            <div className="admin-home-actions">
+              <Link className="ghost-button" href={homeCurationPlan.recommendedFeatured.href}>
+                Edit curation
+              </Link>
+              <AdminCopyButton value={homeCurationPlan.recommendedFeatured.publicHref} label="Work" />
+              <AdminCopyButton value={homeCurationPlan.recommendedFeatured.tryHref} label="TRY" />
+            </div>
+          </div>
+        ) : (
+          <div className="admin-home-featured">
+            <div>
+              <span className="section-kicker">Recommended Lead</span>
+              <h3>No published work yet</h3>
+              <p>Publish the first reviewed work before setting a homepage lead.</p>
+            </div>
+            <Link className="ghost-button" href={getQueueHref(key, "ready")}>
+              Ready queue
+            </Link>
+          </div>
+        )}
+
+        <div className="admin-home-layout">
+          <div className="admin-home-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Lineup Candidates</span>
+              <small>{homeCurationPlan.lineup.length} shown</small>
+            </div>
+            {homeCurationPlan.lineup.length ? (
+              <div className="admin-home-lineup">
+                {homeCurationPlan.lineup.map((pick) => (
+                  <Link
+                    className={pick.isFeatured || pick.score >= 72 ? "admin-home-pick is-ready" : "admin-home-pick"}
+                    href={pick.href}
+                    key={pick.id}
+                  >
+                    <div>
+                      <strong>{pick.title}</strong>
+                      <span>
+                        {pick.category} / {pick.label}
+                      </span>
+                    </div>
+                    <div>
+                      <strong>{pick.score}%</strong>
+                      <span>{pick.rank ? `Home #${pick.rank}` : pick.isFeatured ? "Featured" : "Needs rank"}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p>No homepage candidates yet.</p>
+            )}
+          </div>
+
+          <div className="admin-home-block">
+            <div className="admin-panel-heading">
+              <span className="section-kicker">Next Moves</span>
+              <small>{homeCurationPlan.categoryGaps.length} category gaps</small>
+            </div>
+            <div className="admin-home-actions-list">
+              {homeCurationPlan.nextActions.map((action) => (
+                <div key={action}>
+                  <Star size={15} aria-hidden="true" />
+                  <span>{action}</span>
+                </div>
+              ))}
+            </div>
+            <div className="admin-home-actions">
+              <AdminCopyButton value={absoluteUrl("/")} label="Explore" />
+              <AdminCopyButton value={absoluteUrl("/rank")} label="Rank" />
+              <Link className="ghost-button" href={getQueueHref(key, "home")}>
+                Home lineup
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
