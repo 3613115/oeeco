@@ -883,6 +883,216 @@ button {
   font-size: 14px;
 }
 
+.prompt-card-shell {
+  display: grid;
+  gap: 16px;
+  width: min(1160px, 100%);
+  margin: 0 auto;
+}
+
+.prompt-card-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+  gap: 18px;
+  align-items: end;
+}
+
+.prompt-card-copy {
+  display: grid;
+  gap: 10px;
+  max-width: 760px;
+}
+
+.prompt-card-copy h1 {
+  margin: 0;
+  font-size: clamp(42px, 7vw, 82px);
+  line-height: 0.94;
+  letter-spacing: 0;
+}
+
+.prompt-card-copy p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.prompt-card-score {
+  display: grid;
+  gap: 6px;
+  min-height: 126px;
+  align-content: center;
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  background: #fff;
+  padding: 16px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.prompt-card-score span,
+.prompt-card-score small,
+.prompt-option-group > span,
+.prompt-chip-group > span,
+.prompt-topic-field span,
+.prompt-card-footer {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.prompt-card-score strong {
+  color: var(--ink);
+  font-size: 42px;
+  line-height: 1;
+}
+
+.prompt-card-workbench {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.25fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.prompt-card-controls,
+.prompt-card-preview {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.prompt-topic-field {
+  display: grid;
+  gap: 8px;
+}
+
+.prompt-topic-field textarea,
+.prompt-card-preview pre {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.prompt-topic-field textarea {
+  resize: vertical;
+  padding: 12px;
+  font-weight: 680;
+  line-height: 1.45;
+}
+
+.prompt-option-group,
+.prompt-chip-group {
+  display: grid;
+  gap: 8px;
+}
+
+.prompt-option-group > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.prompt-option-group button {
+  display: grid;
+  gap: 4px;
+  min-height: 78px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+  color: var(--ink);
+  text-align: left;
+}
+
+.prompt-option-group button:hover,
+.prompt-option-group button.is-active,
+.prompt-chip-group button:hover,
+.prompt-chip-group button.is-active {
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.prompt-option-group strong {
+  font-size: 14px;
+}
+
+.prompt-option-group small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 720;
+  line-height: 1.35;
+}
+
+.prompt-chip-group > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.prompt-chip-group button {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 0 12px;
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.prompt-card-preview {
+  min-height: 100%;
+}
+
+.prompt-card-preview-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+.prompt-card-preview-heading h2 {
+  margin: 5px 0 4px;
+  font-size: clamp(24px, 4vw, 38px);
+  line-height: 1;
+}
+
+.prompt-card-preview-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 780;
+}
+
+.prompt-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.prompt-card-preview pre {
+  min-height: 420px;
+  max-height: 62vh;
+  overflow: auto;
+  margin: 0;
+  padding: 16px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.prompt-card-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .metric-strip {
   flex-wrap: wrap;
   gap: 14px;
@@ -5655,6 +5865,10 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .prompt-card-workbench {
+    grid-template-columns: 1fr;
+  }
+
   .admin-launch-layout,
   .admin-cadence-layout,
   .admin-learning-layout,
@@ -5881,6 +6095,40 @@ button {
   .mood-garden-actions .solid-button,
   .mood-garden-actions .ghost-button {
     width: 100%;
+  }
+
+  .prompt-card-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .prompt-card-copy h1 {
+    font-size: 38px;
+    line-height: 1;
+  }
+
+  .prompt-card-score {
+    min-height: auto;
+  }
+
+  .prompt-option-group > div {
+    grid-template-columns: 1fr;
+  }
+
+  .prompt-card-preview-heading,
+  .prompt-card-actions,
+  .prompt-card-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .prompt-card-actions .solid-button,
+  .prompt-card-actions .ghost-button {
+    width: 100%;
+  }
+
+  .prompt-card-preview pre {
+    min-height: 320px;
+    max-height: none;
   }
 
   .report-panel .ghost-button {
