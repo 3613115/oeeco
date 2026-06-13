@@ -3711,6 +3711,8 @@ function AdminWorkReviewRow({
         </div>
       </div>
 
+      <AdminStatusActionBar activeStatus={activeStatus} filters={filters} keyValue={keyValue} updateStatus={updateStatus} work={work} />
+
       <div className="admin-review-grid">
         <div className="admin-cover-preview">
           <Image src={coverUrl} width={360} height={225} alt="" />
@@ -3947,77 +3949,94 @@ function AdminWorkReviewRow({
         </button>
       </form>
 
-      <div className="admin-action-bar">
-        {work.status !== "published" ? (
-          <form action={updateStatus}>
-            <input type="hidden" name="key" value={keyValue} />
-            <input type="hidden" name="id" value={work.id} />
-            <input type="hidden" name="currentStatus" value={activeStatus} />
-            <AdminContextFields filters={filters} />
-            <button className="solid-button" name="status" value="published" type="submit">
-              <Check size={17} aria-hidden="true" />
-              Publish
-            </button>
-          </form>
-        ) : null}
-        {work.status !== "rejected" ? (
-          <form className="admin-feedback-form" action={updateStatus}>
-            <input type="hidden" name="key" value={keyValue} />
-            <input type="hidden" name="id" value={work.id} />
-            <input type="hidden" name="currentStatus" value={activeStatus} />
-            <AdminContextFields filters={filters} />
-            <label>
-              <span>Revision feedback</span>
-              <textarea
-                name="reviewNote"
-                maxLength={600}
-                minLength={12}
-                placeholder="Tell the creator exactly what to fix before resubmitting."
-                required
-                rows={3}
-              />
-            </label>
-            <button className="ghost-button" name="status" value="rejected" type="submit">
-              <X size={17} aria-hidden="true" />
-              Reject
-            </button>
-          </form>
-        ) : null}
-        {work.status !== "hidden" && work.status === "published" ? (
-          <form className="admin-feedback-form" action={updateStatus}>
-            <input type="hidden" name="key" value={keyValue} />
-            <input type="hidden" name="id" value={work.id} />
-            <input type="hidden" name="currentStatus" value={activeStatus} />
-            <AdminContextFields filters={filters} />
-            <label>
-              <span>Hide reason</span>
-              <textarea
-                name="reviewNote"
-                maxLength={600}
-                placeholder="Optional note for why this published work was hidden."
-                rows={3}
-              />
-            </label>
-            <button className="ghost-button" name="status" value="hidden" type="submit">
-              <X size={17} aria-hidden="true" />
-              Hide
-            </button>
-          </form>
-        ) : null}
-        {work.status !== "pending" ? (
-          <form action={updateStatus}>
-            <input type="hidden" name="key" value={keyValue} />
-            <input type="hidden" name="id" value={work.id} />
-            <input type="hidden" name="currentStatus" value={activeStatus} />
-            <AdminContextFields filters={filters} />
-            <button className="ghost-button" name="status" value="pending" type="submit">
-              <RotateCcw size={17} aria-hidden="true" />
-              Move to Pending
-            </button>
-          </form>
-        ) : null}
-      </div>
     </article>
+  );
+}
+
+function AdminStatusActionBar({
+  activeStatus,
+  filters,
+  keyValue,
+  updateStatus,
+  work,
+}: {
+  activeStatus: AdminWorkStatus;
+  filters: AdminFilters;
+  keyValue: string;
+  updateStatus: (formData: FormData) => Promise<void>;
+  work: AdminWork;
+}) {
+  return (
+    <div className="admin-action-bar">
+      {work.status !== "published" ? (
+        <form action={updateStatus}>
+          <input type="hidden" name="key" value={keyValue} />
+          <input type="hidden" name="id" value={work.id} />
+          <input type="hidden" name="currentStatus" value={activeStatus} />
+          <AdminContextFields filters={filters} />
+          <button className="solid-button" name="status" value="published" type="submit">
+            <Check size={17} aria-hidden="true" />
+            Publish
+          </button>
+        </form>
+      ) : null}
+      {work.status !== "rejected" ? (
+        <form className="admin-feedback-form" action={updateStatus}>
+          <input type="hidden" name="key" value={keyValue} />
+          <input type="hidden" name="id" value={work.id} />
+          <input type="hidden" name="currentStatus" value={activeStatus} />
+          <AdminContextFields filters={filters} />
+          <label>
+            <span>Revision feedback</span>
+            <textarea
+              name="reviewNote"
+              maxLength={600}
+              minLength={12}
+              placeholder="Tell the creator exactly what to fix before resubmitting."
+              required
+              rows={3}
+            />
+          </label>
+          <button className="ghost-button" name="status" value="rejected" type="submit">
+            <X size={17} aria-hidden="true" />
+            Reject
+          </button>
+        </form>
+      ) : null}
+      {work.status !== "hidden" && work.status === "published" ? (
+        <form className="admin-feedback-form" action={updateStatus}>
+          <input type="hidden" name="key" value={keyValue} />
+          <input type="hidden" name="id" value={work.id} />
+          <input type="hidden" name="currentStatus" value={activeStatus} />
+          <AdminContextFields filters={filters} />
+          <label>
+            <span>Hide reason</span>
+            <textarea
+              name="reviewNote"
+              maxLength={600}
+              placeholder="Optional note for why this published work was hidden."
+              rows={3}
+            />
+          </label>
+          <button className="ghost-button" name="status" value="hidden" type="submit">
+            <X size={17} aria-hidden="true" />
+            Hide
+          </button>
+        </form>
+      ) : null}
+      {work.status !== "pending" ? (
+        <form action={updateStatus}>
+          <input type="hidden" name="key" value={keyValue} />
+          <input type="hidden" name="id" value={work.id} />
+          <input type="hidden" name="currentStatus" value={activeStatus} />
+          <AdminContextFields filters={filters} />
+          <button className="ghost-button" name="status" value="pending" type="submit">
+            <RotateCcw size={17} aria-hidden="true" />
+            Move to Pending
+          </button>
+        </form>
+      ) : null}
+    </div>
   );
 }
 

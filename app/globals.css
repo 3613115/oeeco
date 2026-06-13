@@ -5466,8 +5466,14 @@ button {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
-  border-top: 1px dashed var(--line);
-  padding-top: 14px;
+  border: 1px solid rgba(12, 122, 85, 0.2);
+  border-radius: 8px;
+  background: rgba(85, 214, 168, 0.08);
+  padding: 12px;
+}
+
+.admin-card-header + .admin-action-bar {
+  margin-top: -4px;
 }
 
 .admin-feedback-note {
