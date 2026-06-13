@@ -3071,6 +3071,10 @@ button {
   border-radius: 8px;
   background: #fff;
   padding: 12px;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
 }
 
 .admin-overview-card span {
@@ -3090,6 +3094,25 @@ button {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.35;
+}
+
+.admin-overview-card em {
+  align-self: end;
+  color: var(--leaf);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.admin-overview-card:hover {
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  transform: translate(-1px, -1px);
+}
+
+.admin-overview-card:focus-visible {
+  outline: 3px solid rgba(53, 119, 240, 0.28);
+  outline-offset: 3px;
 }
 
 .admin-overview-card.is-good {

@@ -60,6 +60,7 @@ type AdminOverviewMetric = {
   value: string;
   helper: string;
   href: string;
+  action: string;
   tone?: "good" | "warning";
 };
 
@@ -541,6 +542,10 @@ function adminUrl(key: string, status: AdminWorkStatus, params: Record<string, s
   return `/admin?${query.toString()}`;
 }
 
+function withAdminAnchor(href: string, anchor = "review-queue") {
+  return `${href}#${anchor}`;
+}
+
 function filterAndSortAdminWorks(works: AdminWork[], filters: AdminFilters) {
   const query = filters.q.toLowerCase();
   const filtered = works.filter((work) => {
@@ -763,51 +768,59 @@ function getAdminOverviewMetrics({
       label: "Total works",
       value: String(totalWorks),
       helper: `${counts.published} live, ${counts.pending} waiting`,
-      href: adminUrl(key, "published"),
+      href: withAdminAnchor(adminUrl(key, "published")),
+      action: "Open published",
     },
     {
       label: "Pending review",
       value: String(counts.pending),
       helper: `${pendingWorks.filter(isReviewReady).length} ready to publish`,
-      href: getQueueHref(key, "ready"),
+      href: withAdminAnchor(getQueueHref(key, "ready")),
+      action: "Review queue",
       tone: counts.pending ? "warning" : "good",
     },
     {
       label: "Published views",
       value: formatAdminNumber(totalViews),
       helper: "Total views across live works",
-      href: adminUrl(key, "published", { sort: "views" }),
+      href: withAdminAnchor(adminUrl(key, "published", { sort: "views" })),
+      action: "Sort by views",
     },
     {
       label: "TRY clicks",
       value: formatAdminNumber(totalTryClicks),
       helper: "Play page opens from published works",
-      href: adminUrl(key, "published", { sort: "views" }),
+      href: withAdminAnchor(adminUrl(key, "published", { sort: "views" })),
+      action: "Inspect plays",
     },
     {
       label: "Demo opens",
       value: formatAdminNumber(totalDemoOpens),
       helper: "External demo launches",
-      href: adminUrl(key, "published", { sort: "views" }),
+      href: withAdminAnchor(adminUrl(key, "published", { sort: "views" })),
+      action: "Inspect demos",
     },
     {
       label: "Shares",
       value: formatAdminNumber(totalShares),
       helper: "Share button uses and copy fallbacks",
-      href: adminUrl(key, "published", { sort: "views" }),
+      href: withAdminAnchor(adminUrl(key, "published", { sort: "views" })),
+      action: "Inspect shares",
     },
     {
       label: "Live issues",
       value: String(liveIssues),
       helper: liveIssues ? "Published works need repair" : "No live health issues",
-      href: getQueueHref(key, "attention"),
+      href: withAdminAnchor(getQueueHref(key, "attention")),
+      action: liveIssues ? "Fix issues" : "Open health",
       tone: liveIssues ? "warning" : "good",
     },
     {
       label: "Latest submit",
       value: newestWork ? newestWork.createdAt : "None",
       helper: newestWork ? newestWork.title : "No submissions yet",
-      href: newestWork ? adminUrl(key, newestWork.status, { q: newestWork.id }) : adminUrl(key, "pending"),
+      href: withAdminAnchor(newestWork ? adminUrl(key, newestWork.status, { q: newestWork.id }) : adminUrl(key, "pending")),
+      action: newestWork ? "Open latest" : "Open pending",
     },
   ];
 }
@@ -2631,6 +2644,7 @@ export default async function AdminPage({
             <span>{metric.label}</span>
             <strong>{metric.value}</strong>
             <small>{metric.helper}</small>
+            <em>{metric.action}</em>
           </Link>
         ))}
       </div>
@@ -3465,7 +3479,7 @@ export default async function AdminPage({
         </div>
       </section>
 
-      <nav className="admin-tabs" aria-label="Review status">
+      <nav className="admin-tabs" id="review-queue" aria-label="Review status">
         {statusOptions.map((status) => (
           <Link
             className={status.id === activeStatus ? "admin-tab is-active" : "admin-tab"}
