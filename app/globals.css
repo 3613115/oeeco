@@ -567,9 +567,16 @@ button {
 
 .dodge-shell {
   display: grid;
-  gap: 16px;
+  gap: 14px;
   width: min(1100px, 100%);
   margin: 0 auto;
+}
+
+.dodge-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 18px;
+  align-items: end;
 }
 
 .dodge-copy {
@@ -593,9 +600,38 @@ button {
   line-height: 1.65;
 }
 
+.dodge-brief {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.dodge-brief > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dodge-brief svg {
+  color: var(--leaf);
+}
+
+.dodge-brief ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 .dodge-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -624,7 +660,7 @@ button {
 
 .dodge-stage {
   position: relative;
-  min-height: min(62vh, 540px);
+  min-height: min(64vh, 560px);
   overflow: hidden;
   border: 1px solid var(--ink);
   border-radius: 8px;
@@ -639,6 +675,39 @@ button {
   height: 100%;
   cursor: pointer;
   touch-action: manipulation;
+}
+
+.dodge-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 46px;
+  padding: 10px 14px;
+  border: 1px solid rgba(24, 32, 29, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.dodge-status svg {
+  color: var(--rose);
+}
+
+.dodge-status strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dodge-status span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.dodge-status.is-playing {
+  border-color: rgba(12, 122, 85, 0.24);
+  background: rgba(85, 214, 168, 0.16);
 }
 
 .dodge-controls {
@@ -5557,6 +5626,10 @@ button {
     width: 100%;
   }
 
+  .dodge-intro {
+    grid-template-columns: 1fr;
+  }
+
   .dodge-copy h1 {
     font-size: 38px;
     line-height: 1;
@@ -5566,9 +5639,21 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .dodge-stats div:last-child {
+    grid-column: 1 / -1;
+  }
+
   .dodge-stage {
     min-height: 360px;
     aspect-ratio: 4 / 5;
+  }
+
+  .dodge-status {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .dodge-status span {
+    grid-column: 2;
   }
 
   .dodge-controls {

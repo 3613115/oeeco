@@ -3,7 +3,8 @@ import { OneButtonDodgeGame } from "@/components/OneButtonDodgeGame";
 
 export const metadata: Metadata = {
   title: "One Button Dodge",
-  description: "A 30-second one-button reflex game where players switch lanes, dodge blocks, and chase a better score.",
+  description:
+    "A polished 30-second one-button reflex game with lane switching, combo scoring, near-dodge bonuses, and arcade feedback.",
   alternates: {
     canonical: "/demos/one-button-dodge",
   },
