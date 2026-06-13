@@ -565,6 +565,95 @@ button {
   background: rgba(244, 93, 143, 0.08);
 }
 
+.dodge-shell {
+  display: grid;
+  gap: 16px;
+  width: min(1100px, 100%);
+  margin: 0 auto;
+}
+
+.dodge-copy {
+  display: grid;
+  gap: 10px;
+  max-width: 760px;
+}
+
+.dodge-copy h1 {
+  margin: 0;
+  font-size: clamp(42px, 7vw, 82px);
+  line-height: 0.94;
+  letter-spacing: 0;
+}
+
+.dodge-copy p {
+  max-width: 640px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.dodge-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dodge-stats div {
+  display: grid;
+  gap: 4px;
+  min-height: 78px;
+  align-content: center;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.dodge-stats span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.dodge-stats strong {
+  font-size: clamp(22px, 4vw, 34px);
+  line-height: 1;
+}
+
+.dodge-stage {
+  position: relative;
+  min-height: min(62vh, 540px);
+  overflow: hidden;
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  aspect-ratio: 16 / 9;
+}
+
+.dodge-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.dodge-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.dodge-controls span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 760;
+}
+
 .metric-strip {
   flex-wrap: wrap;
   gap: 14px;
@@ -5465,6 +5554,30 @@ button {
   }
 
   .runner-entry-summary .solid-button {
+    width: 100%;
+  }
+
+  .dodge-copy h1 {
+    font-size: 38px;
+    line-height: 1;
+  }
+
+  .dodge-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dodge-stage {
+    min-height: 360px;
+    aspect-ratio: 4 / 5;
+  }
+
+  .dodge-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dodge-controls .solid-button,
+  .dodge-controls .ghost-button {
     width: 100%;
   }
 
