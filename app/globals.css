@@ -1614,7 +1614,36 @@ button {
 }
 
 .share-button {
+  position: relative;
   color: var(--blue);
+}
+
+.share-button-status {
+  position: absolute;
+  right: -8px;
+  bottom: calc(100% + 7px);
+  width: max-content;
+  max-width: 132px;
+  transform: translateY(4px);
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: var(--ink);
+  padding: 5px 8px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+  z-index: 3;
+}
+
+.share-button-status.is-visible {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .creator-line {
