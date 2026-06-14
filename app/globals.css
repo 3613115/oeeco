@@ -1608,6 +1608,276 @@ button {
   font-weight: 850;
 }
 
+.idea-machine-shell {
+  display: grid;
+  gap: 16px;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.idea-machine-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 300px);
+  gap: 18px;
+  align-items: end;
+}
+
+.idea-machine-copy {
+  display: grid;
+  gap: 10px;
+  max-width: 780px;
+}
+
+.idea-machine-copy h1 {
+  margin: 0;
+  font-size: clamp(42px, 7vw, 82px);
+  line-height: 0.94;
+  letter-spacing: 0;
+}
+
+.idea-machine-copy p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.idea-machine-meter {
+  display: grid;
+  gap: 8px;
+  min-height: 146px;
+  align-content: center;
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  background: #101819;
+  padding: 16px;
+  color: #fff;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.idea-machine-meter span,
+.idea-machine-meter small,
+.idea-field span,
+.idea-option-group > span,
+.idea-machine-results-heading small,
+.idea-mutation-detail span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.idea-machine-meter span {
+  color: #55d6a8;
+}
+
+.idea-machine-meter strong {
+  color: #fff;
+  font-size: 46px;
+  line-height: 1;
+}
+
+.idea-machine-meter small {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.idea-machine-meter > div {
+  overflow: hidden;
+  height: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.idea-machine-meter i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f45d8f, #f4b43f, #55d6a8);
+}
+
+.idea-machine-workbench {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(0, 1.18fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.idea-machine-controls,
+.idea-machine-results {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.idea-field,
+.idea-option-group {
+  display: grid;
+  gap: 8px;
+}
+
+.idea-field textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 12px;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 760;
+  line-height: 1.45;
+}
+
+.idea-option-group > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.idea-option-group button {
+  display: grid;
+  gap: 4px;
+  min-height: 78px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+  color: var(--ink);
+  text-align: left;
+}
+
+.idea-option-group button:hover,
+.idea-option-group button.is-active {
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.idea-option-group strong {
+  font-size: 14px;
+}
+
+.idea-option-group small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 720;
+  line-height: 1.35;
+}
+
+.idea-machine-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.idea-machine-results-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+.idea-machine-results-heading h2 {
+  margin: 5px 0 0;
+  font-size: clamp(24px, 4vw, 38px);
+  line-height: 1;
+}
+
+.idea-machine-results-heading small {
+  max-width: 190px;
+  text-align: right;
+  line-height: 1.35;
+}
+
+.idea-mutation-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.idea-mutation-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(85, 214, 168, 0.1), rgba(53, 119, 240, 0.08)),
+    #fff;
+  padding: 14px;
+}
+
+.idea-mutation-card:hover {
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.idea-mutation-card-heading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.idea-mutation-card-heading span {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.idea-mutation-card-heading strong {
+  font-size: 19px;
+  line-height: 1.1;
+}
+
+.idea-mutation-card p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 760;
+  line-height: 1.45;
+}
+
+.idea-mutation-detail {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(24, 32, 29, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+  padding: 10px;
+}
+
+.idea-mutation-detail strong {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.idea-mutation-signal {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgba(244, 180, 63, 0.6);
+  border-radius: 8px;
+  background: #fff7e8;
+  padding: 10px;
+  color: #6b4a08;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.idea-mutation-card .ghost-button {
+  justify-self: end;
+}
+
 .metric-strip {
   flex-wrap: wrap;
   gap: 14px;
@@ -6421,6 +6691,10 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .idea-machine-workbench {
+    grid-template-columns: 1fr;
+  }
+
   .admin-launch-layout,
   .admin-cadence-layout,
   .admin-learning-layout,
@@ -6744,6 +7018,40 @@ button {
 
   .launch-checklist-actions .solid-button,
   .launch-checklist-actions .ghost-button {
+    width: 100%;
+  }
+
+  .idea-machine-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .idea-machine-copy h1 {
+    font-size: 38px;
+    line-height: 1;
+  }
+
+  .idea-machine-meter {
+    min-height: auto;
+  }
+
+  .idea-option-group > div {
+    grid-template-columns: 1fr;
+  }
+
+  .idea-machine-results-heading,
+  .idea-machine-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .idea-machine-results-heading small {
+    max-width: none;
+    text-align: left;
+  }
+
+  .idea-machine-actions .solid-button,
+  .idea-machine-actions .ghost-button,
+  .idea-mutation-card .ghost-button {
     width: 100%;
   }
 
