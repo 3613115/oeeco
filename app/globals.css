@@ -1315,6 +1315,299 @@ button {
   backdrop-filter: blur(10px);
 }
 
+.launch-checklist-shell {
+  display: grid;
+  gap: 16px;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.launch-checklist-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 300px);
+  gap: 18px;
+  align-items: end;
+}
+
+.launch-checklist-copy {
+  display: grid;
+  gap: 10px;
+  max-width: 760px;
+}
+
+.launch-checklist-copy h1 {
+  margin: 0;
+  font-size: clamp(42px, 7vw, 82px);
+  line-height: 0.94;
+  letter-spacing: 0;
+}
+
+.launch-checklist-copy p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.launch-score-card {
+  display: grid;
+  gap: 8px;
+  min-height: 146px;
+  align-content: center;
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  background: #fff;
+  padding: 16px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.launch-score-card span,
+.launch-checklist-group-heading span,
+.launch-checklist-group-heading small,
+.launch-share-field span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.launch-score-card strong {
+  color: var(--ink);
+  font-size: 46px;
+  line-height: 1;
+}
+
+.launch-score-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+.launch-score-card > div {
+  overflow: hidden;
+  height: 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #eef2ec;
+}
+
+.launch-score-card i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f4b43f, #55d6a8, #3577f0);
+}
+
+.launch-score-card.is-low i {
+  background: linear-gradient(90deg, #f45d8f, #f4b43f);
+}
+
+.launch-score-card.is-ready i {
+  background: linear-gradient(90deg, #55d6a8, #3577f0);
+}
+
+.launch-checklist-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.launch-checklist-panel,
+.launch-checklist-results {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.launch-checklist-group {
+  display: grid;
+  gap: 8px;
+}
+
+.launch-checklist-group-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.launch-checklist-items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.launch-check-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 9px;
+  min-height: 104px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 11px;
+  color: var(--ink);
+  text-align: left;
+}
+
+.launch-check-item:hover,
+.launch-check-item.is-checked {
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.launch-check-item.is-checked {
+  background: #eafaf3;
+}
+
+.launch-check-item > span {
+  grid-row: 1 / span 2;
+  color: var(--green);
+}
+
+.launch-check-item strong {
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.launch-check-item small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 720;
+  line-height: 1.35;
+}
+
+.launch-result-block {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  background: #101819;
+  padding: 15px;
+  color: #fff;
+}
+
+.launch-result-block h2 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.05;
+}
+
+.launch-result-block p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  font-weight: 720;
+  line-height: 1.45;
+}
+
+.launch-gap-list,
+.launch-share-field {
+  display: grid;
+  gap: 8px;
+}
+
+.launch-gap-heading {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--ink);
+}
+
+.launch-gap {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff7e8;
+  padding: 10px;
+  color: var(--ink);
+  text-align: left;
+}
+
+.launch-gap span {
+  color: #8a5c00;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.launch-gap strong {
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.launch-clear-state {
+  margin: 0;
+  border: 1px solid rgba(85, 214, 168, 0.5);
+  border-radius: 8px;
+  background: #eafaf3;
+  padding: 12px;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.launch-share-field textarea,
+.launch-note-preview {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.launch-share-field textarea {
+  resize: vertical;
+  padding: 11px;
+  font-weight: 760;
+  line-height: 1.45;
+}
+
+.launch-note-preview {
+  min-height: 142px;
+  margin: 0;
+  overflow: auto;
+  padding: 12px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.launch-checklist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.launch-mini-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.launch-mini-metrics div {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f9faf7;
+  padding: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
 .metric-strip {
   flex-wrap: wrap;
   gap: 14px;
@@ -6124,6 +6417,10 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .launch-checklist-workbench {
+    grid-template-columns: 1fr;
+  }
+
   .admin-launch-layout,
   .admin-cadence-layout,
   .admin-learning-layout,
@@ -6419,6 +6716,34 @@ button {
 
   .neon-poster-actions .solid-button,
   .neon-poster-actions .ghost-button {
+    width: 100%;
+  }
+
+  .launch-checklist-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .launch-checklist-copy h1 {
+    font-size: 38px;
+    line-height: 1;
+  }
+
+  .launch-score-card {
+    min-height: auto;
+  }
+
+  .launch-checklist-items,
+  .launch-mini-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .launch-checklist-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .launch-checklist-actions .solid-button,
+  .launch-checklist-actions .ghost-button {
     width: 100%;
   }
 
