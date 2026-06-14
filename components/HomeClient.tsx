@@ -104,11 +104,6 @@ export function HomeClient({
             </button>
           ))}
         </div>
-        <div className="sidebar-status">
-          <span>Collection</span>
-          <strong>{initialWorks.length}/20</strong>
-          <p>Building the first public batch.</p>
-        </div>
       </aside>
 
       <div>
