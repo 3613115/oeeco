@@ -7237,3 +7237,810 @@ button {
     min-height: auto;
   }
 }
+
+/* EVO//COLONY */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.evo-shell {
+  --evo-ink: #dffdf2;
+  --evo-muted: #89a79d;
+  --evo-line: rgba(127, 255, 207, 0.16);
+  --evo-panel: #081411;
+  --evo-panel-2: #0b1b17;
+  --evo-accent: #6cf5c2;
+  --evo-violet: #9e7bff;
+  width: min(1740px, calc(100vw - 32px));
+  margin-left: 50%;
+  overflow: hidden;
+  transform: translateX(-50%);
+  border: 1px solid rgba(112, 245, 195, 0.22);
+  border-radius: 8px;
+  background: #050d0b;
+  color: var(--evo-ink);
+  box-shadow: 0 28px 80px rgba(3, 12, 9, 0.26);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.evo-shell button {
+  color: inherit;
+}
+
+.evo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 118px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--evo-line);
+  background:
+    linear-gradient(90deg, rgba(108, 245, 194, 0.08), transparent 36%),
+    #07110f;
+}
+
+.evo-brand-block {
+  min-width: 0;
+}
+
+.evo-kicker,
+.evo-livebar > div,
+.evo-panel-heading,
+.evo-seed span,
+.evo-organism-title small,
+.evo-trait-callout small {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.evo-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--evo-accent);
+  font: 760 11px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.evo-brand-block h1 {
+  margin: 5px 0 3px;
+  color: #f5fffb;
+  font: 900 clamp(34px, 4vw, 58px)/0.9 ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+.evo-brand-block h1 span {
+  color: var(--evo-accent);
+}
+
+.evo-brand-block p {
+  margin: 10px 0 0;
+  color: var(--evo-muted);
+  font-size: 14px;
+}
+
+.evo-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.evo-seed {
+  display: grid;
+  gap: 2px;
+  min-width: 136px;
+  min-height: 54px;
+  padding: 9px 12px;
+  border: 1px solid var(--evo-line);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.evo-seed span {
+  color: var(--evo-muted);
+  font: 700 9px/1.2 ui-monospace, monospace;
+}
+
+.evo-seed strong {
+  font: 800 18px/1.2 ui-monospace, monospace;
+}
+
+.evo-icon-button {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border: 1px solid var(--evo-line);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.evo-icon-button:hover,
+.evo-controls button:hover,
+.evo-interventions button:hover {
+  border-color: rgba(108, 245, 194, 0.56);
+  background: rgba(108, 245, 194, 0.1);
+}
+
+.evo-livebar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1.5fr;
+  min-height: 36px;
+  border-bottom: 1px solid var(--evo-line);
+  background: #06100d;
+}
+
+.evo-livebar > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 0 14px;
+  border-right: 1px solid var(--evo-line);
+  color: var(--evo-muted);
+  font: 700 9px/1 ui-monospace, monospace;
+}
+
+.evo-livebar > div:last-child {
+  justify-content: flex-end;
+  border-right: 0;
+}
+
+.evo-livebar > div:first-child {
+  color: var(--evo-accent);
+}
+
+.evo-live-dot,
+.evo-system-status i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--evo-accent);
+  box-shadow: 0 0 10px var(--evo-accent);
+  animation: evo-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes evo-pulse {
+  50% { opacity: 0.38; transform: scale(0.72); }
+}
+
+.evo-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 270px) minmax(500px, 1fr) minmax(240px, 290px);
+  min-height: 690px;
+}
+
+.evo-sidebar {
+  min-width: 0;
+  background: var(--evo-panel);
+}
+
+.evo-sidebar-left {
+  border-right: 1px solid var(--evo-line);
+  padding: 17px;
+}
+
+.evo-sidebar-right {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--evo-line);
+  padding: 17px;
+}
+
+.evo-panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--evo-accent);
+  font: 750 10px/1.2 ui-monospace, monospace;
+}
+
+.evo-primary-stat {
+  display: grid;
+  margin: 18px 0 13px;
+}
+
+.evo-primary-stat > span,
+.evo-primary-stat small,
+.evo-stat-grid span,
+.evo-organism-vitals span {
+  color: var(--evo-muted);
+  font-size: 11px;
+}
+
+.evo-primary-stat strong {
+  margin: 3px 0;
+  color: #f4fffb;
+  font: 850 48px/0.95 ui-monospace, monospace;
+}
+
+.evo-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--evo-line);
+  border-left: 1px solid var(--evo-line);
+}
+
+.evo-stat-grid > div {
+  display: grid;
+  gap: 4px;
+  min-height: 62px;
+  padding: 10px;
+  border-right: 1px solid var(--evo-line);
+  border-bottom: 1px solid var(--evo-line);
+}
+
+.evo-stat-grid strong,
+.evo-organism-vitals strong {
+  color: #f5fffb;
+  font: 800 17px/1.1 ui-monospace, monospace;
+}
+
+.evo-chart-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 22px 0 8px;
+  color: var(--evo-muted);
+  font-size: 10px;
+}
+
+.evo-chart-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.evo-chart-heading i {
+  width: 13px;
+  height: 2px;
+  background: var(--evo-accent);
+}
+
+.evo-chart-heading i:nth-child(2) {
+  margin-left: 6px;
+  background: var(--evo-violet);
+}
+
+.evo-chart {
+  display: block;
+  width: 100%;
+  height: 112px;
+  overflow: visible;
+  border-bottom: 1px solid var(--evo-line);
+}
+
+.evo-chart line {
+  stroke: rgba(127, 255, 207, 0.08);
+}
+
+.evo-chart path {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.evo-chart-population {
+  stroke: var(--evo-accent);
+  stroke-width: 2;
+}
+
+.evo-chart-food {
+  stroke: var(--evo-violet);
+  stroke-width: 1.4;
+  opacity: 0.78;
+}
+
+.evo-climate {
+  display: grid;
+  gap: 13px;
+  margin-top: 22px;
+}
+
+.evo-gene {
+  display: grid;
+  gap: 6px;
+}
+
+.evo-gene > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--evo-muted);
+  font-size: 10px;
+}
+
+.evo-gene > div:first-child strong {
+  color: var(--evo-ink);
+  font: 700 10px/1 ui-monospace, monospace;
+}
+
+.evo-gene-track {
+  height: 3px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.evo-gene-track span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #20bc87, var(--evo-accent));
+  box-shadow: 0 0 8px rgba(108, 245, 194, 0.62);
+}
+
+.evo-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 690px;
+  overflow: hidden;
+  background: #030908;
+  isolation: isolate;
+}
+
+.evo-stage canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.evo-stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.008) 0, rgba(255,255,255,0.008) 1px, transparent 1px, transparent 4px);
+  content: "";
+}
+
+.evo-stage-corners {
+  position: absolute;
+  inset: 14px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.evo-stage-corners i {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: rgba(108, 245, 194, 0.45);
+  border-style: solid;
+}
+
+.evo-stage-corners i:nth-child(1) { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.evo-stage-corners i:nth-child(2) { top: 0; right: 0; border-width: 1px 1px 0 0; }
+.evo-stage-corners i:nth-child(3) { right: 0; bottom: 0; border-width: 0 1px 1px 0; }
+.evo-stage-corners i:nth-child(4) { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+
+.evo-stage-scale,
+.evo-stage-hint {
+  position: absolute;
+  z-index: 4;
+  bottom: 18px;
+  color: rgba(223, 253, 242, 0.58);
+  font: 650 9px/1 ui-monospace, monospace;
+  pointer-events: none;
+}
+
+.evo-stage-scale {
+  left: 24px;
+}
+
+.evo-stage-scale span {
+  display: inline-block;
+  width: 58px;
+  margin-right: 7px;
+  border-top: 1px solid rgba(223, 253, 242, 0.62);
+  vertical-align: middle;
+}
+
+.evo-stage-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  right: 24px;
+}
+
+.evo-inspector {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.evo-organism-title {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--evo-line);
+}
+
+.evo-organism-title > span {
+  width: 26px;
+  height: 12px;
+  clip-path: polygon(100% 50%, 0 100%, 24% 50%, 0 0);
+}
+
+.evo-organism-title > div {
+  display: grid;
+}
+
+.evo-organism-title small {
+  color: var(--evo-muted);
+  font: 700 8px/1 ui-monospace, monospace;
+}
+
+.evo-organism-title strong {
+  font: 800 18px/1.2 ui-monospace, monospace;
+}
+
+.evo-organism-title b {
+  border: 1px solid rgba(108, 245, 194, 0.3);
+  border-radius: 4px;
+  padding: 4px 6px;
+  color: var(--evo-accent);
+  font: 750 10px/1 ui-monospace, monospace;
+}
+
+.evo-organism-vitals {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.evo-organism-vitals > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 4px;
+  border: 1px solid var(--evo-line);
+  text-align: center;
+}
+
+.evo-organism-vitals span {
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+}
+
+.evo-organism-vitals strong {
+  font-size: 13px;
+}
+
+.evo-genome-list {
+  display: grid;
+  gap: 12px;
+}
+
+.evo-trait-callout {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(108, 245, 194, 0.22);
+  border-radius: 5px;
+  background: rgba(108, 245, 194, 0.06);
+  padding: 10px;
+  color: var(--evo-accent);
+}
+
+.evo-trait-callout.is-danger {
+  border-color: rgba(255, 94, 112, 0.32);
+  background: rgba(255, 94, 112, 0.08);
+  color: #ff7182;
+}
+
+.evo-trait-callout > div {
+  display: grid;
+  gap: 2px;
+}
+
+.evo-trait-callout small {
+  color: var(--evo-muted);
+  font: 650 8px/1 ui-monospace, monospace;
+}
+
+.evo-trait-callout strong {
+  color: var(--evo-ink);
+  font-size: 11px;
+}
+
+.evo-empty-inspector {
+  display: grid;
+  place-items: center;
+  min-height: 278px;
+  padding: 24px 8px;
+  text-align: center;
+}
+
+.evo-empty-inspector > div {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 14px;
+  place-items: center;
+  border: 1px solid var(--evo-line);
+  border-radius: 50%;
+  color: var(--evo-accent);
+  background: rgba(108, 245, 194, 0.04);
+}
+
+.evo-empty-inspector strong {
+  font-size: 14px;
+}
+
+.evo-empty-inspector p {
+  margin: 7px 0 0;
+  color: var(--evo-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.evo-interventions {
+  display: grid;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid var(--evo-line);
+}
+
+.evo-interventions .evo-panel-heading {
+  margin-bottom: 5px;
+}
+
+.evo-interventions button {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-height: 45px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 7px 8px;
+  text-align: left;
+}
+
+.evo-interventions button > svg:first-child {
+  color: var(--evo-accent);
+}
+
+.evo-interventions button > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.evo-interventions button strong {
+  font-size: 11px;
+}
+
+.evo-interventions button small {
+  overflow: hidden;
+  color: var(--evo-muted);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evo-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 58px;
+  padding: 9px 16px;
+  border-top: 1px solid var(--evo-line);
+  background: #07110f;
+}
+
+.evo-control-group,
+.evo-system-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.evo-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  border: 1px solid var(--evo-line);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 0 13px;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.evo-controls .evo-control-primary {
+  border-color: var(--evo-accent);
+  background: var(--evo-accent);
+  color: #04100c;
+}
+
+.evo-controls .evo-control-primary:hover {
+  background: #8dffd5;
+}
+
+.evo-system-status {
+  color: var(--evo-muted);
+  font: 650 9px/1 ui-monospace, monospace;
+}
+
+.evo-system-status span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 1180px) {
+  .evo-layout {
+    grid-template-columns: 210px minmax(430px, 1fr) 240px;
+  }
+
+  .evo-shell {
+    width: calc(100vw - 22px);
+  }
+}
+
+@media (max-width: 900px) {
+  .evo-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  }
+
+  .evo-stage {
+    min-height: 620px;
+  }
+
+  .evo-sidebar-left {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: 170px 220px minmax(200px, 1fr);
+    gap: 18px;
+    border-top: 1px solid var(--evo-line);
+    border-right: 0;
+  }
+
+  .evo-sidebar-left > .evo-panel-heading {
+    display: none;
+  }
+
+  .evo-primary-stat,
+  .evo-chart-heading,
+  .evo-climate {
+    margin: 0;
+  }
+
+  .evo-chart-heading {
+    display: none;
+  }
+
+  .evo-chart {
+    height: 108px;
+  }
+
+  .evo-climate {
+    align-content: start;
+  }
+
+  .evo-livebar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .evo-livebar > div:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .evo-shell {
+    width: calc(100vw - 14px);
+  }
+
+  .evo-header {
+    align-items: flex-start;
+    flex-direction: column;
+    min-height: 0;
+    padding: 18px;
+  }
+
+  .evo-brand-block h1 {
+    font-size: 38px;
+  }
+
+  .evo-header-actions {
+    width: 100%;
+  }
+
+  .evo-seed {
+    flex: 1;
+  }
+
+  .evo-livebar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .evo-livebar > div:nth-child(3) {
+    display: none;
+  }
+
+  .evo-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .evo-stage {
+    order: 1;
+    min-height: 68vh;
+    max-height: 680px;
+  }
+
+  .evo-sidebar-left {
+    order: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .evo-chart {
+    grid-column: 1 / -1;
+  }
+
+  .evo-climate {
+    grid-column: 1 / -1;
+  }
+
+  .evo-sidebar-right {
+    order: 3;
+    min-height: 560px;
+    border-top: 1px solid var(--evo-line);
+    border-left: 0;
+  }
+
+  .evo-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .evo-control-group {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+  }
+
+  .evo-system-status {
+    justify-content: space-between;
+  }
+
+  .evo-system-status span:first-child {
+    display: none;
+  }
+
+  .evo-stage-hint {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evo-live-dot,
+  .evo-system-status i {
+    animation: none;
+  }
+}
