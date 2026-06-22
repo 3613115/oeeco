@@ -11,6 +11,7 @@
   "dependencies": {
     "@supabase/supabase-js": "latest",
     "lucide-react": "latest",
+    "matter-js": "^0.20.0",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest"
@@ -19,6 +20,7 @@
     "postcss": "^8.5.10"
   },
   "devDependencies": {
+    "@types/matter-js": "^0.20.2",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
