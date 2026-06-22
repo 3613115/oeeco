@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Anchor,
   AlertTriangle,
   ArrowDown,
   ArrowLeft,
@@ -19,8 +20,9 @@ import Matter from "matter-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type FlightStatus = "ready" | "flying" | "disabled";
-type ControlKey = "thrust" | "left" | "right" | "brake" | "boost";
+type ControlKey = "thrust" | "left" | "right" | "brake" | "boost" | "reel";
 type DebrisKind = "panel" | "crate" | "hull" | "core";
+type GrappleStatus = "scanning" | "locked" | "latched" | "broken";
 
 type FlightTelemetry = {
   speed: number;
@@ -30,6 +32,11 @@ type FlightTelemetry = {
   distance: number;
   collisions: number;
   status: FlightStatus;
+  grappleStatus: GrappleStatus;
+  grappleRange: number;
+  grappleTension: number;
+  cargoMass: number;
+  cargoValue: number;
 };
 
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; size: number; color: string };
@@ -53,6 +60,11 @@ const initialTelemetry: FlightTelemetry = {
   distance: 1740,
   collisions: 0,
   status: "ready",
+  grappleStatus: "scanning",
+  grappleRange: 0,
+  grappleTension: 0,
+  cargoMass: 0,
+  cargoValue: 0,
 };
 
 function seededRandom(seed: number) {
@@ -94,9 +106,15 @@ export function OrbitalSalvage() {
   const engineRef = useRef<Matter.Engine | null>(null);
   const shipRef = useRef<Matter.Body | null>(null);
   const debrisRef = useRef<DebrisBody[]>([]);
+  const grappleConstraintRef = useRef<Matter.Constraint | null>(null);
+  const grappleTargetRef = useRef<DebrisBody | null>(null);
+  const lockTargetRef = useRef<DebrisBody | null>(null);
+  const grappleStatusRef = useRef<GrappleStatus>("scanning");
+  const grappleTensionRef = useRef(0);
+  const grappleCooldownRef = useRef(0);
   const starsRef = useRef<Star[]>([]);
   const particlesRef = useRef<Particle[]>([]);
-  const controlsRef = useRef<Record<ControlKey, boolean>>({ thrust: false, left: false, right: false, brake: false, boost: false });
+  const controlsRef = useRef<Record<ControlKey, boolean>>({ thrust: false, left: false, right: false, brake: false, boost: false, reel: false });
   const cameraRef = useRef({ x: START_X, y: START_Y, shake: 0 });
   const frameRef = useRef<number | null>(null);
   const lastFrameRef = useRef(0);
@@ -125,6 +143,11 @@ export function OrbitalSalvage() {
     engine.positionIterations = 8;
     engine.velocityIterations = 6;
     engineRef.current = engine;
+    grappleConstraintRef.current = null;
+    grappleTargetRef.current = null;
+    lockTargetRef.current = null;
+    grappleStatusRef.current = "scanning";
+    grappleTensionRef.current = 0;
     const { Bodies, Body, Composite } = Matter;
 
     const ship = Bodies.polygon(START_X, START_Y, 3, 30, {
@@ -161,8 +184,12 @@ export function OrbitalSalvage() {
       const height = kind === "panel" ? 12 + random() * 10 : kind === "hull" ? 35 + random() * 30 : width * (0.72 + random() * 0.2);
       const angle = random() * Math.PI * 2;
       const orbitRadius = 360 + random() * 920;
-      const x = clamp(STATION_X + Math.cos(angle) * orbitRadius, 220, WORLD_WIDTH - 220);
-      const y = clamp(STATION_Y + Math.sin(angle) * orbitRadius * 0.62, 180, WORLD_HEIGHT - 180);
+      let x = clamp(STATION_X + Math.cos(angle) * orbitRadius, 220, WORLD_WIDTH - 220);
+      let y = clamp(STATION_Y + Math.sin(angle) * orbitRadius * 0.62, 180, WORLD_HEIGHT - 180);
+      if (index === 0) {
+        x = START_X;
+        y = START_Y - 270;
+      }
       const body = Bodies.rectangle(x, y, width, height, {
         friction: 0.01,
         frictionAir: 0.0008,
@@ -204,6 +231,65 @@ export function OrbitalSalvage() {
     });
   }, []);
 
+  const releaseGrapple = useCallback((reason: "manual" | "broken" = "manual") => {
+    const engine = engineRef.current;
+    const constraint = grappleConstraintRef.current;
+    if (engine && constraint) Matter.Composite.remove(engine.world, constraint);
+    grappleConstraintRef.current = null;
+    grappleTargetRef.current = null;
+    grappleTensionRef.current = 0;
+    grappleStatusRef.current = reason === "broken" ? "broken" : lockTargetRef.current ? "locked" : "scanning";
+    grappleCooldownRef.current = performance.now() + (reason === "broken" ? 950 : 240);
+    setMessage(reason === "broken" ? "Tether overload - line severed" : "Grapple released");
+  }, []);
+
+  const toggleGrapple = useCallback(() => {
+    if (grappleConstraintRef.current) {
+      releaseGrapple("manual");
+      return;
+    }
+    const engine = engineRef.current;
+    const ship = shipRef.current;
+    const target = lockTargetRef.current;
+    if (!engine || !ship || !target || performance.now() < grappleCooldownRef.current) {
+      setMessage("No salvage target in firing cone");
+      return;
+    }
+    const range = Math.hypot(target.position.x - ship.position.x, target.position.y - ship.position.y);
+    if (range > 540) {
+      setMessage("Target outside grapple range");
+      return;
+    }
+    const constraint = Matter.Constraint.create({
+      bodyA: ship,
+      pointA: { x: 22, y: 0 },
+      bodyB: target,
+      length: Math.max(80, range),
+      stiffness: 0.025,
+      damping: 0.12,
+      label: "salvage-grapple",
+    });
+    Matter.Composite.add(engine.world, constraint);
+    grappleConstraintRef.current = constraint;
+    grappleTargetRef.current = target;
+    grappleStatusRef.current = "latched";
+    grappleTensionRef.current = 0;
+    statusRef.current = "flying";
+    setMessage(`Grapple latched - ${target.plugin.orbitalKind || "salvage"} secured`);
+    const angle = Math.atan2(target.position.y - ship.position.y, target.position.x - ship.position.x);
+    for (let index = 0; index < 18; index += 1) {
+      particlesRef.current.push({
+        x: target.position.x + (Math.random() - 0.5) * 16,
+        y: target.position.y + (Math.random() - 0.5) * 16,
+        vx: Math.cos(angle + Math.PI + (Math.random() - 0.5)) * (0.5 + Math.random() * 2),
+        vy: Math.sin(angle + Math.PI + (Math.random() - 0.5)) * (0.5 + Math.random() * 2),
+        life: 1,
+        size: 1.5 + Math.random() * 2.5,
+        color: "#ffd56a",
+      });
+    }
+  }, [releaseGrapple]);
+
   const resetFlight = useCallback(() => {
     if (engineRef.current) {
       Matter.Events.off(engineRef.current, "collisionStart");
@@ -211,12 +297,17 @@ export function OrbitalSalvage() {
       Matter.Engine.clear(engineRef.current);
     }
     particlesRef.current = [];
+    grappleConstraintRef.current = null;
+    grappleTargetRef.current = null;
+    lockTargetRef.current = null;
+    grappleStatusRef.current = "scanning";
+    grappleTensionRef.current = 0;
     hullRef.current = MAX_HULL;
     fuelRef.current = MAX_FUEL;
     collisionsRef.current = 0;
     statusRef.current = "ready";
     cameraRef.current = { x: START_X, y: START_Y, shake: 0 };
-    controlsRef.current = { thrust: false, left: false, right: false, brake: false, boost: false };
+    controlsRef.current = { thrust: false, left: false, right: false, brake: false, boost: false, reel: false };
     setTelemetry(initialTelemetry);
     setMessage("Flight systems armed");
     createWorld();
@@ -268,6 +359,28 @@ export function OrbitalSalvage() {
     const delta = lastFrameRef.current ? Math.min(34, now - lastFrameRef.current) : 16.67;
     lastFrameRef.current = now;
 
+    if (!grappleConstraintRef.current) {
+      let nextTarget: DebrisBody | null = null;
+      let bestScore = Number.POSITIVE_INFINITY;
+      const forwardX = Math.cos(ship.angle);
+      const forwardY = Math.sin(ship.angle);
+      for (const candidate of debrisRef.current) {
+        const dx = candidate.position.x - ship.position.x;
+        const dy = candidate.position.y - ship.position.y;
+        const range = Math.hypot(dx, dy);
+        if (range > 540 || range < 42) continue;
+        const alignment = (dx * forwardX + dy * forwardY) / Math.max(1, range);
+        if (alignment < 0.55) continue;
+        const score = range + (1 - alignment) * 420;
+        if (score < bestScore) {
+          bestScore = score;
+          nextTarget = candidate;
+        }
+      }
+      lockTargetRef.current = nextTarget;
+      if (now >= grappleCooldownRef.current) grappleStatusRef.current = nextTarget ? "locked" : "scanning";
+    }
+
     if (statusRef.current !== "disabled") {
       const controls = controlsRef.current;
       const boost = controls.boost && controls.thrust && fuelRef.current > 0;
@@ -285,6 +398,21 @@ export function OrbitalSalvage() {
         Matter.Body.setVelocity(ship, { x: ship.velocity.x * 0.965, y: ship.velocity.y * 0.965 });
         Matter.Body.setAngularVelocity(ship, ship.angularVelocity * 0.88);
         fuelRef.current = clamp(fuelRef.current - 0.004 * delta, 0, MAX_FUEL);
+      }
+      const grapple = grappleConstraintRef.current;
+      const cargo = grappleTargetRef.current;
+      if (grapple && cargo) {
+        if (controls.reel && fuelRef.current > 0) {
+          grapple.length = Math.max(72, grapple.length - 0.09 * delta);
+          fuelRef.current = clamp(fuelRef.current - 0.0055 * delta, 0, MAX_FUEL);
+        }
+        const anchorX = ship.position.x + Math.cos(ship.angle) * 22;
+        const anchorY = ship.position.y + Math.sin(ship.angle) * 22;
+        const cableDistance = Math.hypot(cargo.position.x - anchorX, cargo.position.y - anchorY);
+        const relativeSpeed = Math.hypot(cargo.velocity.x - ship.velocity.x, cargo.velocity.y - ship.velocity.y);
+        const stretch = Math.max(0, cableDistance - grapple.length);
+        grappleTensionRef.current = clamp(stretch * 2.1 + relativeSpeed * 5.5 + cargo.mass * 2.4, 0, 100);
+        if (grappleTensionRef.current > 97 && stretch > 12) releaseGrapple("broken");
       }
       const maxSpeed = boost ? 15 : 10.5;
       if (ship.speed > maxSpeed) Matter.Body.setSpeed(ship, maxSpeed);
@@ -400,6 +528,56 @@ export function OrbitalSalvage() {
         context.fill();
       }
       context.restore();
+      if (lockTargetRef.current === body && !grappleConstraintRef.current) {
+        const bracket = Math.max(25, Math.max(boundsWidth, boundsHeight) * 0.72);
+        context.save();
+        context.translate(point.x, point.y);
+        context.strokeStyle = "rgba(255, 213, 106, 0.95)";
+        context.lineWidth = 1.4;
+        context.setLineDash([5, 5]);
+        context.beginPath();
+        context.arc(0, 0, bracket, 0, Math.PI * 2);
+        context.stroke();
+        context.setLineDash([]);
+        context.fillStyle = "#ffd56a";
+        context.font = "700 9px ui-monospace, monospace";
+        context.fillText("GRAPPLE LOCK", bracket + 7, -6);
+        context.fillStyle = "rgba(232,244,255,0.68)";
+        context.fillText(`${Math.round(Math.hypot(body.position.x - ship.position.x, body.position.y - ship.position.y))}m`, bracket + 7, 7);
+        context.restore();
+      }
+    }
+
+    const grappleCargo = grappleTargetRef.current;
+    if (grappleConstraintRef.current && grappleCargo) {
+      const lineStart = toScreen(ship.position.x + Math.cos(ship.angle) * 22, ship.position.y + Math.sin(ship.angle) * 22);
+      const lineEnd = toScreen(grappleCargo.position.x, grappleCargo.position.y);
+      const gradient = context.createLinearGradient(lineStart.x, lineStart.y, lineEnd.x, lineEnd.y);
+      gradient.addColorStop(0, "rgba(101,230,255,0.95)");
+      gradient.addColorStop(0.72, grappleTensionRef.current > 72 ? "rgba(255,95,112,0.95)" : "rgba(255,213,106,0.9)");
+      gradient.addColorStop(1, "rgba(255,255,255,0.9)");
+      context.strokeStyle = gradient;
+      context.lineWidth = grappleTensionRef.current > 72 ? 2.6 : 1.7;
+      context.shadowColor = grappleTensionRef.current > 72 ? "#ff5f70" : "#65e6ff";
+      context.shadowBlur = 9;
+      context.setLineDash([7, 4]);
+      context.lineDashOffset = -now * 0.03;
+      context.beginPath();
+      context.moveTo(lineStart.x, lineStart.y);
+      context.lineTo(lineEnd.x, lineEnd.y);
+      context.stroke();
+      context.setLineDash([]);
+      context.shadowBlur = 0;
+      context.fillStyle = "rgba(3,9,19,0.84)";
+      const labelX = (lineStart.x + lineEnd.x) / 2;
+      const labelY = (lineStart.y + lineEnd.y) / 2;
+      drawRoundedRect(context, labelX - 34, labelY - 12, 68, 21, 4);
+      context.fill();
+      context.fillStyle = grappleTensionRef.current > 72 ? "#ff7080" : "#b7f4ff";
+      context.font = "700 9px ui-monospace, monospace";
+      context.textAlign = "center";
+      context.fillText(`${Math.round(grappleTensionRef.current)}% LOAD`, labelX, labelY + 2);
+      context.textAlign = "start";
     }
 
     for (const particle of particlesRef.current) {
@@ -468,6 +646,7 @@ export function OrbitalSalvage() {
 
     if (now - lastTelemetryRef.current > 100) {
       lastTelemetryRef.current = now;
+      const grappleObject = grappleTargetRef.current || lockTargetRef.current;
       setTelemetry({
         speed: ship.speed,
         hull: Math.round(hullRef.current),
@@ -476,18 +655,33 @@ export function OrbitalSalvage() {
         distance: Math.round(targetDistance),
         collisions: collisionsRef.current,
         status: statusRef.current,
+        grappleStatus: grappleStatusRef.current,
+        grappleRange: grappleObject ? Math.round(Math.hypot(grappleObject.position.x - ship.position.x, grappleObject.position.y - ship.position.y)) : 0,
+        grappleTension: Math.round(grappleTensionRef.current),
+        cargoMass: grappleTargetRef.current ? Math.round(grappleTargetRef.current.mass * 10) / 10 : 0,
+        cargoValue: grappleTargetRef.current?.plugin.value || 0,
       });
     }
     frameRef.current = window.requestAnimationFrame(draw);
-  }, [spawnThruster]);
+  }, [releaseGrapple, spawnThruster]);
 
   useEffect(() => {
     createStars();
     createWorld();
     const keyMap: Record<string, ControlKey> = {
-      KeyW: "thrust", ArrowUp: "thrust", KeyA: "left", ArrowLeft: "left", KeyD: "right", ArrowRight: "right", KeyS: "brake", ArrowDown: "brake", ShiftLeft: "boost", ShiftRight: "boost",
+      KeyW: "thrust", ArrowUp: "thrust", KeyA: "left", ArrowLeft: "left", KeyD: "right", ArrowRight: "right", KeyS: "brake", ArrowDown: "brake", ShiftLeft: "boost", ShiftRight: "boost", KeyR: "reel",
     };
     const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.code === "KeyE" || event.code === "Space") && !event.repeat) {
+        event.preventDefault();
+        toggleGrapple();
+        return;
+      }
+      if (event.code === "KeyX" && !event.repeat) {
+        event.preventDefault();
+        if (grappleConstraintRef.current) releaseGrapple("manual");
+        return;
+      }
       const control = keyMap[event.code];
       if (!control) return;
       event.preventDefault();
@@ -511,7 +705,7 @@ export function OrbitalSalvage() {
         Matter.Engine.clear(engineRef.current);
       }
     };
-  }, [createStars, createWorld, draw, setControl]);
+  }, [createStars, createWorld, draw, releaseGrapple, setControl, toggleGrapple]);
 
   const bindControl = (control: ControlKey) => ({
     onPointerDown: (event: React.PointerEvent<HTMLButtonElement>) => { event.currentTarget.setPointerCapture(event.pointerId); setControl(control, true); },
@@ -524,7 +718,7 @@ export function OrbitalSalvage() {
     <section className="orbital-shell" aria-label="Orbital Salvage flight prototype">
       <header className="orbital-header">
         <div>
-          <span className="orbital-kicker"><Orbit size={15} /> Flight prototype // phase A</span>
+          <span className="orbital-kicker"><Orbit size={15} /> Grapple prototype // phase B</span>
           <h1>ORBITAL<span>//</span>SALVAGE</h1>
           <p>Newtonian flight test · Kestrel recovery vehicle</p>
         </div>
@@ -555,11 +749,12 @@ export function OrbitalSalvage() {
             <div className="orbital-panel-label"><Radio size={15} /> PILOT INPUT</div>
             <p><kbd>W</kbd> thrust <kbd>A</kbd><kbd>D</kbd> rotate</p>
             <p><kbd>S</kbd> brake <kbd>SHIFT</kbd> boost</p>
+            <p><kbd>E</kbd> grapple <kbd>R</kbd> reel <kbd>X</kbd> release</p>
           </div>
         </aside>
 
         <div className="orbital-stage" ref={stageRef}>
-          <canvas ref={canvasRef} aria-label="Newtonian orbital flight simulation" />
+          <canvas ref={canvasRef} onPointerDown={toggleGrapple} aria-label="Newtonian orbital flight simulation" />
           <div className="orbital-reticle" aria-hidden="true"><i /><i /><span /></div>
           <div className="orbital-message"><i className={telemetry.hull < 35 ? "is-danger" : ""} /><span>{message}</span></div>
           <div className="orbital-stage-mark">SECTOR H-12 · LOCAL GRAVITY 0.00G</div>
@@ -578,6 +773,18 @@ export function OrbitalSalvage() {
             <div><i className="is-amber" /><span><strong>54 OBJECTS</strong><small>uncontrolled debris field</small></span></div>
             <div><i className="is-white" /><span><strong>KESTREL</strong><small>{telemetry.speed.toFixed(1)}m/s · hull {telemetry.hull}%</small></span></div>
           </div>
+          <div className={`orbital-grapple-panel is-${telemetry.grappleStatus}`}>
+            <div className="orbital-panel-label"><Anchor size={15} /> GRAPPLE ARRAY</div>
+            <div className="orbital-grapple-state">
+              <span><i />{telemetry.grappleStatus.toUpperCase()}</span>
+              <strong>{telemetry.grappleStatus === "latched" ? `${telemetry.grappleTension}%` : telemetry.grappleRange ? `${telemetry.grappleRange}m` : "---"}</strong>
+            </div>
+            <div className="orbital-tension"><i><b style={{ width: `${telemetry.grappleTension}%` }} /></i><span>LINE TENSION</span></div>
+            {telemetry.grappleStatus === "latched" ? (
+              <div className="orbital-cargo-data"><span>Mass <strong>{telemetry.cargoMass}t</strong></span><span>Estimate <strong>{telemetry.cargoValue} cr</strong></span></div>
+            ) : <p>Point the bow toward salvage. Fire inside 540m.</p>}
+            <button type="button" onClick={toggleGrapple}>{telemetry.grappleStatus === "latched" ? "Release tether" : "Fire grapple"}</button>
+          </div>
           <div className="orbital-impact-log">
             <div className="orbital-panel-label"><AlertTriangle size={15} /> IMPACT LOG</div>
             <strong>{telemetry.collisions.toString().padStart(2, "0")}</strong>
@@ -594,8 +801,10 @@ export function OrbitalSalvage() {
         </div>
         <div>
           <button type="button" {...bindControl("brake")} aria-label="Brake"><ArrowDown size={22} /></button>
+          <button type="button" {...bindControl("reel")} aria-label="Reel tether"><Anchor size={20} /> REEL</button>
           <button type="button" className="is-thrust" {...bindControl("thrust")} aria-label="Thrust"><ArrowUp size={22} /> THRUST</button>
         </div>
+        <button type="button" className="is-grapple" onClick={toggleGrapple} aria-label="Fire or release grapple"><Crosshair size={20} /> GRAPPLE</button>
       </div>
     </section>
   );

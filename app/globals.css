@@ -8565,6 +8565,137 @@ button {
   white-space: nowrap;
 }
 
+.orbital-grapple-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  border: 1px solid var(--orbit-line);
+  border-radius: 5px;
+  background: rgba(101, 230, 255, 0.035);
+  padding: 11px;
+}
+
+.orbital-grapple-panel.is-locked {
+  border-color: rgba(255, 213, 106, 0.4);
+  background: rgba(255, 213, 106, 0.055);
+}
+
+.orbital-grapple-panel.is-latched {
+  border-color: rgba(101, 230, 255, 0.52);
+  box-shadow: inset 0 0 22px rgba(101, 230, 255, 0.045);
+}
+
+.orbital-grapple-panel.is-broken {
+  border-color: rgba(255, 95, 112, 0.48);
+  background: rgba(255, 95, 112, 0.055);
+}
+
+.orbital-grapple-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.orbital-grapple-state > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--orbit-muted);
+  font: 750 9px/1 ui-monospace, monospace;
+}
+
+.orbital-grapple-state i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--orbit-muted);
+}
+
+.is-locked .orbital-grapple-state i {
+  background: var(--orbit-amber);
+  box-shadow: 0 0 8px var(--orbit-amber);
+}
+
+.is-latched .orbital-grapple-state i {
+  background: var(--orbit-cyan);
+  box-shadow: 0 0 8px var(--orbit-cyan);
+}
+
+.is-broken .orbital-grapple-state i {
+  background: var(--orbit-danger);
+}
+
+.orbital-grapple-state strong {
+  color: var(--orbit-ink);
+  font: 800 13px/1 ui-monospace, monospace;
+}
+
+.orbital-tension {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px 8px;
+  align-items: center;
+}
+
+.orbital-tension i {
+  height: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.orbital-tension b {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--orbit-cyan), var(--orbit-amber), var(--orbit-danger));
+}
+
+.orbital-tension span {
+  color: var(--orbit-muted);
+  font: 700 7px/1 ui-monospace, monospace;
+}
+
+.orbital-cargo-data {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.orbital-cargo-data span {
+  display: grid;
+  gap: 3px;
+  border: 1px solid var(--orbit-line);
+  padding: 7px;
+  color: var(--orbit-muted);
+  font-size: 8px;
+}
+
+.orbital-cargo-data strong {
+  color: var(--orbit-ink);
+  font: 750 10px/1 ui-monospace, monospace;
+}
+
+.orbital-grapple-panel p {
+  margin: 0;
+  color: var(--orbit-muted);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.orbital-grapple-panel > button {
+  min-height: 31px;
+  border: 1px solid rgba(101, 230, 255, 0.3);
+  border-radius: 4px;
+  background: rgba(101, 230, 255, 0.08);
+  font-size: 9px;
+  font-weight: 780;
+}
+
+.orbital-grapple-panel > button:hover {
+  border-color: var(--orbit-cyan);
+  background: rgba(101, 230, 255, 0.16);
+}
+
 .orbital-impact-log {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -8650,6 +8781,13 @@ button {
   color: #03101a;
   font-size: 10px;
   font-weight: 850;
+}
+
+.orbital-touch-controls .is-grapple {
+  border-color: var(--orbit-amber);
+  color: var(--orbit-amber);
+  font-size: 9px;
+  font-weight: 820;
 }
 
 @media (max-width: 1120px) {
@@ -8752,6 +8890,22 @@ button {
     bottom: 0;
     z-index: 8;
     display: flex;
+  }
+
+  .orbital-touch-controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .orbital-touch-controls > div {
+    display: contents;
+  }
+
+  .orbital-touch-controls button,
+  .orbital-touch-controls .is-thrust {
+    width: 100%;
+    min-width: 0;
+    padding: 0 5px;
   }
 }
 
