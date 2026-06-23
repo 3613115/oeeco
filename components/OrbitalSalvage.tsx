@@ -24,6 +24,7 @@ type ControlKey = "thrust" | "left" | "right" | "brake" | "boost" | "reel";
 type DebrisKind = "panel" | "crate" | "hull" | "core";
 type GrappleStatus = "scanning" | "locked" | "latched" | "broken";
 type RecoveryStatus = "acquire" | "tow" | "recover" | "complete";
+type HazardKind = "radiation" | "shrapnel" | "ion";
 
 type FlightTelemetry = {
   speed: number;
@@ -44,11 +45,15 @@ type FlightTelemetry = {
   contractTarget: number;
   credits: number;
   missionStatus: RecoveryStatus;
+  hazardLevel: number;
+  hazardRange: number;
+  hazardAlert: string;
 };
 
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; size: number; color: string };
 type Star = { x: number; y: number; size: number; alpha: number; layer: number };
 type DebrisBody = Matter.Body & { plugin: Matter.Body["plugin"] & { orbitalKind?: DebrisKind; value?: number } };
+type HazardZone = { x: number; y: number; radius: number; driftX: number; driftY: number; phase: number; kind: HazardKind; label: string; intensity: number };
 
 const WORLD_WIDTH = 3400;
 const WORLD_HEIGHT = 2200;
@@ -62,6 +67,7 @@ const CONTRACT_TARGET = 3;
 const RECOVERY_RADIUS = 210;
 const RECOVERY_SAFE_SPEED = 3.1;
 const RECOVERY_SAFE_TENSION = 82;
+const HAZARD_DAMAGE_RATE = 0.0038;
 
 const initialTelemetry: FlightTelemetry = {
   speed: 0,
@@ -82,6 +88,9 @@ const initialTelemetry: FlightTelemetry = {
   contractTarget: CONTRACT_TARGET,
   credits: 0,
   missionStatus: "acquire",
+  hazardLevel: 0,
+  hazardRange: 0,
+  hazardAlert: "clear",
 };
 
 function seededRandom(seed: number) {
@@ -129,6 +138,11 @@ export function OrbitalSalvage() {
   const grappleStatusRef = useRef<GrappleStatus>("scanning");
   const grappleTensionRef = useRef(0);
   const grappleCooldownRef = useRef(0);
+  const hazardZonesRef = useRef<HazardZone[]>([]);
+  const hazardLevelRef = useRef(0);
+  const hazardRangeRef = useRef(0);
+  const hazardAlertRef = useRef("clear");
+  const hazardPulseRef = useRef(0);
   const starsRef = useRef<Star[]>([]);
   const particlesRef = useRef<Particle[]>([]);
   const controlsRef = useRef<Record<ControlKey, boolean>>({ thrust: false, left: false, right: false, brake: false, boost: false, reel: false });
@@ -159,6 +173,18 @@ export function OrbitalSalvage() {
     }));
   }, []);
 
+  const createHazards = useCallback(() => {
+    hazardZonesRef.current = [
+      { x: 1320, y: 760, radius: 178, driftX: 52, driftY: 34, phase: 0.3, kind: "radiation", label: "RAD CLOUD", intensity: 0.95 },
+      { x: 1850, y: 1330, radius: 225, driftX: 82, driftY: 48, phase: 1.8, kind: "shrapnel", label: "SHRAPNEL BELT", intensity: 1 },
+      { x: 2240, y: 760, radius: 155, driftX: 44, driftY: 62, phase: 3.2, kind: "ion", label: "ION WAKE", intensity: 0.72 },
+    ];
+    hazardLevelRef.current = 0;
+    hazardRangeRef.current = 0;
+    hazardAlertRef.current = "clear";
+    hazardPulseRef.current = 0;
+  }, []);
+
   const createWorld = useCallback(() => {
     const engine = Matter.Engine.create({ gravity: { x: 0, y: 0 } });
     engine.positionIterations = 8;
@@ -169,6 +195,7 @@ export function OrbitalSalvage() {
     lockTargetRef.current = null;
     grappleStatusRef.current = "scanning";
     grappleTensionRef.current = 0;
+    createHazards();
     const { Bodies, Body, Composite } = Matter;
 
     const ship = Bodies.polygon(START_X, START_Y, 3, 30, {
@@ -250,7 +277,7 @@ export function OrbitalSalvage() {
         }
       }
     });
-  }, []);
+  }, [createHazards]);
 
   const releaseGrapple = useCallback((reason: "manual" | "broken" = "manual") => {
     const engine = engineRef.current;
@@ -467,6 +494,57 @@ export function OrbitalSalvage() {
         Matter.Body.setAngularVelocity(ship, ship.angularVelocity * 0.88);
         fuelRef.current = clamp(fuelRef.current - 0.004 * delta, 0, MAX_FUEL);
       }
+      let hazardLevel = 0;
+      let hazardTensionLoad = 0;
+      let nearestHazardEdge = Number.POSITIVE_INFINITY;
+      let nextHazardAlert = "clear";
+      for (const zone of hazardZonesRef.current) {
+        const zoneX = zone.x + Math.sin(now * 0.00023 + zone.phase) * zone.driftX;
+        const zoneY = zone.y + Math.cos(now * 0.00019 + zone.phase) * zone.driftY;
+        const shipDistance = Math.hypot(ship.position.x - zoneX, ship.position.y - zoneY);
+        nearestHazardEdge = Math.min(nearestHazardEdge, Math.max(0, shipDistance - zone.radius));
+        const shipExposure = clamp((zone.radius - shipDistance) / zone.radius, 0, 1) * zone.intensity;
+        let cargoExposure = 0;
+        const cargoBody = grappleTargetRef.current;
+        if (cargoBody) {
+          const cargoDistance = Math.hypot(cargoBody.position.x - zoneX, cargoBody.position.y - zoneY);
+          nearestHazardEdge = Math.min(nearestHazardEdge, Math.max(0, cargoDistance - zone.radius));
+          cargoExposure = clamp((zone.radius - cargoDistance) / zone.radius, 0, 1) * zone.intensity * 0.85;
+        }
+        const exposure = Math.max(shipExposure, cargoExposure);
+        if (exposure <= 0) continue;
+        hazardLevel = Math.max(hazardLevel, exposure);
+        nextHazardAlert = zone.label;
+        if (zone.kind === "ion") {
+          fuelRef.current = clamp(fuelRef.current - exposure * 0.0042 * delta, 0, MAX_FUEL);
+        } else {
+          hullRef.current = clamp(hullRef.current - exposure * HAZARD_DAMAGE_RATE * delta, 0, MAX_HULL);
+        }
+        hazardTensionLoad = Math.max(hazardTensionLoad, cargoExposure * 0.19 * delta);
+        if (now - hazardPulseRef.current > 620) {
+          hazardPulseRef.current = now;
+          cameraRef.current.shake = Math.max(cameraRef.current.shake, 4 + exposure * 7);
+          setMessage(`${zone.label} exposure ${Math.round(exposure * 100)}%`);
+          for (let index = 0; index < 8; index += 1) {
+            particlesRef.current.push({
+              x: ship.position.x + (Math.random() - 0.5) * 70,
+              y: ship.position.y + (Math.random() - 0.5) * 70,
+              vx: (Math.random() - 0.5) * 3.2,
+              vy: (Math.random() - 0.5) * 3.2,
+              life: 0.65,
+              size: 1.5 + Math.random() * 2.5,
+              color: zone.kind === "ion" ? "#65e6ff" : zone.kind === "radiation" ? "#ffd56a" : "#ff5f70",
+            });
+          }
+        }
+      }
+      hazardLevelRef.current = clamp(hazardLevel * 100, 0, 100);
+      hazardRangeRef.current = Number.isFinite(nearestHazardEdge) ? Math.round(nearestHazardEdge) : 0;
+      hazardAlertRef.current = nextHazardAlert;
+      if (hullRef.current <= 0) {
+        statusRef.current = "disabled";
+        setMessage("Hull integrity lost");
+      }
       const grapple = grappleConstraintRef.current;
       const cargo = grappleTargetRef.current;
       if (grapple && cargo) {
@@ -479,7 +557,7 @@ export function OrbitalSalvage() {
         const cableDistance = Math.hypot(cargo.position.x - anchorX, cargo.position.y - anchorY);
         const relativeSpeed = Math.hypot(cargo.velocity.x - ship.velocity.x, cargo.velocity.y - ship.velocity.y);
         const stretch = Math.max(0, cableDistance - grapple.length);
-        grappleTensionRef.current = clamp(stretch * 2.1 + relativeSpeed * 5.5 + cargo.mass * 2.4, 0, 100);
+        grappleTensionRef.current = clamp(stretch * 2.1 + relativeSpeed * 5.5 + cargo.mass * 2.4 + hazardTensionLoad, 0, 100);
         if (grappleTensionRef.current > 97 && stretch > 12) releaseGrapple("broken");
         const cargoStationDistance = Math.hypot(cargo.position.x - STATION_X, cargo.position.y - STATION_Y);
         const cargoSpeed = Math.hypot(cargo.velocity.x, cargo.velocity.y);
@@ -539,6 +617,37 @@ export function OrbitalSalvage() {
       context.fillRect(x, y, star.size, star.size);
     }
     context.globalAlpha = 1;
+
+    for (const zone of hazardZonesRef.current) {
+      const zoneX = zone.x + Math.sin(now * 0.00023 + zone.phase) * zone.driftX;
+      const zoneY = zone.y + Math.cos(now * 0.00019 + zone.phase) * zone.driftY;
+      const point = toScreen(zoneX, zoneY);
+      const radius = zone.radius * zoom;
+      if (point.x < -radius || point.x > width + radius || point.y < -radius || point.y > height + radius) continue;
+      const color = zone.kind === "ion" ? "101, 230, 255" : zone.kind === "radiation" ? "255, 213, 106" : "255, 95, 112";
+      const pulse = 0.5 + Math.sin(now * 0.003 + zone.phase) * 0.5;
+      context.save();
+      context.translate(point.x, point.y);
+      context.fillStyle = `rgba(${color}, ${0.045 + pulse * 0.025})`;
+      context.beginPath();
+      context.arc(0, 0, radius, 0, Math.PI * 2);
+      context.fill();
+      context.strokeStyle = `rgba(${color}, ${0.32 + pulse * 0.24})`;
+      context.lineWidth = 1.4;
+      context.setLineDash([10, 8]);
+      context.beginPath();
+      context.arc(0, 0, radius, 0, Math.PI * 2);
+      context.stroke();
+      context.setLineDash([]);
+      context.strokeStyle = `rgba(${color}, ${0.18 + pulse * 0.18})`;
+      context.beginPath();
+      context.arc(0, 0, radius * (0.5 + pulse * 0.18), 0, Math.PI * 2);
+      context.stroke();
+      context.fillStyle = `rgba(${color}, 0.95)`;
+      context.font = "800 9px ui-monospace, monospace";
+      context.fillText(zone.label, -radius + 10, -radius - 9);
+      context.restore();
+    }
 
     const station = toScreen(STATION_X, STATION_Y);
     context.save();
@@ -790,6 +899,9 @@ export function OrbitalSalvage() {
         contractTarget: CONTRACT_TARGET,
         credits: creditsRef.current,
         missionStatus,
+        hazardLevel: Math.round(hazardLevelRef.current),
+        hazardRange: hazardRangeRef.current,
+        hazardAlert: hazardAlertRef.current,
       });
     }
     frameRef.current = window.requestAnimationFrame(draw);
@@ -848,9 +960,9 @@ export function OrbitalSalvage() {
     <section className="orbital-shell" aria-label="Orbital Salvage flight prototype">
       <header className="orbital-header">
         <div>
-          <span className="orbital-kicker"><Orbit size={15} /> Recovery contract // phase C</span>
+          <span className="orbital-kicker"><Orbit size={15} /> Hazard route // phase D</span>
           <h1>ORBITAL<span>//</span>SALVAGE</h1>
-          <p>Newtonian recovery ops - Kestrel salvage vehicle</p>
+          <p>Newtonian recovery ops with active hazard routing</p>
         </div>
         <div className={`orbital-flight-state is-${telemetry.status}`}>
           <i />
@@ -872,7 +984,7 @@ export function OrbitalSalvage() {
           <div className="orbital-mission-card">
             <span>CONTRACT C-03</span>
             <strong>Recover {telemetry.contractTarget} salvage objects</strong>
-            <p>Latch debris, tow it into the Helix recovery ring, then slow the cargo below {RECOVERY_SAFE_SPEED.toFixed(1)} m/s.</p>
+            <p>Latch debris, avoid active hazard pockets, then slow the cargo inside the Helix recovery ring.</p>
             <div className="orbital-mission-progress">
               <i><b style={{ width: `${Math.min(100, (telemetry.recovered / telemetry.contractTarget) * 100)}%` }} /></i>
               <span>{telemetry.recovered}/{telemetry.contractTarget} banked</span>
@@ -908,7 +1020,20 @@ export function OrbitalSalvage() {
           <div className="orbital-contact-list">
             <div><i className="is-cyan" /><span><strong>HELIX STATION</strong><small>{telemetry.distance}m · bearing locked</small></span></div>
             <div><i className="is-amber" /><span><strong>54 OBJECTS</strong><small>uncontrolled debris field</small></span></div>
+            <div><i className="is-red" /><span><strong>{telemetry.hazardAlert === "clear" ? "HAZARD CLEAR" : telemetry.hazardAlert}</strong><small>{telemetry.hazardLevel}% exposure · {telemetry.hazardRange}m margin</small></span></div>
             <div><i className="is-white" /><span><strong>KESTREL</strong><small>{telemetry.speed.toFixed(1)}m/s · hull {telemetry.hull}%</small></span></div>
+          </div>
+          <div className={`orbital-hazard-panel ${telemetry.hazardLevel > 0 ? "is-hot" : ""}`}>
+            <div className="orbital-panel-label"><AlertTriangle size={15} /> HAZARD SCAN</div>
+            <div className="orbital-hazard-readout">
+              <span>{telemetry.hazardAlert.toUpperCase()}</span>
+              <strong>{telemetry.hazardLevel}%</strong>
+            </div>
+            <div className="orbital-hazard-meter">
+              <i><b style={{ width: `${telemetry.hazardLevel}%` }} /></i>
+              <span>{telemetry.hazardRange}m SAFE MARGIN</span>
+            </div>
+            <p>Radiation drains hull, ion wakes drain fuel, shrapnel spikes tether load.</p>
           </div>
           <div className={`orbital-grapple-panel is-${telemetry.grappleStatus}`}>
             <div className="orbital-panel-label"><Anchor size={15} /> GRAPPLE ARRAY</div>
