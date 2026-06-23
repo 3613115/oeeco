@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Shield,
   Sparkles,
+  Wrench,
   Zap,
 } from "lucide-react";
 import Matter from "matter-js";
@@ -48,6 +49,8 @@ type FlightTelemetry = {
   hazardLevel: number;
   hazardRange: number;
   hazardAlert: string;
+  serviceReady: boolean;
+  serviceRange: number;
 };
 
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; size: number; color: string };
@@ -68,6 +71,10 @@ const RECOVERY_RADIUS = 210;
 const RECOVERY_SAFE_SPEED = 3.1;
 const RECOVERY_SAFE_TENSION = 82;
 const HAZARD_DAMAGE_RATE = 0.0038;
+const SERVICE_RADIUS = 340;
+const SERVICE_SAFE_SPEED = 3.8;
+const REFUEL_COST = 120;
+const REPAIR_COST = 140;
 
 const initialTelemetry: FlightTelemetry = {
   speed: 0,
@@ -91,6 +98,8 @@ const initialTelemetry: FlightTelemetry = {
   hazardLevel: 0,
   hazardRange: 0,
   hazardAlert: "clear",
+  serviceReady: false,
+  serviceRange: 0,
 };
 
 function seededRandom(seed: number) {
@@ -421,6 +430,50 @@ export function OrbitalSalvage() {
         life: 1,
         size: boost ? 4 + Math.random() * 4 : 2 + Math.random() * 3,
         color: boost ? "#ffd56a" : "#65e6ff",
+      });
+    }
+  }, []);
+
+  const serviceShip = useCallback((service: "refuel" | "repair") => {
+    const ship = shipRef.current;
+    if (!ship) return;
+    const serviceRange = Math.hypot(ship.position.x - STATION_X, ship.position.y - STATION_Y);
+    const serviceReady = serviceRange <= SERVICE_RADIUS && ship.speed <= SERVICE_SAFE_SPEED;
+    if (!serviceReady) {
+      setMessage("Service bay requires low-speed station approach");
+      return;
+    }
+    const cost = service === "refuel" ? REFUEL_COST : REPAIR_COST;
+    if (creditsRef.current < cost) {
+      setMessage(`Need ${cost} cr for ${service === "refuel" ? "refuel" : "hull patch"}`);
+      return;
+    }
+    if (service === "refuel") {
+      if (fuelRef.current >= MAX_FUEL) {
+        setMessage("Fuel cells already full");
+        return;
+      }
+      fuelRef.current = clamp(fuelRef.current + 42, 0, MAX_FUEL);
+    } else {
+      if (hullRef.current >= MAX_HULL) {
+        setMessage("Hull integrity already full");
+        return;
+      }
+      hullRef.current = clamp(hullRef.current + 32, 0, MAX_HULL);
+      if (statusRef.current === "disabled" && hullRef.current > 0) statusRef.current = "ready";
+    }
+    creditsRef.current = Math.max(0, creditsRef.current - cost);
+    setMessage(service === "refuel" ? `Fuel cells topped -${cost} cr` : `Hull patched -${cost} cr`);
+    for (let index = 0; index < 22; index += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      particlesRef.current.push({
+        x: ship.position.x + Math.cos(angle) * (18 + Math.random() * 22),
+        y: ship.position.y + Math.sin(angle) * (18 + Math.random() * 22),
+        vx: Math.cos(angle) * (0.4 + Math.random() * 1.6),
+        vy: Math.sin(angle) * (0.4 + Math.random() * 1.6),
+        life: 0.9,
+        size: 2 + Math.random() * 3,
+        color: service === "refuel" ? "#65e6ff" : "#ffd56a",
       });
     }
   }, []);
@@ -838,6 +891,7 @@ export function OrbitalSalvage() {
     const targetDy = STATION_Y - ship.position.y;
     const targetAngle = Math.atan2(targetDy, targetDx);
     const targetDistance = Math.hypot(targetDx, targetDy);
+    const serviceReady = targetDistance <= SERVICE_RADIUS && ship.speed <= SERVICE_SAFE_SPEED;
     const indicatorRadius = Math.min(width, height) * 0.35;
     const targetX = width / 2 + Math.cos(targetAngle) * indicatorRadius;
     const targetY = height / 2 + Math.sin(targetAngle) * indicatorRadius;
@@ -902,6 +956,8 @@ export function OrbitalSalvage() {
         hazardLevel: Math.round(hazardLevelRef.current),
         hazardRange: hazardRangeRef.current,
         hazardAlert: hazardAlertRef.current,
+        serviceReady,
+        serviceRange: Math.round(targetDistance),
       });
     }
     frameRef.current = window.requestAnimationFrame(draw);
@@ -960,9 +1016,9 @@ export function OrbitalSalvage() {
     <section className="orbital-shell" aria-label="Orbital Salvage flight prototype">
       <header className="orbital-header">
         <div>
-          <span className="orbital-kicker"><Orbit size={15} /> Hazard route // phase D</span>
+          <span className="orbital-kicker"><Orbit size={15} /> Service economy // phase E</span>
           <h1>ORBITAL<span>//</span>SALVAGE</h1>
-          <p>Newtonian recovery ops with active hazard routing</p>
+          <p>Recover cargo, bank credits, and keep the Kestrel alive between runs</p>
         </div>
         <div className={`orbital-flight-state is-${telemetry.status}`}>
           <i />
@@ -1060,6 +1116,30 @@ export function OrbitalSalvage() {
             <div className="orbital-recovery-data">
               <span>Bank <strong>{telemetry.credits} cr</strong></span>
               <span>Cargo <strong>{telemetry.cargoDistance ? `${telemetry.cargoDistance}m` : "---"}</strong></span>
+            </div>
+          </div>
+          <div className={`orbital-service-panel ${telemetry.serviceReady ? "is-ready" : ""}`}>
+            <div className="orbital-panel-label"><Wrench size={15} /> SERVICE BAY</div>
+            <div className="orbital-service-state">
+              <span>{telemetry.serviceReady ? "DOCK READY" : "APPROACH"}</span>
+              <strong>{telemetry.serviceRange}m</strong>
+            </div>
+            <p>Enter the Helix service ring under {SERVICE_SAFE_SPEED.toFixed(1)} m/s. Spend recovered credits to extend the run.</p>
+            <div className="orbital-service-actions">
+              <button
+                type="button"
+                onClick={() => serviceShip("refuel")}
+                disabled={!telemetry.serviceReady || telemetry.credits < REFUEL_COST || telemetry.fuel >= MAX_FUEL}
+              >
+                <Zap size={13} /> Refuel <span>{REFUEL_COST} cr</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => serviceShip("repair")}
+                disabled={!telemetry.serviceReady || telemetry.credits < REPAIR_COST || telemetry.hull >= MAX_HULL}
+              >
+                <Shield size={13} /> Repair <span>{REPAIR_COST} cr</span>
+              </button>
             </div>
           </div>
           <div className="orbital-impact-log">

@@ -8886,6 +8886,85 @@ button {
   white-space: nowrap;
 }
 
+.orbital-service-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  border: 1px solid rgba(101, 230, 255, 0.2);
+  border-radius: 5px;
+  background:
+    linear-gradient(135deg, rgba(101, 230, 255, 0.045), transparent 62%),
+    rgba(255, 255, 255, 0.018);
+  padding: 11px;
+}
+
+.orbital-service-panel.is-ready {
+  border-color: rgba(101, 230, 255, 0.5);
+  background:
+    linear-gradient(135deg, rgba(101, 230, 255, 0.095), rgba(255, 213, 106, 0.04)),
+    rgba(255, 255, 255, 0.025);
+  box-shadow: inset 0 0 22px rgba(101, 230, 255, 0.055);
+}
+
+.orbital-service-state {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.orbital-service-state span {
+  color: var(--orbit-muted);
+  font: 750 9px/1 ui-monospace, monospace;
+}
+
+.orbital-service-state strong {
+  color: var(--orbit-ink);
+  font: 830 16px/1 ui-monospace, monospace;
+}
+
+.orbital-service-panel p {
+  margin: 0;
+  color: var(--orbit-muted);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.orbital-service-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.orbital-service-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 34px;
+  border: 1px solid rgba(101, 230, 255, 0.28);
+  border-radius: 4px;
+  background: rgba(101, 230, 255, 0.075);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.orbital-service-actions button:hover:not(:disabled) {
+  border-color: var(--orbit-cyan);
+  background: rgba(101, 230, 255, 0.16);
+}
+
+.orbital-service-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.orbital-service-actions span {
+  color: var(--orbit-amber);
+  font: 760 7px/1 ui-monospace, monospace;
+  white-space: nowrap;
+}
+
 .orbital-impact-log {
   display: grid;
   grid-template-columns: auto 1fr;
