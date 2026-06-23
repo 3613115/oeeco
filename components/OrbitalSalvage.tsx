@@ -23,6 +23,7 @@ type FlightStatus = "ready" | "flying" | "disabled";
 type ControlKey = "thrust" | "left" | "right" | "brake" | "boost" | "reel";
 type DebrisKind = "panel" | "crate" | "hull" | "core";
 type GrappleStatus = "scanning" | "locked" | "latched" | "broken";
+type RecoveryStatus = "acquire" | "tow" | "recover" | "complete";
 
 type FlightTelemetry = {
   speed: number;
@@ -37,6 +38,12 @@ type FlightTelemetry = {
   grappleTension: number;
   cargoMass: number;
   cargoValue: number;
+  cargoDistance: number;
+  recoveryReadiness: number;
+  recovered: number;
+  contractTarget: number;
+  credits: number;
+  missionStatus: RecoveryStatus;
 };
 
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; size: number; color: string };
@@ -51,6 +58,10 @@ const START_X = 760;
 const START_Y = 1100;
 const MAX_HULL = 100;
 const MAX_FUEL = 100;
+const CONTRACT_TARGET = 3;
+const RECOVERY_RADIUS = 210;
+const RECOVERY_SAFE_SPEED = 3.1;
+const RECOVERY_SAFE_TENSION = 82;
 
 const initialTelemetry: FlightTelemetry = {
   speed: 0,
@@ -65,6 +76,12 @@ const initialTelemetry: FlightTelemetry = {
   grappleTension: 0,
   cargoMass: 0,
   cargoValue: 0,
+  cargoDistance: 0,
+  recoveryReadiness: 0,
+  recovered: 0,
+  contractTarget: CONTRACT_TARGET,
+  credits: 0,
+  missionStatus: "acquire",
 };
 
 function seededRandom(seed: number) {
@@ -123,9 +140,13 @@ export function OrbitalSalvage() {
   const hullRef = useRef(MAX_HULL);
   const fuelRef = useRef(MAX_FUEL);
   const collisionsRef = useRef(0);
+  const recoveredRef = useRef(0);
+  const creditsRef = useRef(0);
+  const recoveryFlashRef = useRef(0);
+  const lastRecoveryRef = useRef(0);
   const statusRef = useRef<FlightStatus>("ready");
   const [telemetry, setTelemetry] = useState(initialTelemetry);
-  const [message, setMessage] = useState("Flight systems armed");
+  const [message, setMessage] = useState("Contract armed: recover 3 salvage objects");
 
   const createStars = useCallback(() => {
     const random = seededRandom(117043);
@@ -243,6 +264,42 @@ export function OrbitalSalvage() {
     setMessage(reason === "broken" ? "Tether overload - line severed" : "Grapple released");
   }, []);
 
+  const recoverCargo = useCallback((cargo: DebrisBody, quality: number) => {
+    const engine = engineRef.current;
+    const constraint = grappleConstraintRef.current;
+    const baseValue = cargo.plugin.value || 120;
+    const bonus = Math.round(baseValue * clamp(quality, 0, 100) * 0.004);
+    const payout = baseValue + bonus;
+    if (engine && constraint) Matter.Composite.remove(engine.world, constraint);
+    if (engine) Matter.Composite.remove(engine.world, cargo);
+    debrisRef.current = debrisRef.current.filter((body) => body !== cargo);
+    grappleConstraintRef.current = null;
+    grappleTargetRef.current = null;
+    lockTargetRef.current = null;
+    grappleStatusRef.current = "scanning";
+    grappleTensionRef.current = 0;
+    grappleCooldownRef.current = performance.now() + 360;
+    recoveredRef.current += 1;
+    creditsRef.current += payout;
+    recoveryFlashRef.current = performance.now();
+    lastRecoveryRef.current = performance.now();
+    const complete = recoveredRef.current >= CONTRACT_TARGET;
+    setMessage(complete ? `Contract complete +${payout} cr` : `Cargo banked +${payout} cr`);
+    for (let index = 0; index < 42; index += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 42 + Math.random() * 118;
+      particlesRef.current.push({
+        x: STATION_X + Math.cos(angle) * radius,
+        y: STATION_Y + Math.sin(angle) * radius,
+        vx: Math.cos(angle) * (0.6 + Math.random() * 2.4),
+        vy: Math.sin(angle) * (0.6 + Math.random() * 2.4),
+        life: 1,
+        size: 2 + Math.random() * 4.5,
+        color: complete ? "#ffd56a" : "#65e6ff",
+      });
+    }
+  }, []);
+
   const toggleGrapple = useCallback(() => {
     if (grappleConstraintRef.current) {
       releaseGrapple("manual");
@@ -256,7 +313,7 @@ export function OrbitalSalvage() {
       return;
     }
     const range = Math.hypot(target.position.x - ship.position.x, target.position.y - ship.position.y);
-    if (range > 540) {
+    if (range > 620) {
       setMessage("Target outside grapple range");
       return;
     }
@@ -305,11 +362,15 @@ export function OrbitalSalvage() {
     hullRef.current = MAX_HULL;
     fuelRef.current = MAX_FUEL;
     collisionsRef.current = 0;
+    recoveredRef.current = 0;
+    creditsRef.current = 0;
+    recoveryFlashRef.current = 0;
+    lastRecoveryRef.current = 0;
     statusRef.current = "ready";
     cameraRef.current = { x: START_X, y: START_Y, shake: 0 };
     controlsRef.current = { thrust: false, left: false, right: false, brake: false, boost: false, reel: false };
     setTelemetry(initialTelemetry);
-    setMessage("Flight systems armed");
+    setMessage("Contract armed: recover 3 salvage objects");
     createWorld();
   }, [createWorld]);
 
@@ -360,23 +421,30 @@ export function OrbitalSalvage() {
     lastFrameRef.current = now;
 
     if (!grappleConstraintRef.current) {
-      let nextTarget: DebrisBody | null = null;
-      let bestScore = Number.POSITIVE_INFINITY;
+      let coneTarget: DebrisBody | null = null;
+      let fallbackTarget: DebrisBody | null = null;
+      let bestConeScore = Number.POSITIVE_INFINITY;
+      let bestFallbackScore = Number.POSITIVE_INFINITY;
       const forwardX = Math.cos(ship.angle);
       const forwardY = Math.sin(ship.angle);
       for (const candidate of debrisRef.current) {
         const dx = candidate.position.x - ship.position.x;
         const dy = candidate.position.y - ship.position.y;
         const range = Math.hypot(dx, dy);
-        if (range > 540 || range < 42) continue;
+        if (range > 620 || range < 42) continue;
+        if (range < bestFallbackScore) {
+          bestFallbackScore = range;
+          fallbackTarget = candidate;
+        }
         const alignment = (dx * forwardX + dy * forwardY) / Math.max(1, range);
         if (alignment < 0.55) continue;
         const score = range + (1 - alignment) * 420;
-        if (score < bestScore) {
-          bestScore = score;
-          nextTarget = candidate;
+        if (score < bestConeScore) {
+          bestConeScore = score;
+          coneTarget = candidate;
         }
       }
+      const nextTarget = coneTarget || fallbackTarget;
       lockTargetRef.current = nextTarget;
       if (now >= grappleCooldownRef.current) grappleStatusRef.current = nextTarget ? "locked" : "scanning";
     }
@@ -413,6 +481,23 @@ export function OrbitalSalvage() {
         const stretch = Math.max(0, cableDistance - grapple.length);
         grappleTensionRef.current = clamp(stretch * 2.1 + relativeSpeed * 5.5 + cargo.mass * 2.4, 0, 100);
         if (grappleTensionRef.current > 97 && stretch > 12) releaseGrapple("broken");
+        const cargoStationDistance = Math.hypot(cargo.position.x - STATION_X, cargo.position.y - STATION_Y);
+        const cargoSpeed = Math.hypot(cargo.velocity.x, cargo.velocity.y);
+        const readiness = clamp(
+          (RECOVERY_RADIUS - cargoStationDistance) * 0.42 +
+            (RECOVERY_SAFE_SPEED - cargoSpeed) * 22 +
+            (RECOVERY_SAFE_TENSION - grappleTensionRef.current) * 0.22,
+          0,
+          100,
+        );
+        if (
+          cargoStationDistance < RECOVERY_RADIUS * 0.74 &&
+          cargoSpeed <= RECOVERY_SAFE_SPEED &&
+          grappleTensionRef.current <= RECOVERY_SAFE_TENSION &&
+          now - lastRecoveryRef.current > 720
+        ) {
+          recoverCargo(cargo, readiness);
+        }
       }
       const maxSpeed = boost ? 15 : 10.5;
       if (ship.speed > maxSpeed) Matter.Body.setSpeed(ship, maxSpeed);
@@ -458,6 +543,26 @@ export function OrbitalSalvage() {
     const station = toScreen(STATION_X, STATION_Y);
     context.save();
     context.translate(station.x, station.y);
+    const flashAge = now - recoveryFlashRef.current;
+    if (flashAge < 900) {
+      context.strokeStyle = `rgba(255, 213, 106, ${1 - flashAge / 900})`;
+      context.lineWidth = 4;
+      context.beginPath();
+      context.arc(0, 0, (RECOVERY_RADIUS + flashAge * 0.08) * zoom, 0, Math.PI * 2);
+      context.stroke();
+    }
+    context.strokeStyle = "rgba(101, 230, 255, 0.22)";
+    context.lineWidth = 2;
+    context.setLineDash([12, 10]);
+    context.beginPath();
+    context.arc(0, 0, RECOVERY_RADIUS * zoom, 0, Math.PI * 2);
+    context.stroke();
+    context.setLineDash([]);
+    context.fillStyle = "rgba(101, 230, 255, 0.72)";
+    context.font = "800 9px ui-monospace, monospace";
+    context.textAlign = "center";
+    context.fillText("RECOVERY RING", 0, -RECOVERY_RADIUS * zoom - 12);
+    context.textAlign = "start";
     context.rotate(now * 0.000035);
     context.strokeStyle = "rgba(101, 230, 255, 0.2)";
     context.lineWidth = 1;
@@ -647,6 +752,25 @@ export function OrbitalSalvage() {
     if (now - lastTelemetryRef.current > 100) {
       lastTelemetryRef.current = now;
       const grappleObject = grappleTargetRef.current || lockTargetRef.current;
+      const activeCargo = grappleTargetRef.current;
+      const cargoDistance = activeCargo ? Math.round(Math.hypot(activeCargo.position.x - STATION_X, activeCargo.position.y - STATION_Y)) : 0;
+      const cargoSpeed = activeCargo ? Math.hypot(activeCargo.velocity.x, activeCargo.velocity.y) : 0;
+      const recoveryReadiness = activeCargo
+        ? Math.round(clamp(
+          (RECOVERY_RADIUS - cargoDistance) * 0.42 +
+            (RECOVERY_SAFE_SPEED - cargoSpeed) * 22 +
+            (RECOVERY_SAFE_TENSION - grappleTensionRef.current) * 0.22,
+          0,
+          100,
+        ))
+        : 0;
+      const missionStatus: RecoveryStatus = recoveredRef.current >= CONTRACT_TARGET
+        ? "complete"
+        : activeCargo
+          ? cargoDistance < RECOVERY_RADIUS
+            ? "recover"
+            : "tow"
+          : "acquire";
       setTelemetry({
         speed: ship.speed,
         hull: Math.round(hullRef.current),
@@ -660,10 +784,16 @@ export function OrbitalSalvage() {
         grappleTension: Math.round(grappleTensionRef.current),
         cargoMass: grappleTargetRef.current ? Math.round(grappleTargetRef.current.mass * 10) / 10 : 0,
         cargoValue: grappleTargetRef.current?.plugin.value || 0,
+        cargoDistance,
+        recoveryReadiness,
+        recovered: recoveredRef.current,
+        contractTarget: CONTRACT_TARGET,
+        credits: creditsRef.current,
+        missionStatus,
       });
     }
     frameRef.current = window.requestAnimationFrame(draw);
-  }, [releaseGrapple, spawnThruster]);
+  }, [recoverCargo, releaseGrapple, spawnThruster]);
 
   useEffect(() => {
     createStars();
@@ -718,9 +848,9 @@ export function OrbitalSalvage() {
     <section className="orbital-shell" aria-label="Orbital Salvage flight prototype">
       <header className="orbital-header">
         <div>
-          <span className="orbital-kicker"><Orbit size={15} /> Grapple prototype // phase B</span>
+          <span className="orbital-kicker"><Orbit size={15} /> Recovery contract // phase C</span>
           <h1>ORBITAL<span>//</span>SALVAGE</h1>
-          <p>Newtonian flight test · Kestrel recovery vehicle</p>
+          <p>Newtonian recovery ops - Kestrel salvage vehicle</p>
         </div>
         <div className={`orbital-flight-state is-${telemetry.status}`}>
           <i />
@@ -740,10 +870,17 @@ export function OrbitalSalvage() {
             <div><span><Zap size={13} /> Fuel</span><strong>{telemetry.fuel}%</strong><i><b style={{ width: `${telemetry.fuel}%` }} /></i></div>
           </div>
           <div className="orbital-mission-card">
-            <span>TEST VECTOR 01</span>
-            <strong>Reach Helix Station</strong>
-            <p>Use controlled burns. Arrive under 2.0 m/s to protect the recovery vehicle.</p>
-            <div><Crosshair size={14} /><span>{telemetry.distance}m</span></div>
+            <span>CONTRACT C-03</span>
+            <strong>Recover {telemetry.contractTarget} salvage objects</strong>
+            <p>Latch debris, tow it into the Helix recovery ring, then slow the cargo below {RECOVERY_SAFE_SPEED.toFixed(1)} m/s.</p>
+            <div className="orbital-mission-progress">
+              <i><b style={{ width: `${Math.min(100, (telemetry.recovered / telemetry.contractTarget) * 100)}%` }} /></i>
+              <span>{telemetry.recovered}/{telemetry.contractTarget} banked</span>
+            </div>
+            <div className="orbital-contract-stats">
+              <span><Crosshair size={14} /> {telemetry.cargoDistance ? `${telemetry.cargoDistance}m cargo` : `${telemetry.distance}m station`}</span>
+              <span>{telemetry.credits} cr</span>
+            </div>
           </div>
           <div className="orbital-help">
             <div className="orbital-panel-label"><Radio size={15} /> PILOT INPUT</div>
@@ -782,8 +919,23 @@ export function OrbitalSalvage() {
             <div className="orbital-tension"><i><b style={{ width: `${telemetry.grappleTension}%` }} /></i><span>LINE TENSION</span></div>
             {telemetry.grappleStatus === "latched" ? (
               <div className="orbital-cargo-data"><span>Mass <strong>{telemetry.cargoMass}t</strong></span><span>Estimate <strong>{telemetry.cargoValue} cr</strong></span></div>
-            ) : <p>Point the bow toward salvage. Fire inside 540m.</p>}
+            ) : <p>Point the bow toward salvage. Fire inside 620m.</p>}
             <button type="button" onClick={toggleGrapple}>{telemetry.grappleStatus === "latched" ? "Release tether" : "Fire grapple"}</button>
+          </div>
+          <div className={`orbital-recovery-panel is-${telemetry.missionStatus}`}>
+            <div className="orbital-panel-label"><Sparkles size={15} /> RECOVERY OPS</div>
+            <div className="orbital-recovery-state">
+              <span>{telemetry.missionStatus.toUpperCase()}</span>
+              <strong>{telemetry.recovered}/{telemetry.contractTarget}</strong>
+            </div>
+            <div className="orbital-recovery-meter">
+              <i><b style={{ width: `${telemetry.recoveryReadiness}%` }} /></i>
+              <span>{telemetry.recoveryReadiness}% DOCK HEALTH</span>
+            </div>
+            <div className="orbital-recovery-data">
+              <span>Bank <strong>{telemetry.credits} cr</strong></span>
+              <span>Cargo <strong>{telemetry.cargoDistance ? `${telemetry.cargoDistance}m` : "---"}</strong></span>
+            </div>
           </div>
           <div className="orbital-impact-log">
             <div className="orbital-panel-label"><AlertTriangle size={15} /> IMPACT LOG</div>
