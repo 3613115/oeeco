@@ -1063,7 +1063,8 @@ export function OrbitalSalvage() {
           <div className="orbital-mission-card">
             <span>CONTRACT C-03</span>
             <strong>Recover {telemetry.contractTarget} salvage objects</strong>
-            <p>Latch debris, avoid active hazard pockets, then slow the cargo inside the Helix recovery ring.</p>
+            <p>Grapple debris, tow it into the recovery ring, and slow down inside the ring to bank it.</p>
+            <small className="orbital-mission-note">Aim at debris - E grapple - R reel - X release</small>
             <div className="orbital-mission-progress">
               <i><b style={{ width: `${Math.min(100, (telemetry.recovered / telemetry.contractTarget) * 100)}%` }} /></i>
               <span>{telemetry.recovered}/{telemetry.contractTarget} banked</span>
@@ -1093,11 +1094,18 @@ export function OrbitalSalvage() {
                 <h2>{runState === "briefing" ? "Recover three objects from H-12" : runState === "success" ? "Salvage banked" : "Kestrel disabled"}</h2>
                 <p>
                   {runState === "briefing"
-                    ? "Fire the grapple, tow cargo through hazard pockets, deliver it to Helix, then spend credits at the service bay if the run gets rough."
+                    ? "Pilot Kestrel, grapple three loose salvage objects, then tow each one into the Helix recovery ring."
                     : runState === "success"
                       ? `Recovered ${telemetry.recovered}/${telemetry.contractTarget} objects and banked ${telemetry.credits} credits.`
                       : `Recovered ${telemetry.recovered}/${telemetry.contractTarget} objects before hull loss. Credits banked: ${telemetry.credits}.`}
                 </p>
+                {runState === "briefing" && (
+                  <div className="orbital-run-steps" aria-label="How to play">
+                    <span><strong>1</strong> Aim at a nearby debris block</span>
+                    <span><strong>2</strong> Fire grapple, then reel it close</span>
+                    <span><strong>3</strong> Tow cargo into the recovery ring</span>
+                  </div>
+                )}
                 <div className="orbital-run-stats">
                   <span><strong>{telemetry.recovered}/{telemetry.contractTarget}</strong> cargo</span>
                   <span><strong>{telemetry.credits}</strong> credits</span>

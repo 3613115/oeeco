@@ -8316,6 +8316,13 @@ button {
   line-height: 1.55;
 }
 
+.orbital-mission-note {
+  display: block;
+  margin: -1px 0 1px;
+  color: rgba(255, 213, 106, 0.9);
+  font: 800 9px/1.45 ui-monospace, monospace;
+}
+
 .orbital-mission-card > div {
   display: flex;
   align-items: center;
@@ -8543,6 +8550,35 @@ button {
   color: var(--orbit-muted);
   font-size: 11px;
   line-height: 1.6;
+}
+
+.orbital-run-steps {
+  display: grid;
+  gap: 8px;
+}
+
+.orbital-run-steps span {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-items: center;
+  gap: 9px;
+  min-height: 34px;
+  border: 1px solid rgba(101, 230, 255, 0.2);
+  background: rgba(101, 230, 255, 0.055);
+  color: var(--orbit-ink);
+  padding: 7px 9px;
+  font: 760 10px/1.35 ui-monospace, monospace;
+}
+
+.orbital-run-steps strong {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid rgba(255, 213, 106, 0.34);
+  border-radius: 50%;
+  color: var(--orbit-amber);
+  font: 850 10px/1 ui-monospace, monospace;
 }
 
 .orbital-run-stats {
@@ -9249,6 +9285,14 @@ button {
 
   .orbital-run-card h2 {
     font-size: 25px;
+  }
+
+  .orbital-run-steps span {
+    grid-template-columns: 22px 1fr;
+    gap: 8px;
+    min-height: 32px;
+    padding: 6px 8px;
+    font-size: 9px;
   }
 
   .orbital-run-stats {
