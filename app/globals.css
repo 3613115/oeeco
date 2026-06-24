@@ -8484,6 +8484,113 @@ button {
   font: 650 8px/1 ui-monospace, monospace;
 }
 
+.orbital-run-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(101, 230, 255, 0.12), transparent 34%),
+    rgba(2, 5, 12, 0.58);
+  backdrop-filter: blur(6px);
+}
+
+.orbital-run-card {
+  display: grid;
+  gap: 14px;
+  width: min(480px, 100%);
+  border: 1px solid rgba(101, 230, 255, 0.36);
+  border-radius: 6px;
+  background:
+    linear-gradient(135deg, rgba(101, 230, 255, 0.12), rgba(255, 213, 106, 0.035)),
+    rgba(3, 9, 19, 0.88);
+  padding: 24px;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.42);
+}
+
+.orbital-run-overlay.is-success .orbital-run-card {
+  border-color: rgba(255, 213, 106, 0.62);
+  background:
+    linear-gradient(135deg, rgba(255, 213, 106, 0.13), rgba(101, 230, 255, 0.045)),
+    rgba(3, 9, 19, 0.9);
+}
+
+.orbital-run-overlay.is-failed .orbital-run-card {
+  border-color: rgba(255, 95, 112, 0.62);
+  background:
+    linear-gradient(135deg, rgba(255, 95, 112, 0.14), rgba(255, 213, 106, 0.035)),
+    rgba(3, 9, 19, 0.9);
+}
+
+.orbital-run-card > span {
+  color: var(--orbit-cyan);
+  font: 800 9px/1 ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.orbital-run-card h2 {
+  margin: 0;
+  color: var(--orbit-ink);
+  font: 880 30px/0.95 ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+.orbital-run-card p {
+  margin: 0;
+  color: var(--orbit-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.orbital-run-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.orbital-run-stats span {
+  display: grid;
+  gap: 4px;
+  min-height: 54px;
+  place-items: center;
+  border: 1px solid var(--orbit-line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--orbit-muted);
+  font: 720 8px/1 ui-monospace, monospace;
+  text-align: center;
+}
+
+.orbital-run-stats strong {
+  color: var(--orbit-ink);
+  font: 850 16px/1 ui-monospace, monospace;
+}
+
+.orbital-run-actions {
+  display: flex;
+}
+
+.orbital-run-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  width: 100%;
+  border: 1px solid rgba(101, 230, 255, 0.45);
+  border-radius: 4px;
+  background: var(--orbit-cyan);
+  color: #03101a;
+  font-size: 10px;
+  font-weight: 880;
+}
+
+.orbital-run-actions button:hover {
+  filter: brightness(1.08);
+}
+
 .orbital-radar {
   position: relative;
   width: 154px;
@@ -9129,6 +9236,31 @@ button {
     order: 1;
     min-height: 66vh;
     max-height: 650px;
+  }
+
+  .orbital-run-overlay {
+    padding: 14px;
+  }
+
+  .orbital-run-card {
+    gap: 11px;
+    padding: 18px;
+  }
+
+  .orbital-run-card h2 {
+    font-size: 25px;
+  }
+
+  .orbital-run-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .orbital-run-stats span {
+    min-height: 40px;
+    grid-template-columns: auto 1fr;
+    justify-items: start;
+    padding: 0 10px;
+    text-align: left;
   }
 
   .orbital-side-left {

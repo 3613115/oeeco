@@ -26,6 +26,7 @@ type DebrisKind = "panel" | "crate" | "hull" | "core";
 type GrappleStatus = "scanning" | "locked" | "latched" | "broken";
 type RecoveryStatus = "acquire" | "tow" | "recover" | "complete";
 type HazardKind = "radiation" | "shrapnel" | "ion";
+type RunState = "briefing" | "active" | "success" | "failed";
 
 type FlightTelemetry = {
   speed: number;
@@ -170,6 +171,7 @@ export function OrbitalSalvage() {
   const statusRef = useRef<FlightStatus>("ready");
   const [telemetry, setTelemetry] = useState(initialTelemetry);
   const [message, setMessage] = useState("Contract armed: recover 3 salvage objects");
+  const [runState, setRunState] = useState<RunState>("briefing");
 
   const createStars = useCallback(() => {
     const random = seededRandom(117043);
@@ -283,6 +285,7 @@ export function OrbitalSalvage() {
         if (hullRef.current <= 0) {
           statusRef.current = "disabled";
           setMessage("Hull integrity lost");
+          setRunState("failed");
         }
       }
     });
@@ -321,6 +324,7 @@ export function OrbitalSalvage() {
     lastRecoveryRef.current = performance.now();
     const complete = recoveredRef.current >= CONTRACT_TARGET;
     setMessage(complete ? `Contract complete +${payout} cr` : `Cargo banked +${payout} cr`);
+    if (complete) setRunState("success");
     for (let index = 0; index < 42; index += 1) {
       const angle = Math.random() * Math.PI * 2;
       const radius = 42 + Math.random() * 118;
@@ -337,6 +341,10 @@ export function OrbitalSalvage() {
   }, []);
 
   const toggleGrapple = useCallback(() => {
+    if (runState !== "active") {
+      setMessage("Start the contract briefing first");
+      return;
+    }
     if (grappleConstraintRef.current) {
       releaseGrapple("manual");
       return;
@@ -381,7 +389,7 @@ export function OrbitalSalvage() {
         color: "#ffd56a",
       });
     }
-  }, [releaseGrapple]);
+  }, [releaseGrapple, runState]);
 
   const resetFlight = useCallback(() => {
     if (engineRef.current) {
@@ -407,16 +415,26 @@ export function OrbitalSalvage() {
     controlsRef.current = { thrust: false, left: false, right: false, brake: false, boost: false, reel: false };
     setTelemetry(initialTelemetry);
     setMessage("Contract armed: recover 3 salvage objects");
+    setRunState("briefing");
     createWorld();
   }, [createWorld]);
 
+  const startRun = useCallback(() => {
+    setRunState("active");
+    if (statusRef.current === "ready") setMessage("Contract live - lock first salvage target");
+  }, []);
+
   const setControl = useCallback((control: ControlKey, active: boolean) => {
+    if (active && runState !== "active") {
+      setMessage("Start the run to unlock flight controls");
+      return;
+    }
     controlsRef.current[control] = active;
     if (active && statusRef.current === "ready") {
       statusRef.current = "flying";
       setMessage("Free flight engaged");
     }
-  }, []);
+  }, [runState]);
 
   const spawnThruster = useCallback((ship: Matter.Body, boost: boolean) => {
     const rearX = ship.position.x - Math.cos(ship.angle) * 29;
@@ -435,6 +453,10 @@ export function OrbitalSalvage() {
   }, []);
 
   const serviceShip = useCallback((service: "refuel" | "repair") => {
+    if (runState !== "active") {
+      setMessage("Service bay is available during active contracts");
+      return;
+    }
     const ship = shipRef.current;
     if (!ship) return;
     const serviceRange = Math.hypot(ship.position.x - STATION_X, ship.position.y - STATION_Y);
@@ -476,7 +498,7 @@ export function OrbitalSalvage() {
         color: service === "refuel" ? "#65e6ff" : "#ffd56a",
       });
     }
-  }, []);
+  }, [runState]);
 
   const draw = useCallback((now: number) => {
     const canvas = canvasRef.current;
@@ -597,6 +619,7 @@ export function OrbitalSalvage() {
       if (hullRef.current <= 0) {
         statusRef.current = "disabled";
         setMessage("Hull integrity lost");
+        setRunState("failed");
       }
       const grapple = grappleConstraintRef.current;
       const cargo = grappleTargetRef.current;
@@ -1016,9 +1039,9 @@ export function OrbitalSalvage() {
     <section className="orbital-shell" aria-label="Orbital Salvage flight prototype">
       <header className="orbital-header">
         <div>
-          <span className="orbital-kicker"><Orbit size={15} /> Service economy // phase E</span>
+          <span className="orbital-kicker"><Orbit size={15} /> Final contract // phase F</span>
           <h1>ORBITAL<span>//</span>SALVAGE</h1>
-          <p>Recover cargo, bank credits, and keep the Kestrel alive between runs</p>
+          <p>A complete salvage run with briefing, hazards, service bay, and contract summary</p>
         </div>
         <div className={`orbital-flight-state is-${telemetry.status}`}>
           <i />
@@ -1063,6 +1086,33 @@ export function OrbitalSalvage() {
           <div className="orbital-reticle" aria-hidden="true"><i /><i /><span /></div>
           <div className="orbital-message"><i className={telemetry.hull < 35 ? "is-danger" : ""} /><span>{message}</span></div>
           <div className="orbital-stage-mark">SECTOR H-12 · LOCAL GRAVITY 0.00G</div>
+          {runState !== "active" && (
+            <div className={`orbital-run-overlay is-${runState}`}>
+              <div className="orbital-run-card">
+                <span>{runState === "briefing" ? "CONTRACT BRIEFING" : runState === "success" ? "CONTRACT COMPLETE" : "RUN FAILED"}</span>
+                <h2>{runState === "briefing" ? "Recover three objects from H-12" : runState === "success" ? "Salvage banked" : "Kestrel disabled"}</h2>
+                <p>
+                  {runState === "briefing"
+                    ? "Fire the grapple, tow cargo through hazard pockets, deliver it to Helix, then spend credits at the service bay if the run gets rough."
+                    : runState === "success"
+                      ? `Recovered ${telemetry.recovered}/${telemetry.contractTarget} objects and banked ${telemetry.credits} credits.`
+                      : `Recovered ${telemetry.recovered}/${telemetry.contractTarget} objects before hull loss. Credits banked: ${telemetry.credits}.`}
+                </p>
+                <div className="orbital-run-stats">
+                  <span><strong>{telemetry.recovered}/{telemetry.contractTarget}</strong> cargo</span>
+                  <span><strong>{telemetry.credits}</strong> credits</span>
+                  <span><strong>{telemetry.collisions}</strong> impacts</span>
+                </div>
+                <div className="orbital-run-actions">
+                  {runState === "briefing" ? (
+                    <button type="button" onClick={startRun}><Sparkles size={16} /> Start run</button>
+                  ) : (
+                    <button type="button" onClick={resetFlight}><RefreshCw size={16} /> Fly again</button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <aside className="orbital-side orbital-side-right">
