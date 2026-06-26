@@ -9855,3 +9855,529 @@ button {
     justify-content: center;
   }
 }
+
+.saas-lab-shell {
+  --lab-ink: #14201d;
+  --lab-muted: #61716b;
+  --lab-line: #d8e3dd;
+  --lab-green: #50d7a0;
+  --lab-blue: #3577f0;
+  --lab-pink: #f45d8f;
+  --lab-amber: #f0b647;
+  min-height: calc(100vh - 76px);
+  background:
+    radial-gradient(circle at 12% 5%, rgba(80, 215, 160, 0.24), transparent 28%),
+    radial-gradient(circle at 86% 10%, rgba(53, 119, 240, 0.13), transparent 30%),
+    linear-gradient(180deg, #f6faf6, #eef6f1);
+  color: var(--lab-ink);
+  padding: 32px;
+}
+
+.saas-lab-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  gap: 22px;
+  align-items: stretch;
+  width: min(1500px, 100%);
+  margin: 0 auto 22px;
+}
+
+.saas-lab-hero > div,
+.saas-lab-verdict,
+.saas-lab-form,
+.saas-lab-results > section {
+  border: 1px solid var(--lab-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 18px 58px rgba(36, 58, 49, 0.08);
+}
+
+.saas-lab-hero > div {
+  padding: 29px;
+}
+
+.saas-lab-hero h1 {
+  max-width: 920px;
+  margin: 12px 0 10px;
+  font-size: 48px;
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+.saas-lab-hero p {
+  max-width: 900px;
+  margin: 0;
+  color: var(--lab-muted);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.saas-lab-verdict {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: 24px;
+}
+
+.saas-lab-verdict span,
+.saas-lab-heading > span,
+.saas-lab-options > div > span {
+  color: #087f5b;
+}
+
+.saas-lab-verdict strong {
+  max-width: 100%;
+  font-size: 38px;
+  line-height: 0.98;
+}
+
+.saas-lab-verdict small,
+.saas-lab-options small {
+  color: var(--lab-muted);
+  font-weight: 760;
+}
+
+.saas-lab-workbench {
+  display: grid;
+  grid-template-columns: minmax(390px, 0.8fr) minmax(620px, 1.2fr);
+  gap: 22px;
+  width: min(1500px, 100%);
+  margin: 0 auto;
+}
+
+.saas-lab-form,
+.saas-lab-results {
+  min-width: 0;
+}
+
+.saas-lab-form {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 20px;
+}
+
+.saas-lab-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.saas-lab-heading button,
+.saas-lab-options button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 39px;
+  border: 1px solid var(--lab-line);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--lab-ink);
+  font-weight: 850;
+}
+
+.saas-lab-heading button:hover,
+.saas-lab-options button:hover {
+  border-color: var(--lab-green);
+  background: rgba(80, 215, 160, 0.1);
+}
+
+.saas-lab-instructions {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: lab-steps;
+}
+
+.saas-lab-instructions li {
+  counter-increment: lab-steps;
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 9px;
+  align-items: center;
+  min-height: 38px;
+  border: 1px solid rgba(80, 215, 160, 0.22);
+  border-radius: 7px;
+  background: rgba(80, 215, 160, 0.06);
+  color: var(--lab-muted);
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 720;
+  line-height: 1.35;
+}
+
+.saas-lab-instructions li::before {
+  content: counter(lab-steps);
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--lab-ink);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.saas-lab-form label {
+  display: grid;
+  gap: 7px;
+}
+
+.saas-lab-form label span {
+  font-size: 13px;
+  font-weight: 870;
+}
+
+.saas-lab-form input,
+.saas-lab-form textarea {
+  width: 100%;
+  border: 1px solid var(--lab-line);
+  border-radius: 7px;
+  background: #ffffff;
+  color: var(--lab-ink);
+  padding: 12px 13px;
+  font: 650 14px/1.45 inherit;
+  resize: vertical;
+}
+
+.saas-lab-form input:focus,
+.saas-lab-form textarea:focus {
+  outline: 2px solid rgba(80, 215, 160, 0.36);
+  border-color: var(--lab-green);
+}
+
+.saas-lab-two {
+  display: grid;
+  grid-template-columns: 0.82fr 1.18fr;
+  gap: 12px;
+}
+
+.saas-lab-options {
+  display: grid;
+  gap: 13px;
+}
+
+.saas-lab-options > div {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(216, 227, 221, 0.85);
+  border-radius: 7px;
+  background: rgba(246, 250, 246, 0.78);
+  padding: 11px;
+}
+
+.saas-lab-options > div > span {
+  font-size: 12px;
+  font-weight: 880;
+}
+
+.saas-lab-options > div > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.saas-lab-options button {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.saas-lab-options button.is-active {
+  border-color: rgba(20, 32, 29, 0.22);
+  background: var(--lab-ink);
+  color: #ffffff;
+}
+
+.saas-lab-results {
+  display: grid;
+  gap: 18px;
+}
+
+.saas-lab-results > section {
+  padding: 18px;
+}
+
+.saas-lab-scoreboard {
+  display: grid;
+  grid-template-columns: 1.08fr repeat(3, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.saas-lab-main-score {
+  grid-row: span 3;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  border: 1px solid rgba(80, 215, 160, 0.36);
+  border-radius: 7px;
+  background:
+    linear-gradient(145deg, rgba(80, 215, 160, 0.17), rgba(53, 119, 240, 0.07)),
+    #ffffff;
+  padding: 16px;
+}
+
+.saas-lab-main-score svg {
+  color: var(--lab-blue);
+}
+
+.saas-lab-main-score span,
+.saas-lab-metric span {
+  color: var(--lab-muted);
+  font-size: 12px;
+  font-weight: 860;
+}
+
+.saas-lab-main-score strong {
+  font-size: 70px;
+  line-height: 0.9;
+}
+
+.saas-lab-main-score small {
+  color: #087f5b;
+  font-weight: 860;
+}
+
+.saas-lab-metric {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(216, 227, 221, 0.9);
+  border-radius: 7px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.saas-lab-metric strong {
+  font-size: 25px;
+  line-height: 1;
+}
+
+.saas-lab-metric i {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8eee9;
+}
+
+.saas-lab-metric b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--lab-pink), var(--lab-amber), var(--lab-green));
+}
+
+.saas-lab-metric small {
+  color: var(--lab-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.saas-lab-summary {
+  display: grid;
+  gap: 12px;
+  background:
+    linear-gradient(135deg, rgba(20, 32, 29, 0.03), rgba(80, 215, 160, 0.08)),
+    rgba(255, 255, 255, 0.9) !important;
+}
+
+.saas-lab-summary h2 {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1;
+}
+
+.saas-lab-summary p,
+.saas-lab-summary strong,
+.saas-lab-users p,
+.saas-lab-users small,
+.saas-lab-mvp p,
+.saas-lab-pricing p,
+.saas-lab-gtm p,
+.saas-lab-risks p {
+  margin: 0;
+  color: var(--lab-muted);
+  line-height: 1.5;
+}
+
+.saas-lab-summary strong {
+  color: var(--lab-ink);
+}
+
+.saas-lab-users,
+.saas-lab-mvp,
+.saas-lab-pricing,
+.saas-lab-gtm,
+.saas-lab-risks {
+  display: grid;
+  gap: 14px;
+}
+
+.saas-lab-users > div,
+.saas-lab-gtm > div,
+.saas-lab-risks > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.saas-lab-users article,
+.saas-lab-gtm article,
+.saas-lab-risks article,
+.saas-lab-mvp article {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(216, 227, 221, 0.9);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 14px;
+}
+
+.saas-lab-users h3,
+.saas-lab-mvp h3,
+.saas-lab-gtm h3,
+.saas-lab-risks h3 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.18;
+}
+
+.saas-lab-users strong,
+.saas-lab-pricing strong,
+.saas-lab-risks strong {
+  color: var(--lab-ink);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.saas-lab-mvp > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.saas-lab-mvp ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.saas-lab-mvp li {
+  display: grid;
+  grid-template-columns: 9px 1fr;
+  gap: 8px;
+  color: var(--lab-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.saas-lab-mvp li::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background: var(--lab-blue);
+}
+
+.saas-lab-pricing > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.saas-lab-pricing p {
+  border: 1px solid rgba(80, 215, 160, 0.2);
+  border-radius: 7px;
+  background: rgba(80, 215, 160, 0.055);
+  padding: 12px;
+  font-weight: 720;
+}
+
+.saas-lab-pricing strong {
+  display: block;
+  border-left: 3px solid var(--lab-amber);
+  padding-left: 10px;
+}
+
+.saas-lab-gtm p {
+  border-left: 3px solid var(--lab-blue);
+  padding-left: 9px;
+  font-size: 13px;
+  font-weight: 720;
+}
+
+.saas-lab-risks article {
+  border-color: rgba(244, 93, 143, 0.24);
+  background: rgba(255, 246, 249, 0.72);
+}
+
+@media (max-width: 1180px) {
+  .saas-lab-hero,
+  .saas-lab-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .saas-lab-verdict {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+}
+
+@media (max-width: 820px) {
+  .saas-lab-shell {
+    padding: 14px;
+  }
+
+  .saas-lab-hero > div,
+  .saas-lab-verdict,
+  .saas-lab-form,
+  .saas-lab-results > section {
+    border-radius: 7px;
+  }
+
+  .saas-lab-hero > div {
+    padding: 20px;
+  }
+
+  .saas-lab-hero h1 {
+    font-size: 34px;
+  }
+
+  .saas-lab-hero p {
+    font-size: 15px;
+  }
+
+  .saas-lab-two,
+  .saas-lab-scoreboard,
+  .saas-lab-users > div,
+  .saas-lab-mvp > div,
+  .saas-lab-pricing > div,
+  .saas-lab-gtm > div,
+  .saas-lab-risks > div {
+    grid-template-columns: 1fr;
+  }
+
+  .saas-lab-main-score {
+    grid-row: auto;
+  }
+
+  .saas-lab-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .saas-lab-heading button {
+    width: 100%;
+  }
+
+  .saas-lab-summary h2 {
+    font-size: 30px;
+  }
+}
