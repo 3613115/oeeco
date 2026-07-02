@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import {
   absoluteUrl,
   defaultOgImage,
+  googleAdSenseClient,
   googleSiteVerification,
   siteDescription,
   siteName,
@@ -60,6 +61,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en">
+      <head>
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${googleAdSenseClient}`}
+          crossOrigin="anonymous"
+        />
+      </head>
       <body>
         <script
           type="application/ld+json"

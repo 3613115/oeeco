@@ -11,6 +11,8 @@ export const defaultOgImage = "/assets/cover-fishing.png";
 
 export const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION || undefined;
 
+export const googleAdSenseClient = "ca-pub-5608004759418063";
+
 export function absoluteUrl(path = "/") {
   const nextPath = path.startsWith("/") ? path : `/${path}`;
   return `${siteUrl}${nextPath}`;
