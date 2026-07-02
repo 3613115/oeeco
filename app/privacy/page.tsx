@@ -33,6 +33,7 @@ export default function PrivacyPage() {
           <li>To publish and display approved works.</li>
           <li>To review submissions, prevent abuse, and keep unsafe links off the platform.</li>
           <li>To understand whether pages are working and which parts of the site need improvement.</li>
+          <li>To support basic account features such as creator identity, submission history, and work management.</li>
         </ul>
       </section>
 
@@ -47,8 +48,25 @@ export default function PrivacyPage() {
       <section className="info-section">
         <h2>Contact and removal</h2>
         <p>
-          If a published work includes private information, unsafe links, or content you believe should be removed, use
-          the site owner contact channel connected to oeeco or request review through the project maintainer.
+          If a published work includes private information, unsafe links, or content you believe should be removed, use the
+          contact page to request review. Include the relevant work URL and a clear explanation of the issue.
+        </p>
+      </section>
+
+      <section className="info-section">
+        <h2>Advertising and third-party services</h2>
+        <p>
+          oeeco may use third-party services for hosting, authentication, analytics, security, and advertising. These
+          services may process technical information such as browser, device, page, and interaction data according to
+          their own policies.
+        </p>
+      </section>
+
+      <section className="info-section">
+        <h2>Data choices</h2>
+        <p>
+          Creators should avoid submitting confidential information. If you need a public listing updated, hidden, or
+          reviewed, contact the site owner with the affected work URL.
         </p>
       </section>
     </article>

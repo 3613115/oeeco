@@ -50,12 +50,47 @@ export default function AboutPage() {
         </ol>
       </section>
 
+      <section className="info-section">
+        <h2>What makes a work useful</h2>
+        <p>
+          oeeco favors works that can be understood quickly, opened safely, and tried without installing anything. A
+          strong listing explains what the project does, who should try it, what tools were used, and why the result is
+          more than a placeholder link.
+        </p>
+        <div className="info-grid">
+          <div>
+            <h3>Playable first</h3>
+            <p>Games and tools should give visitors an immediate interactive result in the browser.</p>
+          </div>
+          <div>
+            <h3>Clearly described</h3>
+            <p>Each published work needs a title, summary, category, tags, and visible creator attribution.</p>
+          </div>
+          <div>
+            <h3>Reviewed before reach</h3>
+            <p>New submissions are checked before they become part of the public discovery experience.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="info-section">
+        <h2>Why the platform exists</h2>
+        <p>
+          Many AI-assisted projects are shared as isolated links that disappear in chat threads, social feeds, or private
+          folders. oeeco organizes those experiments into a public shelf so viewers can compare ideas and creators can
+          build a reliable portfolio of shipped work.
+        </p>
+      </section>
+
       <div className="info-actions">
         <Link className="solid-button" href="/upload">
           Submit Work
         </Link>
         <Link className="ghost-button" href="/guidelines">
           Read Guidelines
+        </Link>
+        <Link className="ghost-button" href="/contact">
+          Contact
         </Link>
       </div>
     </article>

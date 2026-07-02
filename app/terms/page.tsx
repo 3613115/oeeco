@@ -45,6 +45,24 @@ export default function TermsPage() {
       </section>
 
       <section className="info-section">
+        <h2>Acceptable use</h2>
+        <ul className="info-list">
+          <li>Do not submit malware, phishing pages, deceptive redirects, forced downloads, or scam content.</li>
+          <li>Do not submit content that infringes another person&apos;s rights or exposes private information.</li>
+          <li>Do not use oeeco to harass people, impersonate others, manipulate metrics, or spam search results.</li>
+          <li>Do not intentionally bypass review, security, or sandboxing protections.</li>
+        </ul>
+      </section>
+
+      <section className="info-section">
+        <h2>Advertising and monetization</h2>
+        <p>
+          oeeco may display advertising or sponsored placements in the future. Ads and sponsored areas should not
+          override the purpose of the site: helping viewers discover AI-made works that are safe and worth opening.
+        </p>
+      </section>
+
+      <section className="info-section">
         <h2>Availability</h2>
         <p>
           oeeco is an early-stage platform. Features may change, pages may move, and submissions may be unavailable while
@@ -55,6 +73,9 @@ export default function TermsPage() {
       <div className="info-actions">
         <Link className="solid-button" href="/guidelines">
           Submission Guidelines
+        </Link>
+        <Link className="ghost-button" href="/contact">
+          Contact
         </Link>
         <Link className="ghost-button" href="/privacy">
           Privacy

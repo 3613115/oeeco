@@ -45,11 +45,46 @@ export default function GuidelinesPage() {
           New submissions may be held for review before publication. oeeco may edit metadata for clarity, reject a work,
           hide a published work, or remove links that become unsafe or unavailable.
         </p>
+        <ol className="info-list">
+          <li>Metadata is checked for a clear title, honest summary, category, tags, and visible creator context.</li>
+          <li>Playable links are checked for basic availability, browser safety, and whether the result matches the listing.</li>
+          <li>Works that need fixes may be rejected with a note so the creator can update and resubmit.</li>
+          <li>Published works can still be hidden later if the link changes, breaks, or becomes unsafe.</li>
+        </ol>
+      </section>
+
+      <section className="info-section">
+        <h2>Quality expectations</h2>
+        <div className="info-grid">
+          <div>
+            <h3>Enough substance</h3>
+            <p>Submissions should have a real interaction, useful output, playable loop, or thoughtful visual result.</p>
+          </div>
+          <div>
+            <h3>Honest presentation</h3>
+            <p>Titles and summaries should describe the actual work, not promise unrelated features or outcomes.</p>
+          </div>
+          <div>
+            <h3>Safe browsing</h3>
+            <p>Links should not trigger downloads, hide destinations, imitate login pages, or pressure users to share data.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="info-section">
+        <h2>Reporting a problem</h2>
+        <p>
+          If a public work appears broken, unsafe, misleading, copied without permission, or privacy-invasive, report it
+          with the work URL and a short explanation so the site owner can review it.
+        </p>
       </section>
 
       <div className="info-actions">
         <Link className="solid-button" href="/upload">
           Submit Work
+        </Link>
+        <Link className="ghost-button" href="/contact">
+          Contact
         </Link>
         <Link className="ghost-button" href="/terms">
           Terms

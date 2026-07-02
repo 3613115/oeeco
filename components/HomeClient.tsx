@@ -7,6 +7,50 @@ import { useMemo, useState } from "react";
 import { WorkCard } from "@/components/WorkCard";
 import { categories, formatNumber, getWorkCreator, getWorkCuration, type CategoryId, type Work } from "@/lib/data";
 
+function HomeTrustSection() {
+  return (
+    <section className="home-trust-section surface" aria-label="How oeeco reviews and presents works">
+      <div className="home-trust-intro">
+        <span className="section-kicker">What oeeco is curating</span>
+        <h2>Small AI-made works with enough substance to open, try, and learn from</h2>
+        <p>
+          oeeco is not a link dump. Each public listing is meant to give visitors a clear reason to open the work: a
+          playable loop, a useful output, a visual experiment, or a concrete product idea that can run in the browser.
+        </p>
+      </div>
+      <div className="home-trust-grid">
+        <article>
+          <strong>Reviewed submissions</strong>
+          <p>New works can be held for review, edited for clearer metadata, rejected, or hidden if links become unsafe.</p>
+        </article>
+        <article>
+          <strong>Playable first</strong>
+          <p>TRY pages prioritize browser-safe demos so visitors can inspect the experience before leaving oeeco.</p>
+        </article>
+        <article>
+          <strong>Creator context</strong>
+          <p>Works include categories, tags, tool stack, creator attribution, and public detail pages for discovery.</p>
+        </article>
+        <article>
+          <strong>Useful collection</strong>
+          <p>The first shelf focuses on games, tools, AI workflows, and interactive pages that show real build patterns.</p>
+        </article>
+      </div>
+      <div className="home-trust-actions">
+        <Link className="ghost-button" href="/about">
+          About oeeco
+        </Link>
+        <Link className="ghost-button" href="/guidelines">
+          Review Guidelines
+        </Link>
+        <Link className="ghost-button" href="/contact">
+          Contact
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 export function HomeClient({
   initialQuery = "",
   initialWorks,
@@ -78,13 +122,16 @@ export function HomeClient({
 
   if (!featured || !featuredCreator) {
     return (
-      <section className="empty-state surface">
-        <h1 className="page-title">oeeco</h1>
-        <p>No public works yet. Be the first to submit one.</p>
-        <Link className="solid-button" href="/upload">
-          Submit Work
-        </Link>
-      </section>
+      <div>
+        <section className="empty-state surface">
+          <h1 className="page-title">oeeco</h1>
+          <p>No public works yet. Be the first to submit one.</p>
+          <Link className="solid-button" href="/upload">
+            Submit Work
+          </Link>
+        </section>
+        <HomeTrustSection />
+      </div>
     );
   }
 
@@ -265,6 +312,8 @@ export function HomeClient({
             </Link>
           </div>
         </section>
+
+        <HomeTrustSection />
 
         <div className="filter-row">
           <div className="segmented" aria-label="Sort works">
