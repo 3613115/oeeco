@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getAllBlogPosts } from "@/lib/blog-posts";
 import { categories, works, type CategoryId } from "@/lib/data";
 import { getTagSlugs } from "@/lib/discovery";
 import { absoluteUrl } from "@/lib/site";
@@ -27,6 +28,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: "daily",
       priority: 0.8,
+    },
+    {
+      url: absoluteUrl("/blog"),
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.7,
     },
     {
       url: absoluteUrl("/upload"),
@@ -97,5 +104,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...tagRoutes, ...creatorRoutes, ...workRoutes];
+  const blogRoutes: MetadataRoute.Sitemap = getAllBlogPosts().map((post) => ({
+    url: absoluteUrl(`/blog/${post.slug}`),
+    lastModified: new Date(post.date),
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
+
+  return [...staticRoutes, ...categoryRoutes, ...tagRoutes, ...creatorRoutes, ...workRoutes, ...blogRoutes];
 }

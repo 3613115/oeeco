@@ -304,6 +304,219 @@ button {
   padding-top: 6px;
 }
 
+.blog-page {
+  display: grid;
+  gap: 22px;
+}
+
+.blog-hero,
+.blog-featured,
+.blog-card,
+.blog-article {
+  overflow-wrap: anywhere;
+}
+
+.blog-hero {
+  display: grid;
+  gap: 12px;
+  padding: clamp(22px, 4vw, 38px);
+}
+
+.blog-hero p {
+  max-width: 820px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.blog-featured {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: end;
+  padding: clamp(22px, 4vw, 34px);
+  background:
+    linear-gradient(135deg, rgba(85, 214, 168, 0.13), rgba(53, 119, 240, 0.08)),
+    rgba(255, 255, 255, 0.86);
+}
+
+.blog-featured > div,
+.blog-card {
+  display: grid;
+  gap: 12px;
+}
+
+.blog-category {
+  width: max-content;
+  max-width: 100%;
+  border: 1px solid rgba(12, 122, 85, 0.18);
+  border-radius: 999px;
+  background: rgba(85, 214, 168, 0.14);
+  color: var(--leaf);
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.blog-featured h2,
+.blog-card h2 {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 34px);
+  line-height: 1.1;
+}
+
+.blog-card h2 {
+  font-size: 22px;
+}
+
+.blog-featured h2 a:hover,
+.blog-card h2 a:hover,
+.blog-related-card:hover strong {
+  color: var(--leaf);
+}
+
+.blog-featured p,
+.blog-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.blog-card {
+  padding: 22px;
+}
+
+.blog-meta,
+.blog-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.blog-meta span,
+.blog-tags span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  padding: 6px 9px;
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.blog-meta svg,
+.blog-tags svg {
+  color: var(--leaf);
+  flex: 0 0 auto;
+}
+
+.blog-article {
+  display: grid;
+  gap: clamp(22px, 4vw, 34px);
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: clamp(22px, 4vw, 44px);
+}
+
+.blog-back-link {
+  width: max-content;
+  color: var(--leaf);
+  font-weight: 850;
+}
+
+.blog-back-link:hover {
+  color: var(--ink);
+}
+
+.blog-article-header {
+  display: grid;
+  gap: 14px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 24px;
+}
+
+.blog-article-header > p {
+  max-width: 780px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.75;
+}
+
+.blog-prose {
+  display: grid;
+  gap: 22px;
+}
+
+.blog-prose section {
+  display: grid;
+  gap: 12px;
+}
+
+.blog-prose h2 {
+  margin: 8px 0 0;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.18;
+}
+
+.blog-prose p {
+  margin: 0;
+  color: #3f4b47;
+  font-size: 17px;
+  line-height: 1.82;
+}
+
+.blog-article-footer {
+  display: grid;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
+
+.blog-article-footer h2 {
+  margin: 6px 0 0;
+  font-size: 24px;
+}
+
+.blog-related-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.blog-related-card {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 16px;
+}
+
+.blog-related-card span,
+.blog-related-card small {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.blog-related-card strong {
+  font-size: 17px;
+  line-height: 1.35;
+}
+
 .discovery-page {
   display: grid;
   gap: 22px;
@@ -6787,6 +7000,20 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .blog-featured,
+  .blog-grid,
+  .blog-related-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-featured {
+    align-items: start;
+  }
+
+  .blog-featured .solid-button {
+    width: max-content;
+  }
+
   .creator-header {
     grid-template-columns: 96px 1fr;
   }
@@ -6831,6 +7058,27 @@ button {
 
   .info-grid > div {
     padding: 14px;
+  }
+
+  .blog-hero,
+  .blog-card,
+  .blog-article,
+  .blog-featured {
+    padding: 20px;
+  }
+
+  .blog-article {
+    width: 100%;
+    max-width: calc(100vw - 22px);
+  }
+
+  .blog-article-header > p,
+  .blog-prose p {
+    font-size: 16px;
+  }
+
+  .blog-featured .solid-button {
+    width: 100%;
   }
 
   .home-trust-section {

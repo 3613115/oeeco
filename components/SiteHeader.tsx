@@ -38,6 +38,7 @@ export function SiteHeader() {
         <Link href="/">Explore</Link>
         <Link href="/latest">Latest</Link>
         <Link href="/rank">Leaderboard</Link>
+        <Link href="/blog">Blog</Link>
         <Link href="/upload">
           <Upload size={16} aria-hidden="true" />
           Submit

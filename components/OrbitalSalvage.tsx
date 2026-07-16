@@ -76,6 +76,7 @@ const SERVICE_RADIUS = 340;
 const SERVICE_SAFE_SPEED = 3.8;
 const REFUEL_COST = 120;
 const REPAIR_COST = 140;
+const STATION_RADAR_TRANSFORM = `rotate(${Math.atan2(STATION_Y - START_Y, STATION_X - START_X).toFixed(7)}rad) translateX(54px)`;
 
 const initialTelemetry: FlightTelemetry = {
   speed: 0,
@@ -1128,7 +1129,7 @@ export function OrbitalSalvage() {
           <div className="orbital-radar">
             <i className="orbital-radar-sweep" />
             <span className="orbital-radar-ship" />
-            <span className="orbital-radar-station" style={{ transform: `rotate(${Math.atan2(STATION_Y - START_Y, STATION_X - START_X)}rad) translateX(54px)` }} />
+            <span className="orbital-radar-station" style={{ transform: STATION_RADAR_TRANSFORM }} />
             {Array.from({ length: 12 }, (_, index) => <b key={index} style={{ transform: `rotate(${index * 31}deg) translateX(${28 + (index % 4) * 10}px)` }} />)}
           </div>
           <div className="orbital-contact-list">
