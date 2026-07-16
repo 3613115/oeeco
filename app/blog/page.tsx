@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, Clock, Tag } from "lucide-react";
-import { getAllBlogPosts } from "@/lib/blog-posts";
+import { CalendarDays, Clock, Tag, UserRound } from "lucide-react";
+import { blogAuthor, getAllBlogPosts } from "@/lib/blog-posts";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -45,6 +45,10 @@ export default function BlogPage() {
             <p>{featured.description}</p>
             <div className="blog-meta">
               <span>
+                <UserRound size={15} aria-hidden="true" />
+                {blogAuthor}
+              </span>
+              <span>
                 <CalendarDays size={15} aria-hidden="true" />
                 {featured.date}
               </span>
@@ -69,6 +73,10 @@ export default function BlogPage() {
             </h2>
             <p>{post.description}</p>
             <div className="blog-meta">
+              <span>
+                <UserRound size={15} aria-hidden="true" />
+                {blogAuthor}
+              </span>
               <span>
                 <CalendarDays size={15} aria-hidden="true" />
                 {post.date}
