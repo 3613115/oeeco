@@ -9,6 +9,9 @@ export const metadata: Metadata = {
     "Read oeeco essays and guides about AI-made web works, Codex workflows, interactive tools, browser games, and creator publishing.",
   alternates: {
     canonical: "/blog",
+    types: {
+      "application/rss+xml": "/blog/rss.xml",
+    },
   },
   openGraph: {
     title: "oeeco Blog",
@@ -33,6 +36,17 @@ export default function BlogPage() {
           Guides, essays, and practical publishing notes for creators building browser games, interactive tools,
           visual experiments, and small software artifacts with AI-assisted workflows.
         </p>
+        <div className="blog-hero-actions">
+          <Link className="solid-button" href="/upload">
+            Submit a work
+          </Link>
+          <Link className="ghost-button" href="/guidelines">
+            Submission guidelines
+          </Link>
+          <Link className="ghost-button" href="/blog/rss.xml">
+            RSS feed
+          </Link>
+        </div>
       </div>
 
       {featured && (

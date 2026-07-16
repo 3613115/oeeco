@@ -55,9 +55,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   const relatedPosts = getAllBlogPosts().filter((item) => item.slug !== post.slug).slice(0, 2);
-  const jsonLd = {
+  const articleJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     headline: post.title,
     description: post.description,
     datePublished: post.date,
@@ -75,17 +75,47 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     mainEntityOfPage: absoluteUrl(`/blog/${post.slug}`),
     keywords: post.tags.join(", "),
   };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: absoluteUrl("/"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Blog",
+        item: absoluteUrl("/blog"),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: post.title,
+        item: absoluteUrl(`/blog/${post.slug}`),
+      },
+    ],
+  };
 
   return (
     <article className="blog-article surface">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }}
       />
 
-      <Link className="blog-back-link" href="/blog">
-        Back to Blog
-      </Link>
+      <nav className="blog-breadcrumb" aria-label="Breadcrumb">
+        <Link href="/">Home</Link>
+        <span>/</span>
+        <Link href="/blog">Blog</Link>
+      </nav>
 
       <header className="blog-article-header">
         <span className="blog-category">{post.category}</span>
@@ -131,6 +161,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       </div>
 
       <footer className="blog-article-footer">
+        <div className="blog-cta-panel">
+          <div>
+            <span className="section-kicker">Build with us</span>
+            <h2>Have an AI-made web work ready to share?</h2>
+            <p>Submit browser games, tools, visual experiments, and interactive pages that visitors can open safely.</p>
+          </div>
+          <div className="blog-cta-actions">
+            <Link className="solid-button" href="/upload">
+              Submit Work
+            </Link>
+            <Link className="ghost-button" href="/guidelines">
+              Read Guidelines
+            </Link>
+          </div>
+        </div>
         <div>
           <span className="section-kicker">Keep exploring</span>
           <h2>Related oeeco reading</h2>

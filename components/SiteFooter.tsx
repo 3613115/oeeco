@@ -5,6 +5,8 @@ const platformLinks = [
   ["Latest", "/latest"],
   ["Search", "/search"],
   ["Leaderboard", "/rank"],
+  ["Blog", "/blog"],
+  ["RSS Feed", "/blog/rss.xml"],
   ["Submit Work", "/upload"],
   ["Account", "/account"],
 ];
