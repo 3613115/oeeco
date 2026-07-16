@@ -22,6 +22,7 @@ const categoryLinks = [
 const policyLinks = [
   ["About", "/about"],
   ["Contact", "/contact"],
+  ["Editorial Policy", "/editorial-policy"],
   ["Submission Guidelines", "/guidelines"],
   ["Privacy", "/privacy"],
   ["Terms", "/terms"],
