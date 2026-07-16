@@ -706,6 +706,346 @@ export const blogPosts: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: "best-ai-made-browser-games-to-study",
+    title: "Best AI-Made Browser Games to Study",
+    description:
+      "What creators can learn from small AI-assisted browser games: focused loops, readable feedback, tuned controls, and lightweight publishing.",
+    date: "2026-07-16",
+    readingTime: "8 min read",
+    category: "Game Design",
+    tags: ["browser-games", "ai-made-games", "game-design", "creative-coding", "playability"],
+    intro: [
+      "The best AI-made browser games to study are not always the biggest ones. Small games often reveal the most useful lessons because their decisions are visible: one loop, one control scheme, one failure state, one reason to retry.",
+      "For creators using Codex or other AI coding tools, studying small games is a practical way to improve. You can see how a generated prototype becomes a playable artifact through tuning, interface decisions, and a few strong constraints.",
+    ],
+    relatedLinks: [
+      {
+        label: "Orbital Salvage",
+        href: "/demos/orbital-salvage",
+        description: "Study a deeper space recovery game with physics, objectives, hazards, and feedback systems.",
+      },
+      {
+        label: "One Button Dodge",
+        href: "/demos/one-button-dodge",
+        description: "Try a compact game built around a single readable interaction.",
+      },
+      {
+        label: "Game category",
+        href: "/categories/game",
+        description: "Browse more AI-made browser games and arcade experiments on oeeco.",
+      },
+    ],
+    sections: [
+      {
+        heading: "Start with the loop",
+        body: [
+          "A game worth studying has a loop you can describe quickly. Avoid, collect, tow, match, land, survive, repair, route, or build. If the core action cannot be named, the game may be too vague to teach much.",
+          "AI tools can produce many mechanics at once, but good games usually choose one dominant loop and support it with clear feedback. Study how the loop begins, how it escalates, and how the player knows they are improving.",
+        ],
+      },
+      {
+        heading: "Look at failure feedback",
+        body: [
+          "Failure is where design quality becomes obvious. A good browser game tells the player why they lost and makes restarting easy. A weak game simply stops or leaves the player confused.",
+          "When studying examples, look for visual changes, score changes, status text, animation, or layout cues that explain the result. These details often matter more than extra content.",
+        ],
+      },
+      {
+        heading: "Study control tuning",
+        body: [
+          "Generated games often need human taste in controls. Movement may be too slippery, too stiff, too fast, or too slow. Small differences in acceleration, friction, hitboxes, and cooldowns can change the whole experience.",
+          "A useful study habit is to ask what would happen if one value changed by twenty percent. That question teaches you how much of game feel is tuning rather than feature count.",
+        ],
+      },
+      {
+        heading: "Notice the page around the game",
+        body: [
+          "A browser game is not only the canvas. The start screen, instructions, restart button, status labels, and mobile layout all shape the visitor's first minute.",
+          "For oeeco, a strong game page should be safe to open, easy to understand, and honest about its scope. A game can be small and still feel published if the surrounding page is thoughtful.",
+        ],
+      },
+      {
+        heading: "Build your own study list",
+        body: [
+          "Keep a short list of games that teach one thing well: control feel, visual clarity, onboarding, progression, or replayability. Do not only collect impressive screenshots. Collect examples that reveal decisions you can reuse.",
+          "AI-assisted creators improve fastest when they study finished links, not just prompts. A playable page shows the craft that happens after generation.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "how-to-review-an-ai-made-web-tool",
+    title: "How to Review an AI-Made Web Tool",
+    description:
+      "A practical review framework for AI-made browser tools: purpose, inputs, output quality, safety, repeat use, and honest limitations.",
+    date: "2026-07-16",
+    readingTime: "8 min read",
+    category: "Review",
+    tags: ["web-tools", "review", "ai-made", "product-design", "quality"],
+    intro: [
+      "AI-made web tools can look useful at first glance, but a good review should go deeper than whether the page has a polished interface. The real question is whether the tool helps a visitor complete a meaningful task.",
+      "This framework is written for creators, reviewers, and site owners who need to judge small browser tools fairly. It works for validation labs, copy helpers, research tools, prompt generators, and other workflow-focused projects.",
+    ],
+    relatedLinks: [
+      {
+        label: "Customer Interview Signal Lab",
+        href: "/demos/customer-interview-signal-lab",
+        description: "Review a tool that turns messy interview notes into structured product evidence.",
+      },
+      {
+        label: "Landing Page Copy Doctor",
+        href: "/demos/landing-page-copy-doctor",
+        description: "Try a focused copy diagnosis tool with concrete outputs.",
+      },
+      {
+        label: "Review process",
+        href: "/blog/how-oeeco-reviews-ai-made-works",
+        description: "Read how oeeco thinks about review, safety, metadata, and substance.",
+      },
+    ],
+    sections: [
+      {
+        heading: "Ask what job the tool performs",
+        body: [
+          "A good tool has a clear job. It might score interview evidence, generate prompt cards, diagnose a landing page, or turn a product idea into a risk map. If the job is unclear, the output will usually feel generic.",
+          "Review the tool by asking whether the visitor can understand the task before entering data. A tool that needs a long explanation may need a narrower promise.",
+        ],
+      },
+      {
+        heading: "Check whether the inputs are realistic",
+        body: [
+          "Useful tools ask for inputs people actually have. Founders have messy notes, rough personas, quotes, alternatives, and goals. Creators have titles, prompts, drafts, and constraints.",
+          "If a tool asks for perfect information, it may fail at the moment when people need it most. Strong tools help organize incomplete material.",
+        ],
+      },
+      {
+        heading: "Evaluate the output",
+        body: [
+          "Good output is specific, structured, and easy to act on. It should reduce the next decision. A weak output sounds fluent but does not tell the visitor what to do next.",
+          "Look for scores, themes, warnings, next questions, action steps, or copyable reports. The best small tools leave the visitor with a useful artifact.",
+        ],
+      },
+      {
+        heading: "Review safety and data expectations",
+        body: [
+          "A small tool should not ask for unnecessary sensitive data. If it accepts notes or text, the interface should be clear about what the visitor is doing and what the tool returns.",
+          "Avoid tools that imitate login flows, hide data transmission, or pressure users to submit private information. Safety is part of product quality.",
+        ],
+      },
+      {
+        heading: "Look for repeat value",
+        body: [
+          "The strongest AI-made tools can be used more than once. A visitor might run each new interview, headline, or product idea through the same workflow.",
+          "Repeat value is a signal that the tool is more than a demo. It has become a small piece of software that fits into a real routine.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "ai-web-app-publishing-checklist",
+    title: "AI Web App Publishing Checklist",
+    description:
+      "A pre-publish checklist for AI-assisted web apps covering purpose, safety, metadata, mobile layout, performance, policy pages, and post-launch review.",
+    date: "2026-07-16",
+    readingTime: "9 min read",
+    category: "Publishing",
+    tags: ["publishing", "web-apps", "checklist", "ai-coding", "launch"],
+    intro: [
+      "AI-assisted coding makes it easier to create a web app, but publishing still requires care. A generated page can work in a local preview and still fail as a public artifact if it lacks context, safety checks, responsive layout, or clear metadata.",
+      "Use this checklist before sharing an AI-made web app on oeeco, social platforms, search, or a public portfolio.",
+    ],
+    relatedLinks: [
+      {
+        label: "Site readiness",
+        href: "/site-readiness",
+        description: "Use oeeco's operational checklist for content, policy, sitemap, RSS, and AdSense basics.",
+      },
+      {
+        label: "Submission guidelines",
+        href: "/guidelines",
+        description: "Read the public rules for safe and useful oeeco submissions.",
+      },
+      {
+        label: "Submit a work",
+        href: "/upload",
+        description: "Share a review-ready AI-made browser project with oeeco.",
+      },
+    ],
+    sections: [
+      {
+        heading: "Define the public promise",
+        body: [
+          "Write one sentence that explains what the app does and who it helps. If the promise is too broad, reduce it before publishing. Public pages need immediate clarity.",
+          "A clear promise improves titles, summaries, onboarding, and review. It also protects visitors from expecting a finished product when the page is really a prototype.",
+        ],
+      },
+      {
+        heading: "Test the first complete path",
+        body: [
+          "Open the app as a new visitor. Complete the main action from start to finish. For a game, start, play, fail, and restart. For a tool, enter sample data, generate output, copy or save the result, and refresh.",
+          "Do this before adding more features. A broken main path is more damaging than a missing secondary feature.",
+        ],
+      },
+      {
+        heading: "Check mobile and narrow screens",
+        body: [
+          "Many people open shared links on phones. Text should fit, buttons should remain tappable, and important controls should not overlap. If the app is desktop-only, say so honestly.",
+          "Responsive layout is not decoration. It is part of making the work accessible to real visitors.",
+        ],
+      },
+      {
+        heading: "Review metadata and policy context",
+        body: [
+          "Every public app should have a clear title, description, canonical URL, and any necessary policy links. If the app collects data, explain what happens. If it is a prototype, describe its limits.",
+          "For a gallery submission, metadata helps reviewers and visitors understand the work without guessing.",
+        ],
+      },
+      {
+        heading: "Prepare for post-launch fixes",
+        body: [
+          "Publishing is not the end. Watch for broken links, confusing instructions, mobile bugs, and mismatches between the description and the actual app.",
+          "A small update after launch can turn a rough AI-generated prototype into a reliable web work.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "examples-of-useful-ai-made-tools",
+    title: "Examples of Useful AI-Made Tools",
+    description:
+      "Examples and patterns for useful AI-made browser tools, from interview synthesis to validation labs, prompt workflows, and copy diagnosis.",
+    date: "2026-07-16",
+    readingTime: "8 min read",
+    category: "Examples",
+    tags: ["ai-tools", "examples", "interactive-tools", "workflow", "productivity"],
+    intro: [
+      "Useful AI-made tools usually do one narrow job well. They accept messy input, apply a structured way of thinking, and return something the visitor can use immediately.",
+      "This article outlines practical examples of tool patterns that fit well on the web and are strong candidates for oeeco submissions.",
+    ],
+    relatedLinks: [
+      {
+        label: "Micro SaaS Validation Lab",
+        href: "/demos/micro-saas-validation-lab",
+        description: "Explore a tool pattern for early product validation and risk thinking.",
+      },
+      {
+        label: "AI Prompt Card Generator",
+        href: "/demos/ai-prompt-card-generator",
+        description: "Try a tool that packages prompt creation into reusable cards.",
+      },
+      {
+        label: "Tool category",
+        href: "/categories/tool",
+        description: "Browse more useful browser tools in the oeeco gallery.",
+      },
+    ],
+    sections: [
+      {
+        heading: "Interview synthesis tools",
+        body: [
+          "A founder or product builder often has messy interview notes and needs to know whether they contain real evidence. A useful tool can score pain, urgency, alternatives, and clarity, then suggest next questions.",
+          "The value is not that the tool replaces research judgment. The value is that it makes the next review session more structured.",
+        ],
+      },
+      {
+        heading: "Validation and prioritization tools",
+        body: [
+          "Validation tools help creators compare ideas, risks, target users, and next experiments. They are useful when they make tradeoffs visible instead of producing vague encouragement.",
+          "A good validation tool should explain its criteria. Visitors should know why an idea scored well or poorly.",
+        ],
+      },
+      {
+        heading: "Prompt workflow tools",
+        body: [
+          "Prompt tools are useful when they help people produce repeatable inputs for creative or technical work. A prompt card, checklist, or guided form is stronger than a page that simply says write a better prompt.",
+          "The interface should help users express role, goal, context, constraints, and desired output without needing to remember a formula.",
+        ],
+      },
+      {
+        heading: "Copy and messaging tools",
+        body: [
+          "Copy tools can diagnose unclear headlines, weak value propositions, missing proof, or unfocused calls to action. They are especially useful when they show the reason behind each suggestion.",
+          "A browser tool that improves one landing page section can be more practical than a large generic writing assistant.",
+        ],
+      },
+      {
+        heading: "What these examples have in common",
+        body: [
+          "The best tools are narrow, repeatable, and honest about their limits. They do not promise to replace expertise. They help the visitor move one step forward.",
+          "That is the sweet spot for AI-made web tools: small enough to understand, useful enough to revisit, and clear enough to share.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "how-to-make-a-small-web-game-feel-finished",
+    title: "How to Make a Small Web Game Feel Finished",
+    description:
+      "Small web games feel finished when they have a clear start, readable controls, fair failure, polish through restraint, and a smooth restart loop.",
+    date: "2026-07-16",
+    readingTime: "8 min read",
+    category: "Game Design",
+    tags: ["small-games", "browser-games", "polish", "game-feel", "ai-coding"],
+    intro: [
+      "A small web game does not need a huge world, a long story, or dozens of mechanics to feel finished. It needs to respect the player from the first second.",
+      "For AI-assisted creators, the finishing step is where the work becomes memorable. The generated prototype may contain the idea, but polish turns the idea into a page people can actually enjoy.",
+    ],
+    relatedLinks: [
+      {
+        label: "What makes a good browser game",
+        href: "/blog/what-makes-a-good-ai-made-browser-game",
+        description: "Read the companion checklist for AI-made browser game quality.",
+      },
+      {
+        label: "Mood Garden",
+        href: "/demos/mood-garden",
+        description: "Try a small visual interaction with a gentle, finished presentation.",
+      },
+      {
+        label: "Browse games",
+        href: "/categories/game",
+        description: "Find more playable AI-made game works on oeeco.",
+      },
+    ],
+    sections: [
+      {
+        heading: "Give the player a clear start",
+        body: [
+          "A finished-feeling game tells the player what they are doing before asking for skill. The first screen should explain the goal, the main control, and the reason to start.",
+          "This does not require a long tutorial. One sentence and a visible start button can be enough if the game loop is focused.",
+        ],
+      },
+      {
+        heading: "Make controls visible",
+        body: [
+          "Players should not need to guess whether the game uses keyboard, mouse, touch, or buttons. If the controls change by device, the interface should make that clear.",
+          "Generated games often hide controls in code comments or assumptions. Published games need visible instructions.",
+        ],
+      },
+      {
+        heading: "Use fair failure",
+        body: [
+          "Failure should feel connected to player action. If the player loses, they should understand why and want to try again. Sudden unexplained failure makes a small game feel unfinished.",
+          "Use status messages, visible hazards, health bars, score changes, or end screens to make the result readable.",
+        ],
+      },
+      {
+        heading: "Polish through restraint",
+        body: [
+          "A finished small game often feels restrained. It chooses a palette, a few effects, consistent spacing, and one strong interaction. Too many generated decorations can make the game feel less deliberate.",
+          "Polish is not about adding everything. It is about making the chosen parts feel intentional.",
+        ],
+      },
+      {
+        heading: "Make replay effortless",
+        body: [
+          "A smooth restart button can do more for a small game than an extra feature. If the player can retry quickly, they are more likely to feel the loop and improve.",
+          "The best small games invite one more run. That invitation is often the final sign that the project is ready to publish.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getAllBlogPosts() {
