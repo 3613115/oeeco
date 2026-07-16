@@ -6,7 +6,8 @@ const checks = [
   { path: "/", needle: "oeeco" },
   { path: "/blog", needle: "Explore by topic" },
   { path: "/blog/rss.xml", needle: "<rss version=\"2.0\">" },
-  { path: "/sitemap.xml", needle: "/blog/what-are-ai-made-web-works" },
+  { label: "sitemap blog posts", path: "/sitemap.xml", needle: "/blog/what-are-ai-made-web-works" },
+  { label: "sitemap blog topics", path: "/sitemap.xml", needle: "/blog/topics/browser-games" },
   { path: "/robots.txt", needle: "sitemap.xml" },
   { path: "/ads.txt", needle: "google.com, pub-5608004759418063, DIRECT" },
   { path: "/about", needle: "A gallery for AI-made web works" },
@@ -17,6 +18,10 @@ const checks = [
   { path: "/terms", needle: "Terms" },
   { path: "/upload", needle: "Submit to oeeco" },
   { path: "/latest", needle: "Newest works on oeeco" },
+  { path: "/blog/topics/creator-submissions", needle: "Creator submissions" },
+  { path: "/blog/topics/browser-games", needle: "Browser games" },
+  { path: "/blog/topics/interactive-tools", needle: "Interactive tools" },
+  { path: "/blog/topics/review-and-trust", needle: "Review and trust" },
   { path: "/demos/customer-interview-signal-lab", needle: "Turn messy user interviews into product evidence" },
   { path: "/site-readiness", needle: "AdSense and content readiness checklist" },
 ];
@@ -37,14 +42,14 @@ for (const check of checks) {
     const ok = response.ok && text.includes(check.needle);
 
     if (ok) {
-      console.log(`OK   ${response.status} ${check.path}`);
+      console.log(`OK   ${response.status} ${check.label || check.path}`);
     } else {
       failures += 1;
-      console.error(`FAIL ${response.status} ${check.path} missing: ${check.needle}`);
+      console.error(`FAIL ${response.status} ${check.label || check.path} missing: ${check.needle}`);
     }
   } catch (error) {
     failures += 1;
-    console.error(`ERR  ${check.path} ${error.message}`);
+    console.error(`ERR  ${check.label || check.path} ${error.message}`);
   }
 }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllBlogPosts } from "@/lib/blog-posts";
+import { getAllBlogTopics } from "@/lib/blog-topics";
 import { googleAdSenseClient } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -45,9 +46,11 @@ const productChecks = [
 
 export default function SiteReadinessPage() {
   const blogPosts = getAllBlogPosts();
+  const blogTopics = getAllBlogTopics();
   const latestPost = blogPosts[0];
   const readinessScore = [
     blogPosts.length >= 10,
+    blogTopics.length >= 4,
     Boolean(googleAdSenseClient),
     policyChecks.length >= 6,
     discoveryChecks.length >= 6,
@@ -75,8 +78,12 @@ export default function SiteReadinessPage() {
             <p>Google AdSense publisher id configured in the site shell.</p>
           </div>
           <div>
-            <h3>{readinessScore}/5 checks</h3>
-            <p>High-level readiness signals for policies, content, discovery, ads, and product routes.</p>
+            <h3>{blogTopics.length} topic hubs</h3>
+            <p>Topic pages organize articles into creator, game, tool, and trust clusters.</p>
+          </div>
+          <div>
+            <h3>{readinessScore}/6 checks</h3>
+            <p>High-level readiness signals for policies, content, topics, discovery, ads, and product routes.</p>
           </div>
         </div>
       </section>
@@ -115,6 +122,20 @@ export default function SiteReadinessPage() {
               <h3>{label}</h3>
               <p>
                 <Link href={href}>{href}</Link>
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="info-section">
+        <h2>Blog topic hubs</h2>
+        <div className="info-grid">
+          {blogTopics.map((topic) => (
+            <div key={topic.slug}>
+              <h3>{topic.title}</h3>
+              <p>
+                <Link href={`/blog/topics/${topic.slug}`}>{`/blog/topics/${topic.slug}`}</Link>
               </p>
             </div>
           ))}
