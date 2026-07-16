@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarDays, Clock, Tag, UserRound } from "lucide-react";
 import { blogAuthor, getAllBlogPosts } from "@/lib/blog-posts";
+import { getAllBlogTopics } from "@/lib/blog-topics";
 import { absoluteUrl, siteName } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -23,47 +24,9 @@ export const metadata: Metadata = {
   },
 };
 
-const topicGroups = [
-  {
-    title: "Creator submissions",
-    description: "Prepare safer, clearer AI-made web works for review and publication.",
-    links: [
-      ["Submission guide", "/blog/how-to-submit-ai-made-web-work-to-oeeco"],
-      ["Submission guidelines", "/guidelines"],
-      ["Submit a work", "/upload"],
-    ],
-  },
-  {
-    title: "Browser games",
-    description: "Learn what makes small AI-assisted games playable, readable, and worth replaying.",
-    links: [
-      ["Game quality checklist", "/blog/what-makes-a-good-ai-made-browser-game"],
-      ["Game category", "/categories/game"],
-      ["Orbital Salvage", "/demos/orbital-salvage"],
-    ],
-  },
-  {
-    title: "Interactive tools",
-    description: "Turn prompts and workflows into useful browser tools people can test on their own material.",
-    links: [
-      ["Prompt to web tool", "/blog/turn-a-prompt-into-a-playable-web-tool"],
-      ["Tool category", "/categories/tool"],
-      ["Customer Interview Signal Lab", "/demos/customer-interview-signal-lab"],
-    ],
-  },
-  {
-    title: "Review and trust",
-    description: "Understand oeeco's publishing standards, safety expectations, and editorial approach.",
-    links: [
-      ["Review process", "/blog/how-oeeco-reviews-ai-made-works"],
-      ["Editorial policy", "/editorial-policy"],
-      ["Safety checklist", "/blog/checklist-for-publishing-safe-interactive-web-projects"],
-    ],
-  },
-];
-
 export default function BlogPage() {
   const posts = getAllBlogPosts();
+  const topicGroups = getAllBlogTopics();
   const featured = posts[0];
   const rest = posts.slice(1);
   const blogJsonLd = {
@@ -141,9 +104,12 @@ export default function BlogPage() {
         <div className="blog-topic-grid">
           {topicGroups.map((group) => (
             <article className="blog-topic-card" key={group.title}>
-              <h3>{group.title}</h3>
+              <h3>
+                <Link href={`/blog/topics/${group.slug}`}>{group.title}</Link>
+              </h3>
               <p>{group.description}</p>
               <div>
+                <Link href={`/blog/topics/${group.slug}`}>View topic</Link>
                 {group.links.map(([label, href]) => (
                   <Link href={href} key={href}>
                     {label}
