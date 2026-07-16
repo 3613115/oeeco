@@ -18,7 +18,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const creator = await getPublicCreator(id);
+  const [creator, creatorWorks] = await Promise.all([getPublicCreator(id), getPublicWorksByCreator(id)]);
 
   if (!creator) {
     return {
@@ -31,16 +31,17 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 
   const title = `${creator.name} (${creator.handle})`;
+  const description = getCreatorMetaDescription(creator, creatorWorks);
 
   return {
     title,
-    description: creator.bio,
+    description,
     alternates: {
       canonical: `/creators/${creator.id}`,
     },
     openGraph: {
       title,
-      description: creator.bio,
+      description,
       url: `/creators/${creator.id}`,
       siteName,
       images: [creator.avatar || defaultOgImage],
@@ -49,7 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     twitter: {
       card: "summary",
       title,
-      description: creator.bio,
+      description,
       images: [creator.avatar || defaultOgImage],
     },
   };
@@ -364,6 +365,22 @@ function getPortfolioSummary(
   const focus = tags.length ? ` with ${tags.join(", ")}` : "";
   const noun = works.length === 1 ? "published work" : "published works";
   return `${works.length} ${noun}${focus}.`;
+}
+
+function getCreatorMetaDescription(
+  creator: NonNullable<Awaited<ReturnType<typeof getPublicCreator>>>,
+  works: Awaited<ReturnType<typeof getPublicWorksByCreator>>,
+) {
+  const cleanBio = creator.bio.trim().replace(/\s+/g, " ");
+  if (cleanBio.length >= 50) return cleanBio;
+
+  const topTags = getTopTags(works)
+    .slice(0, 3)
+    .map(([tag]) => tag)
+    .join(", ");
+  const noun = works.length === 1 ? "published AI-made web work" : "published AI-made web works";
+  const focus = topTags ? ` with work connected to ${topTags}` : "";
+  return `${creator.name} is an oeeco creator with ${works.length} ${noun}${focus}. Browse their public profile, project links, tags, and gallery activity.`;
 }
 
 function formatCreatorDate(value: string) {

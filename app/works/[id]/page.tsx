@@ -34,7 +34,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const creator = getWorkCreator(work);
   const title = `${work.title} by ${creator.name}`;
-  const description = getMetaDescription(work.summary || work.detail);
+  const description = getMetaDescription(
+    work.summary || work.detail,
+    `Explore ${work.title}, an AI-made ${work.type.toLowerCase()} by ${creator.name} on oeeco, with browser-first details, tags, and a safe TRY route.`,
+  );
   const image = work.cover || defaultOgImage;
   const path = `/works/${work.id}`;
   const url = absoluteUrl(path);
@@ -295,8 +298,9 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
   );
 }
 
-function getMetaDescription(value: string) {
+function getMetaDescription(value: string, fallback: string) {
   const clean = value.trim().replace(/\s+/g, " ");
-  if (clean.length <= 155) return clean;
-  return `${clean.slice(0, 152).trim()}...`;
+  const source = clean.length >= 50 ? clean : `${clean ? `${clean}. ` : ""}${fallback}`;
+  if (source.length <= 155) return source;
+  return `${source.slice(0, 152).trim()}...`;
 }
