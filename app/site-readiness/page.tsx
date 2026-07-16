@@ -177,7 +177,8 @@ export default function SiteReadinessPage() {
         <h2>Command-line check</h2>
         <p>
           Run `npm run check:site` to verify the live public routes, `ads.txt`, RSS, sitemap, and key page content
-          signals before requesting or retrying AdSense review.
+          signals. Run `npm run check:quality` to crawl sitemap URLs for title, description, canonical, noindex,
+          thin-content, and login-wall issues before requesting or retrying AdSense review.
         </p>
       </section>
 
