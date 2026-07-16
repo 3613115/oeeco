@@ -501,6 +501,7 @@ button {
 }
 
 .blog-meta span,
+.blog-meta a,
 .blog-tags span {
   display: inline-flex;
   align-items: center;
@@ -512,6 +513,12 @@ button {
   padding: 6px 9px;
   font-size: 13px;
   font-weight: 760;
+}
+
+.blog-meta a:hover {
+  border-color: rgba(12, 122, 85, 0.42);
+  color: var(--ink);
+  background: #fff;
 }
 
 .blog-meta svg,

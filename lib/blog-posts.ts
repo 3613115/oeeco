@@ -24,6 +24,13 @@ export type BlogPost = {
 
 export const blogAuthor = "oeeco Editorial";
 
+export const blogAuthorSlug = "oeeco-editorial";
+
+export const blogAuthorPath = `/authors/${blogAuthorSlug}`;
+
+export const blogAuthorDescription =
+  "The oeeco editorial team writes practical guides for AI-made web works, creator submissions, review standards, browser games, and interactive tools.";
+
 export const blogPosts: BlogPost[] = [
   {
     slug: "what-are-ai-made-web-works",

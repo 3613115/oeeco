@@ -21,6 +21,7 @@ const policyChecks = [
   ["About", "/about"],
   ["FAQ", "/faq"],
   ["Contact", "/contact"],
+  ["Editorial Team", "/authors/oeeco-editorial"],
   ["Editorial Policy", "/editorial-policy"],
   ["Submission Guidelines", "/guidelines"],
   ["Privacy", "/privacy"],
@@ -53,7 +54,7 @@ export default function SiteReadinessPage() {
     blogPosts.length >= 10,
     blogTopics.length >= 4,
     Boolean(googleAdSenseClient),
-    policyChecks.length >= 6,
+    policyChecks.length >= 7,
     discoveryChecks.length >= 6,
     productChecks.length >= 6,
   ].filter(Boolean).length;

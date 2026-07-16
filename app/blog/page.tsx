@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarDays, Clock, Tag, UserRound } from "lucide-react";
-import { blogAuthor, getAllBlogPosts } from "@/lib/blog-posts";
+import { blogAuthor, blogAuthorPath, getAllBlogPosts } from "@/lib/blog-posts";
 import { getAllBlogTopics } from "@/lib/blog-topics";
 import { absoluteUrl, siteName } from "@/lib/site";
 
@@ -49,6 +49,7 @@ export default function BlogPage() {
       author: {
         "@type": "Organization",
         name: blogAuthor,
+        url: absoluteUrl(blogAuthorPath),
       },
     })),
   };
@@ -130,10 +131,10 @@ export default function BlogPage() {
             </h2>
             <p>{featured.description}</p>
             <div className="blog-meta">
-              <span>
+              <Link href={blogAuthorPath}>
                 <UserRound size={15} aria-hidden="true" />
                 {blogAuthor}
-              </span>
+              </Link>
               <span>
                 <CalendarDays size={15} aria-hidden="true" />
                 {featured.date}
@@ -159,10 +160,10 @@ export default function BlogPage() {
             </h2>
             <p>{post.description}</p>
             <div className="blog-meta">
-              <span>
+              <Link href={blogAuthorPath}>
                 <UserRound size={15} aria-hidden="true" />
                 {blogAuthor}
-              </span>
+              </Link>
               <span>
                 <CalendarDays size={15} aria-hidden="true" />
                 {post.date}

@@ -23,6 +23,7 @@ const policyLinks = [
   ["About", "/about"],
   ["FAQ", "/faq"],
   ["Contact", "/contact"],
+  ["Editorial Team", "/authors/oeeco-editorial"],
   ["Editorial Policy", "/editorial-policy"],
   ["Submission Guidelines", "/guidelines"],
   ["Privacy", "/privacy"],

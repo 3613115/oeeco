@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, Clock, Tag, UserRound } from "lucide-react";
-import { blogAuthor, getAllBlogPosts, getBlogPost } from "@/lib/blog-posts";
+import { blogAuthor, blogAuthorPath, getAllBlogPosts, getBlogPost } from "@/lib/blog-posts";
 import { absoluteUrl, siteName } from "@/lib/site";
 
 type BlogPostPageProps = {
@@ -65,7 +65,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     author: {
       "@type": "Organization",
       name: blogAuthor,
-      url: absoluteUrl("/"),
+      url: absoluteUrl(blogAuthorPath),
     },
     publisher: {
       "@type": "Organization",
@@ -122,10 +122,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <h1 className="page-title">{post.title}</h1>
         <p>{post.description}</p>
         <div className="blog-meta">
-          <span>
+          <Link href={blogAuthorPath}>
             <UserRound size={15} aria-hidden="true" />
             {blogAuthor}
-          </span>
+          </Link>
           <span>
             <CalendarDays size={15} aria-hidden="true" />
             {post.date}
