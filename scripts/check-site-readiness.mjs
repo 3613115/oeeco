@@ -11,6 +11,7 @@ const checks = [
   { path: "/robots.txt", needle: "sitemap.xml" },
   { path: "/ads.txt", needle: "google.com, pub-5608004759418063, DIRECT" },
   { path: "/about", needle: "A gallery for AI-made web works" },
+  { path: "/faq", needle: "Frequently asked questions" },
   { path: "/contact", needle: "Contact" },
   { path: "/editorial-policy", needle: "How oeeco publishes and reviews content" },
   { path: "/guidelines", needle: "Share work people can safely open" },

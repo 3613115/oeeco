@@ -304,6 +304,32 @@ button {
   padding-top: 6px;
 }
 
+.faq-list {
+  display: grid;
+  gap: 12px;
+}
+
+.faq-list section {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 16px;
+}
+
+.faq-list h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.faq-list p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
 .blog-page {
   display: grid;
   gap: 22px;

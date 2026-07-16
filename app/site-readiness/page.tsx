@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 
 const policyChecks = [
   ["About", "/about"],
+  ["FAQ", "/faq"],
   ["Contact", "/contact"],
   ["Editorial Policy", "/editorial-policy"],
   ["Submission Guidelines", "/guidelines"],
