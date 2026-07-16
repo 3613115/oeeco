@@ -3,6 +3,12 @@ export type BlogSection = {
   body: string[];
 };
 
+export type BlogRelatedLink = {
+  label: string;
+  href: string;
+  description: string;
+};
+
 export type BlogPost = {
   slug: string;
   title: string;
@@ -12,6 +18,7 @@ export type BlogPost = {
   category: string;
   tags: string[];
   intro: string[];
+  relatedLinks: BlogRelatedLink[];
   sections: BlogSection[];
 };
 
@@ -30,6 +37,23 @@ export const blogPosts: BlogPost[] = [
     intro: [
       "AI-made web works are small, complete browser experiences created with help from AI systems. They can be games, calculators, visual experiments, educational toys, product demos, research tools, or tiny utilities that solve one focused problem.",
       "The important part is not that an AI wrote every line. The important part is that the final result is a real web object people can open, inspect, use, and share. A prompt alone is not a work. A screenshot is not a work. A link that lets someone play, test, learn, or produce a result is much closer to the new format.",
+    ],
+    relatedLinks: [
+      {
+        label: "Explore AI-made works",
+        href: "/",
+        description: "Browse the current oeeco gallery of games, tools, visual pages, and interactive experiments.",
+      },
+      {
+        label: "Submission guidelines",
+        href: "/guidelines",
+        description: "See what makes a work safe, clear, and ready for review on oeeco.",
+      },
+      {
+        label: "Submit a work",
+        href: "/upload",
+        description: "Share a browser-based project for review and possible publication.",
+      },
     ],
     sections: [
       {
@@ -83,6 +107,23 @@ export const blogPosts: BlogPost[] = [
       "Small web games are one of the clearest ways to see what AI-assisted development changes. The scope is compact, the feedback is immediate, and every improvement can be felt directly by the player.",
       "A coding agent can help with rendering, input handling, physics, UI, state, scoring, and responsive layout. But the difference is not just speed. The bigger shift is that creators can iterate on feel, pacing, and clarity without treating every change as a major engineering task.",
     ],
+    relatedLinks: [
+      {
+        label: "Play Orbital Salvage",
+        href: "/demos/orbital-salvage",
+        description: "Try a deeper AI-assisted browser game with physics, recovery objectives, and mission feedback.",
+      },
+      {
+        label: "Browse game works",
+        href: "/categories/game",
+        description: "Explore more playable browser games and arcade experiments on oeeco.",
+      },
+      {
+        label: "Latest works",
+        href: "/latest",
+        description: "See the newest published games, tools, and experiments.",
+      },
+    ],
     sections: [
       {
         heading: "The first playable version arrives faster",
@@ -133,6 +174,23 @@ export const blogPosts: BlogPost[] = [
     intro: [
       "A static AI demo can be impressive for a moment. It shows that something is possible. An interactive tool goes further: it gives the visitor a way to use the idea on their own material.",
       "That difference matters for creators, founders, educators, and product builders. When a visitor can paste notes, change inputs, run a score, generate a plan, or compare outcomes, the page becomes more than a showcase. It becomes a small piece of software.",
+    ],
+    relatedLinks: [
+      {
+        label: "Customer Interview Signal Lab",
+        href: "/demos/customer-interview-signal-lab",
+        description: "Use a practical tool that turns interview notes into evidence, themes, and next questions.",
+      },
+      {
+        label: "Micro SaaS Validation Lab",
+        href: "/demos/micro-saas-validation-lab",
+        description: "Try an interactive validation workflow for early product ideas.",
+      },
+      {
+        label: "Browse tool works",
+        href: "/categories/tool",
+        description: "Find more useful AI-made browser tools in the oeeco gallery.",
+      },
     ],
     sections: [
       {
@@ -185,6 +243,23 @@ export const blogPosts: BlogPost[] = [
       "A good oeeco submission should help a visitor understand what they are about to open before they click. The work can be a game, a tool, a visual experiment, or an interactive page, but the listing needs to be specific, honest, and easy to review.",
       "This guide explains how to prepare a submission so it has a better chance of being accepted and a better chance of being useful once it is public.",
     ],
+    relatedLinks: [
+      {
+        label: "Submit to oeeco",
+        href: "/upload",
+        description: "Open the submission form for browser games, tools, and interactive works.",
+      },
+      {
+        label: "Submission guidelines",
+        href: "/guidelines",
+        description: "Review the rules for safe links, honest metadata, and useful project descriptions.",
+      },
+      {
+        label: "About oeeco",
+        href: "/about",
+        description: "Learn why oeeco is building a gallery for AI-made web works.",
+      },
+    ],
     sections: [
       {
         heading: "Start with a playable or usable URL",
@@ -235,6 +310,23 @@ export const blogPosts: BlogPost[] = [
     intro: [
       "AI tools make it easier to generate a browser game, but they do not automatically make the game feel good. A strong small game still needs a readable loop, responsive controls, clear feedback, and a reason to play again.",
       "The best AI-made browser games are usually not large. They are focused. They choose one main action, make the result visible, and help the player understand what happened after every success or failure.",
+    ],
+    relatedLinks: [
+      {
+        label: "One Button Dodge",
+        href: "/demos/one-button-dodge",
+        description: "Try a small browser game built around one readable action loop.",
+      },
+      {
+        label: "EVO//COLONY",
+        href: "/demos/evo-colony",
+        description: "Explore a richer simulation-style AI-assisted game experiment.",
+      },
+      {
+        label: "Game category",
+        href: "/categories/game",
+        description: "Browse more game works published on oeeco.",
+      },
     ],
     sections: [
       {
@@ -287,6 +379,23 @@ export const blogPosts: BlogPost[] = [
       "A prompt can describe a useful workflow, but a web tool lets people use that workflow repeatedly. The difference is structure. A tool has inputs, rules, outputs, states, and a clear interface for action.",
       "This is where AI-assisted development becomes especially powerful. A creator can start with a reasoning pattern, then turn it into a small browser product that visitors can try on their own material.",
     ],
+    relatedLinks: [
+      {
+        label: "AI Prompt Card Generator",
+        href: "/demos/ai-prompt-card-generator",
+        description: "See a prompt workflow packaged as a focused interactive tool.",
+      },
+      {
+        label: "Landing Page Copy Doctor",
+        href: "/demos/landing-page-copy-doctor",
+        description: "Try a browser tool that diagnoses and improves landing page messaging.",
+      },
+      {
+        label: "Submit your tool",
+        href: "/upload",
+        description: "Share a prompt-powered tool or browser workflow with oeeco.",
+      },
+    ],
     sections: [
       {
         heading: "Name the job before building the UI",
@@ -337,6 +446,23 @@ export const blogPosts: BlogPost[] = [
     intro: [
       "AI-assisted creation changes what a portfolio can be. Instead of only showing images, case studies, or code repositories, creators can publish small working artifacts that visitors can open immediately.",
       "That matters because the value of AI work is not just generation. The value is judgment: choosing what to build, shaping the interaction, editing the result, and making something clear enough for other people to use.",
+    ],
+    relatedLinks: [
+      {
+        label: "Explore creators",
+        href: "/",
+        description: "Browse the public shelf of AI-made works and the creators behind them.",
+      },
+      {
+        label: "Submit work",
+        href: "/upload",
+        description: "Start building a public record of shipped AI-assisted web projects.",
+      },
+      {
+        label: "Latest works",
+        href: "/latest",
+        description: "See newly published examples from the oeeco gallery.",
+      },
     ],
     sections: [
       {
@@ -389,6 +515,23 @@ export const blogPosts: BlogPost[] = [
       "AI demos are useful. They show what might be possible. But a demo is not always a shipped work. A shipped web work is something a visitor can open, understand, use, and evaluate without needing the creator to stand beside it.",
       "The distinction matters because the web is full of impressive fragments. oeeco is interested in the next step: small artifacts that are finished enough to be browsed, reviewed, and shared.",
     ],
+    relatedLinks: [
+      {
+        label: "Explore shipped works",
+        href: "/",
+        description: "Open real AI-made web works that are published in the oeeco gallery.",
+      },
+      {
+        label: "Submission guidelines",
+        href: "/guidelines",
+        description: "Learn the difference between an unfinished demo and a review-ready work.",
+      },
+      {
+        label: "Review process",
+        href: "/blog/how-oeeco-reviews-ai-made-works",
+        description: "Read how oeeco evaluates links, metadata, safety, and substance.",
+      },
+    ],
     sections: [
       {
         heading: "A demo highlights capability",
@@ -440,6 +583,23 @@ export const blogPosts: BlogPost[] = [
       "Interactive web projects ask visitors to trust a link. Even when the project is small, creators should think carefully about safety, clarity, and the data a page asks people to provide.",
       "This checklist is written for AI-assisted creators who want to publish browser games, tools, and experiments that are easier to review and safer to share.",
     ],
+    relatedLinks: [
+      {
+        label: "Submission guidelines",
+        href: "/guidelines",
+        description: "Read oeeco's safety and quality expectations for public submissions.",
+      },
+      {
+        label: "Privacy policy",
+        href: "/privacy",
+        description: "See how oeeco presents privacy information for visitors and creators.",
+      },
+      {
+        label: "Submit safely",
+        href: "/upload",
+        description: "Prepare a browser-based work for review and publication.",
+      },
+    ],
     sections: [
       {
         heading: "Check the link behavior",
@@ -490,6 +650,23 @@ export const blogPosts: BlogPost[] = [
     intro: [
       "oeeco reviews submissions so the gallery can stay useful, safe, and clear. The review process is not meant to make every work look the same. It is meant to filter out unsafe links, misleading descriptions, broken pages, and projects that are not ready for public discovery.",
       "This article explains the review mindset so creators know what to improve before submitting.",
+    ],
+    relatedLinks: [
+      {
+        label: "Submission guidelines",
+        href: "/guidelines",
+        description: "Review the public rules that guide oeeco's submission decisions.",
+      },
+      {
+        label: "Contact oeeco",
+        href: "/contact",
+        description: "Report a problem, ask a question, or reach the site owner.",
+      },
+      {
+        label: "Submit a work",
+        href: "/upload",
+        description: "Send a browser-based AI-made work into the review flow.",
+      },
     ],
     sections: [
       {

@@ -160,6 +160,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         ))}
       </div>
 
+      <section className="blog-context-links">
+        <div>
+          <span className="section-kicker">Continue exploring</span>
+          <h2>Related oeeco pages</h2>
+        </div>
+        <div className="blog-context-grid">
+          {post.relatedLinks.map((item) => (
+            <Link className="blog-context-card" href={item.href} key={item.href}>
+              <strong>{item.label}</strong>
+              <span>{item.description}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <footer className="blog-article-footer">
         <div className="blog-cta-panel">
           <div>
