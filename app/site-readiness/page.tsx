@@ -51,7 +51,7 @@ export default function SiteReadinessPage() {
   const blogTopics = getAllBlogTopics();
   const latestPost = blogPosts[0];
   const readinessScore = [
-    blogPosts.length >= 10,
+    blogPosts.length >= 18,
     blogTopics.length >= 4,
     Boolean(googleAdSenseClient),
     policyChecks.length >= 7,
@@ -73,7 +73,7 @@ export default function SiteReadinessPage() {
         <div className="info-grid">
           <div>
             <h3>{blogPosts.length} blog posts</h3>
-            <p>Target baseline: 10 or more original, topic-focused articles.</p>
+            <p>Target baseline: 18 or more original, topic-focused articles.</p>
           </div>
           <div>
             <h3>{googleAdSenseClient.replace("ca-", "")}</h3>

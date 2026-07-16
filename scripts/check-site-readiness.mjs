@@ -5,6 +5,10 @@ const site = normalizeSite(process.argv[2] || process.env.SITE_URL || DEFAULT_SI
 const checks = [
   { path: "/", needle: "oeeco" },
   { path: "/blog", needle: "Explore by topic" },
+  { path: "/blog/common-mistakes-in-ai-made-web-work-submissions", needle: "Common Mistakes in AI-Made Web Work Submissions" },
+  { path: "/blog/design-the-first-minute-of-an-ai-browser-game", needle: "Design the First Minute of an AI Browser Game" },
+  { path: "/blog/how-to-design-inputs-for-ai-made-web-tools", needle: "How to Design Inputs for AI-Made Web Tools" },
+  { path: "/blog/trust-signals-for-ai-made-content-sites", needle: "Trust Signals for AI-Made Content Sites" },
   { path: "/blog/rss.xml", needle: "<rss version=\"2.0\">" },
   { label: "sitemap blog posts", path: "/sitemap.xml", needle: "/blog/what-are-ai-made-web-works" },
   { label: "sitemap blog topics", path: "/sitemap.xml", needle: "/blog/topics/browser-games" },

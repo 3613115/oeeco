@@ -20,6 +20,7 @@ export const blogTopics: BlogTopic[] = [
       ["Submit a work", "/upload"],
     ],
     postSlugs: [
+      "common-mistakes-in-ai-made-web-work-submissions",
       "how-to-submit-ai-made-web-work-to-oeeco",
       "ai-web-app-publishing-checklist",
       "checklist-for-publishing-safe-interactive-web-projects",
@@ -38,6 +39,7 @@ export const blogTopics: BlogTopic[] = [
       ["Orbital Salvage", "/demos/orbital-salvage"],
     ],
     postSlugs: [
+      "design-the-first-minute-of-an-ai-browser-game",
       "best-ai-made-browser-games-to-study",
       "what-makes-a-good-ai-made-browser-game",
       "how-to-make-a-small-web-game-feel-finished",
@@ -56,6 +58,7 @@ export const blogTopics: BlogTopic[] = [
       ["Customer Interview Signal Lab", "/demos/customer-interview-signal-lab"],
     ],
     postSlugs: [
+      "how-to-design-inputs-for-ai-made-web-tools",
       "why-interactive-tools-beat-static-ai-demos",
       "turn-a-prompt-into-a-playable-web-tool",
       "how-to-review-an-ai-made-web-tool",
@@ -74,6 +77,7 @@ export const blogTopics: BlogTopic[] = [
       ["Safety checklist", "/blog/checklist-for-publishing-safe-interactive-web-projects"],
     ],
     postSlugs: [
+      "trust-signals-for-ai-made-content-sites",
       "how-oeeco-reviews-ai-made-works",
       "checklist-for-publishing-safe-interactive-web-projects",
       "why-ai-creators-need-public-portfolios",

@@ -1053,6 +1053,278 @@ export const blogPosts: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: "common-mistakes-in-ai-made-web-work-submissions",
+    title: "Common Mistakes in AI-Made Web Work Submissions",
+    description:
+      "The submission mistakes that make AI-made projects harder to review: vague titles, unsafe links, thin descriptions, missing context, and broken first interactions.",
+    date: "2026-07-16",
+    readingTime: "8 min read",
+    category: "Submission",
+    tags: ["submission", "creator-guide", "metadata", "review", "publishing"],
+    intro: [
+      "Most weak submissions do not fail because the idea is bad. They fail because a reviewer or visitor cannot quickly understand what the work is, why it exists, or whether it is safe to open.",
+      "AI-assisted development makes it easy to produce a working page quickly, but publishing requires a second kind of care. The listing, demo URL, tags, and creator notes all help turn a local experiment into a public web work.",
+    ],
+    relatedLinks: [
+      {
+        label: "How to submit to oeeco",
+        href: "/blog/how-to-submit-ai-made-web-work-to-oeeco",
+        description: "Read the main submission guide before sending a browser game, tool, or interactive page.",
+      },
+      {
+        label: "Submission guidelines",
+        href: "/guidelines",
+        description: "Review the public rules for safe links, honest descriptions, and useful context.",
+      },
+      {
+        label: "Submit a work",
+        href: "/upload",
+        description: "Open the submission form when the work is ready for review.",
+      },
+    ],
+    sections: [
+      {
+        heading: "Using a vague title",
+        body: [
+          "A title like My AI Demo or Test App gives visitors almost no information. A better title names the format or outcome: prompt card generator, landing page copy doctor, one-button dodge game, or interview signal lab.",
+          "The title does not need to explain everything, but it should create the right expectation before the visitor opens the work. Clear titles improve review, browsing, search, and sharing.",
+        ],
+      },
+      {
+        heading: "Submitting a fragile demo URL",
+        body: [
+          "The demo URL should open directly to the work. Reviewers should not need a private login, a local development server, a hidden password, or a long redirect chain to see the project.",
+          "Before submitting, open the link in a clean browser window and complete the first interaction. If the page breaks during that first minute, the listing is not ready.",
+        ],
+      },
+      {
+        heading: "Writing a description that only repeats the title",
+        body: [
+          "A useful description answers what the work does, who it is for, and what happens after opening it. It should not simply restate the title with adjectives.",
+          "For example, a tool description can mention the input and output. A game description can mention the core action and goal. A visual experiment can explain what the visitor controls or observes.",
+        ],
+      },
+      {
+        heading: "Hiding the AI-assisted process",
+        body: [
+          "Creators do not need to document every prompt, but a short note about the process helps other builders learn from the work. It can also clarify what was generated, what was edited, and what remains experimental.",
+          "This context is especially useful when the project demonstrates a workflow, technique, or interface pattern other creators might reuse.",
+        ],
+      },
+      {
+        heading: "Forgetting safety and trust signals",
+        body: [
+          "A submission should avoid deceptive login screens, hidden downloads, unclear data collection, or misleading claims. Even a playful project needs to be safe enough for a public visitor to open.",
+          "Trust signals do not have to be heavy. Clear labels, honest limitations, visible controls, and a stable public URL can make a small AI-made work feel much more review-ready.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "design-the-first-minute-of-an-ai-browser-game",
+    title: "Design the First Minute of an AI Browser Game",
+    description:
+      "The first minute of a browser game should teach the goal, controls, feedback, failure, and restart loop without making the player read a manual.",
+    date: "2026-07-16",
+    readingTime: "8 min read",
+    category: "Game Design",
+    tags: ["browser-games", "onboarding", "game-design", "playability", "ai-coding"],
+    intro: [
+      "The first minute decides whether a small browser game feels playable. The player needs to know what to do, how to do it, what counts as success, and why failure happened.",
+      "AI coding tools can generate mechanics quickly, but onboarding still needs deliberate design. A game can be technically functional and still lose visitors if the opening moments are confusing.",
+    ],
+    relatedLinks: [
+      {
+        label: "Game quality checklist",
+        href: "/blog/what-makes-a-good-ai-made-browser-game",
+        description: "Use the broader checklist for readable, fair, and replayable browser games.",
+      },
+      {
+        label: "One Button Dodge",
+        href: "/demos/one-button-dodge",
+        description: "Study a compact example built around a simple first action.",
+      },
+      {
+        label: "Browse games",
+        href: "/categories/game",
+        description: "Open more playable browser games and arcade experiments.",
+      },
+    ],
+    sections: [
+      {
+        heading: "Start with one visible goal",
+        body: [
+          "The player should know the goal before the first action. Collect fuel, avoid hazards, land safely, survive thirty seconds, match colors, or guide a character to an exit.",
+          "A small game does not need a long story to create motivation. It needs a goal that can be understood quickly and reinforced through the interface.",
+        ],
+      },
+      {
+        heading: "Teach controls through the layout",
+        body: [
+          "If the game uses keyboard input, show the keys. If it supports touch, make the touch area obvious. If mouse movement matters, communicate that before the player is punished for not knowing.",
+          "The best first-minute design makes instructions feel like part of the game surface rather than a separate manual. Controls should be visible near the place where the player acts.",
+        ],
+      },
+      {
+        heading: "Make the first feedback unmistakable",
+        body: [
+          "After the first input, the game should respond clearly. Movement, soundless visual feedback, score changes, particles, status text, or object motion can all confirm that the player did something.",
+          "Generated prototypes often have working logic but weak feedback. Strengthening the first response can make the same mechanic feel much more finished.",
+        ],
+      },
+      {
+        heading: "Explain failure without stopping the flow",
+        body: [
+          "Failure should teach. If the player hits an obstacle, runs out of energy, misses a target, or falls off the board, the game should show the cause in plain visual or textual form.",
+          "A clear restart button is part of this lesson. The player should be able to try again immediately while the reason for failure is still fresh.",
+        ],
+      },
+      {
+        heading: "Use the first minute as a review tool",
+        body: [
+          "When reviewing an AI-made game, play only the first minute and write down every moment of confusion. Those notes usually reveal the highest-value improvements.",
+          "If the first minute works, deeper content becomes more worthwhile. If it does not, adding more enemies, levels, or effects will not fix the main problem.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "how-to-design-inputs-for-ai-made-web-tools",
+    title: "How to Design Inputs for AI-Made Web Tools",
+    description:
+      "Useful AI-made tools start with realistic inputs: messy notes, rough ideas, concrete constraints, and clear examples that help visitors get a better output.",
+    date: "2026-07-16",
+    readingTime: "8 min read",
+    category: "Product Design",
+    tags: ["interactive-tools", "input-design", "web-tools", "product-design", "workflow"],
+    intro: [
+      "The quality of an AI-made tool often depends on the inputs it asks for. If the form asks vague questions, the output will usually be vague. If it asks for realistic material, the tool can produce something useful.",
+      "Input design is therefore product design. It shapes what visitors understand, what they are willing to share, and whether the result feels specific enough to act on.",
+    ],
+    relatedLinks: [
+      {
+        label: "Examples of useful tools",
+        href: "/blog/examples-of-useful-ai-made-tools",
+        description: "See common patterns for practical browser tools and workflow helpers.",
+      },
+      {
+        label: "Customer Interview Signal Lab",
+        href: "/demos/customer-interview-signal-lab",
+        description: "Try a tool that accepts messy research notes and returns structured product signals.",
+      },
+      {
+        label: "Tool category",
+        href: "/categories/tool",
+        description: "Browse more AI-made tools published on oeeco.",
+      },
+    ],
+    sections: [
+      {
+        heading: "Ask for material people already have",
+        body: [
+          "A founder may have interview notes, rough personas, competitors, pricing guesses, or a half-written landing page. A creator may have a prompt, a project goal, a demo link, or a list of constraints.",
+          "Inputs should meet visitors where they are. A tool that requires polished strategy language before it can help is often solving the wrong problem.",
+        ],
+      },
+      {
+        heading: "Separate context from the task",
+        body: [
+          "Good tools distinguish background context from the thing being transformed. For example, customer segment is context, while interview notes are the material being analyzed.",
+          "This separation helps the output stay grounded. It also makes the interface easier to scan because each field has a clear job.",
+        ],
+      },
+      {
+        heading: "Use examples to reduce blank-page friction",
+        body: [
+          "Short placeholder examples can teach the visitor what kind of input works best. They should be specific enough to guide, but not so long that they look like required text.",
+          "Example buttons are also useful. A sample input lets visitors see the tool's value before deciding whether to use their own material.",
+        ],
+      },
+      {
+        heading: "Avoid unnecessary sensitive data",
+        body: [
+          "A lightweight browser tool should not ask for private information it does not need. If a task can be completed with anonymized notes, rough summaries, or public copy, prefer those inputs.",
+          "Clear input boundaries make a tool safer and easier to trust. They also reduce review risk when the project is submitted to a public gallery.",
+        ],
+      },
+      {
+        heading: "Make the output promise match the input",
+        body: [
+          "If the input is short, the output should be framed as a quick heuristic. If the input is detailed, the tool can reasonably return deeper structure.",
+          "Visitors lose trust when a tool makes confident claims from thin material. Good input design sets honest expectations for what the result can and cannot mean.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "trust-signals-for-ai-made-content-sites",
+    title: "Trust Signals for AI-Made Content Sites",
+    description:
+      "AI-made content sites need visible trust signals: author context, policy pages, review standards, safe links, contact routes, and original useful pages.",
+    date: "2026-07-16",
+    readingTime: "8 min read",
+    category: "Trust",
+    tags: ["trust", "adsense", "editorial-policy", "content-quality", "ai-made"],
+    intro: [
+      "A site about AI-made work has to answer a basic visitor question: can I trust what I am opening? That question matters for users, search engines, advertisers, and creators who may submit their own projects.",
+      "Trust signals are not decoration. They are the public evidence that a site has an editorial owner, a purpose, safety standards, and a way to resolve mistakes.",
+    ],
+    relatedLinks: [
+      {
+        label: "Editorial policy",
+        href: "/editorial-policy",
+        description: "Read how oeeco approaches original content, curation, safety review, and corrections.",
+      },
+      {
+        label: "Editorial team",
+        href: "/authors/oeeco-editorial",
+        description: "See the author profile for oeeco's editorial content.",
+      },
+      {
+        label: "Site readiness",
+        href: "/site-readiness",
+        description: "Check core public routes, policy pages, RSS, sitemap, and AdSense basics.",
+      },
+    ],
+    sections: [
+      {
+        heading: "Author context",
+        body: [
+          "Articles should show who is responsible for the content. For a small platform, that may be an editorial team rather than individual staff profiles, but it should still be visible and linkable.",
+          "Author context helps visitors understand the perspective behind guides, reviews, and recommendations. It also makes corrections and accountability easier.",
+        ],
+      },
+      {
+        heading: "Policy pages in the footer",
+        body: [
+          "About, contact, privacy, terms, editorial policy, and submission guidelines should be reachable without logging in. These pages tell visitors how the site works and what standards it follows.",
+          "For AdSense review, visible policy and trust pages help show that the site is more than a collection of thin pages or anonymous generated content.",
+        ],
+      },
+      {
+        heading: "Safe and honest outbound links",
+        body: [
+          "A gallery of web works depends on links. Each listed project should be described honestly, avoid deceptive redirects, and open in a way that matches visitor expectations.",
+          "The site should also make it clear when a work is a prototype, a game, a tool, or a visual experiment. Accurate labels are a trust signal.",
+        ],
+      },
+      {
+        heading: "Original pages with a real purpose",
+        body: [
+          "Trust grows when pages help visitors do something: choose a project to open, prepare a submission, understand a review standard, or learn a pattern for building better work.",
+          "Original content does not mean every page must be long. It means the page should have a clear job and enough substance to satisfy that job.",
+        ],
+      },
+      {
+        heading: "A route for corrections",
+        body: [
+          "Mistakes will happen as a site grows. A visible contact route and editorial policy give visitors and creators a way to report broken links, inaccurate descriptions, safety concerns, or outdated information.",
+          "A correction process is a simple signal that the site expects to be maintained, not abandoned after launch.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getAllBlogPosts() {
