@@ -6,6 +6,7 @@ const platformLinks = [
   ["Search", "/search"],
   ["Leaderboard", "/rank"],
   ["Blog", "/blog"],
+  ["Case Studies", "/blog/topics/case-studies"],
   ["RSS Feed", "/blog/rss.xml"],
   ["Submit Work", "/upload"],
   ["Account", "/account"],

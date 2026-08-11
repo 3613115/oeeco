@@ -1325,6 +1325,346 @@ export const blogPosts: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: "orbital-salvage-case-study-ai-browser-game",
+    title: "Orbital Salvage Case Study: A Deeper AI-Made Browser Game",
+    description:
+      "An editorial case study of Orbital Salvage, focusing on physics feel, recovery goals, failure feedback, and why a small AI-made game can feel substantial.",
+    date: "2026-08-11",
+    readingTime: "10 min read",
+    category: "Case Study",
+    tags: ["case-study", "orbital-salvage", "browser-games", "physics", "game-design"],
+    intro: [
+      "Orbital Salvage is one of the more useful oeeco examples because it shows how an AI-assisted game can move beyond a one-screen toy. The work has a recognizable setting, a physical movement model, and a recovery objective that gives the player a reason to keep correcting their path.",
+      "This case study looks at the page as a visitor would experience it: what the first minute teaches, where the interaction earns attention, and what creators can learn when turning a generated prototype into a public browser game.",
+    ],
+    relatedLinks: [
+      {
+        label: "Try Orbital Salvage",
+        href: "/demos/orbital-salvage",
+        description: "Open the space recovery game and inspect the physics loop directly.",
+      },
+      {
+        label: "First-minute game design",
+        href: "/blog/design-the-first-minute-of-an-ai-browser-game",
+        description: "Read the companion guide for onboarding and early feedback in browser games.",
+      },
+      {
+        label: "Browse game works",
+        href: "/categories/game",
+        description: "See more playable AI-made game works on oeeco.",
+      },
+    ],
+    sections: [
+      {
+        heading: "What the work promises",
+        body: [
+          "The promise is not just space visuals. The promise is precision recovery under motion constraints. That matters because a game becomes easier to judge when the visitor can name the loop: approach, correct velocity, avoid overshooting, recover the target, and try to do it with more control.",
+          "For AdSense and content quality, this distinction is important. The page is not a thin entry around a canvas. It supports an actual interactive claim that a visitor can test.",
+        ],
+      },
+      {
+        heading: "Why the physics loop creates value",
+        body: [
+          "Physics-driven browser games are good candidates for AI-assisted building because small tuning changes are immediately visible. Acceleration, drift, friction, collision recovery, and camera feedback all shape whether the player feels in control.",
+          "Orbital Salvage gives creators something to study: the difference between code that technically moves an object and a loop that creates tension. That is a practical lesson for anyone using Codex to build small games.",
+        ],
+      },
+      {
+        heading: "What the first minute needs to do",
+        body: [
+          "The opening minute should teach the player that movement has inertia and that recovery is a controlled action, not a simple click. Good status text and visible objectives reduce the risk that a visitor dismisses the game as confusing.",
+          "The strongest version of this work is one where the page explains just enough, then lets the player learn by overcorrecting once or twice. That kind of failure is useful because it teaches the core mechanic.",
+        ],
+      },
+      {
+        heading: "What creators can reuse",
+        body: [
+          "Creators can reuse the pattern: pick a small physical system, give it one objective, and make the interface explain the consequence of each action. The result does not need a large world to feel like a finished game.",
+          "A case like this is also a reminder that AI-generated mechanics need editorial judgment. The creator still decides which controls matter, which feedback is readable, and which extra features would dilute the loop.",
+        ],
+      },
+      {
+        heading: "What would make it stronger",
+        body: [
+          "The next improvements would be clearer mission summaries, a short post-run debrief, and a compact list of what changed between attempts. Those additions would deepen the learning loop without making the game heavier.",
+          "That is the main lesson: small AI-made games become more valuable when they explain their own interaction well enough for visitors to study them, not only play them once.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "customer-interview-signal-lab-editorial-review",
+    title: "Customer Interview Signal Lab: Editorial Review of an AI-Made Research Tool",
+    description:
+      "A practical review of Customer Interview Signal Lab, an AI-made browser tool that turns messy interview notes into product evidence, themes, and next questions.",
+    date: "2026-08-11",
+    readingTime: "10 min read",
+    category: "Case Study",
+    tags: ["case-study", "customer-interviews", "interactive-tools", "startup", "research"],
+    intro: [
+      "Customer Interview Signal Lab is useful because it starts from a real founder problem: interviews are messy, and weak evidence often sounds convincing until someone forces it into a structure.",
+      "This review looks at the tool as a small product rather than as a demo. The important question is whether it helps a visitor make a better next research decision.",
+    ],
+    relatedLinks: [
+      {
+        label: "Try Customer Interview Signal Lab",
+        href: "/demos/customer-interview-signal-lab",
+        description: "Use the tool with sample or real interview notes.",
+      },
+      {
+        label: "Input design for AI tools",
+        href: "/blog/how-to-design-inputs-for-ai-made-web-tools",
+        description: "Read how realistic inputs improve AI-made tool output.",
+      },
+      {
+        label: "Browse tool works",
+        href: "/categories/tool",
+        description: "Find more workflow-focused browser tools.",
+      },
+    ],
+    sections: [
+      {
+        heading: "The job it performs",
+        body: [
+          "The tool does one focused job: it turns raw customer notes into evidence signals. That is stronger than a generic writing assistant because the visitor understands what kind of material to bring and what kind of result to expect.",
+          "A useful research tool should not pretend to replace judgment. It should make judgment easier. This tool does that by separating signal strength, themes, next questions, and watchouts.",
+        ],
+      },
+      {
+        heading: "Why the inputs feel realistic",
+        body: [
+          "Founders rarely have perfect research data. They have fragments: quotes, objections, alternative tools, goals, and guesses about urgency. The tool asks for material that resembles that real mess.",
+          "That makes the interface more credible. A tool that requires polished research language before it can help would fail at the moment when early teams actually need support.",
+        ],
+      },
+      {
+        heading: "Where the output becomes useful",
+        body: [
+          "The best output is not a fluent paragraph. It is a structure that changes what the user does next. Signal scores, themes, and next interview questions can help a founder decide whether to keep exploring, narrow the audience, or ask harder questions.",
+          "This is why interactive tools can be stronger than static blog posts. The visitor can test the workflow on their own material instead of merely reading advice.",
+        ],
+      },
+      {
+        heading: "Trust and limitation signals",
+        body: [
+          "The tool should be framed as a decision aid, not an authority. The output is a heuristic review of notes, and the visitor still owns the interpretation.",
+          "That limitation is a trust signal. It keeps the page honest and makes the tool more acceptable as a public web work.",
+        ],
+      },
+      {
+        heading: "What would make it stronger",
+        body: [
+          "The strongest next feature would be a before-and-after comparison: what the notes said, what signal was extracted, and which follow-up question came from which evidence. That would make the reasoning easier to inspect.",
+          "Even without that, the tool already demonstrates a valuable pattern for oeeco: a narrow workflow, realistic inputs, structured output, and a result a visitor can act on.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "landing-page-copy-doctor-ai-tool-review",
+    title: "Landing Page Copy Doctor Review: A Useful AI-Made Messaging Tool",
+    description:
+      "A case study of Landing Page Copy Doctor and what it teaches about narrow AI-made tools, practical outputs, and honest copy review.",
+    date: "2026-08-11",
+    readingTime: "9 min read",
+    category: "Case Study",
+    tags: ["case-study", "copywriting", "interactive-tools", "landing-pages", "product-design"],
+    intro: [
+      "Landing Page Copy Doctor is a good example of a small AI-made tool with a narrow promise. It does not try to become a complete marketing platform. It helps a visitor examine a page message and find what is unclear.",
+      "That narrowness is a strength. For AdSense quality and visitor value, a focused tool that improves one decision can be better than a broad demo that produces generic advice.",
+    ],
+    relatedLinks: [
+      {
+        label: "Try Landing Page Copy Doctor",
+        href: "/demos/landing-page-copy-doctor",
+        description: "Run a landing page message through the diagnosis workflow.",
+      },
+      {
+        label: "Why interactive tools beat static demos",
+        href: "/blog/why-interactive-tools-beat-static-ai-demos",
+        description: "Read why visitor-controlled tools are stronger than passive examples.",
+      },
+      {
+        label: "Tool category",
+        href: "/categories/tool",
+        description: "Browse more useful AI-made tools.",
+      },
+    ],
+    sections: [
+      {
+        heading: "The narrow promise",
+        body: [
+          "The tool is useful because the user knows what to bring: a headline, message, or landing page draft. The output can then focus on clarity, proof, audience fit, and action.",
+          "A broad copy assistant often produces polished language without diagnosing the problem. A doctor-style tool has a better frame because it begins with what might be weak.",
+        ],
+      },
+      {
+        heading: "Why diagnosis beats generation",
+        body: [
+          "Many AI tools rush to rewrite. Diagnosis is often more valuable because it tells the visitor what is missing: a clear customer, a concrete outcome, a reason to believe, or a specific next step.",
+          "That makes the result easier to evaluate. The visitor can disagree with a diagnosis, but at least the tool has shown its criteria.",
+        ],
+      },
+      {
+        heading: "What creators can learn",
+        body: [
+          "This pattern works beyond copywriting. A good AI-made tool can act as a lightweight reviewer for a specific artifact: an interview note, a launch checklist, a pitch, a prompt, or a product idea.",
+          "The lesson is to build around a decision point. When a tool helps a visitor decide what to fix next, it has more value than a demo that only proves generation is possible.",
+        ],
+      },
+      {
+        heading: "What the page should make clear",
+        body: [
+          "The page should explain that the output is a heuristic review. It should avoid implying that a score or rewrite guarantees conversion.",
+          "Clear limitations make the tool more trustworthy. They also help visitors use the result as a draft for thinking rather than as a final authority.",
+        ],
+      },
+      {
+        heading: "What would make it stronger",
+        body: [
+          "A stronger version would show the reason behind every recommendation and offer multiple rewrite directions: clearer, more specific, more credible, or more concise.",
+          "The core value is already there: a visitor can bring real material, receive structured feedback, and leave with a more concrete next edit.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "one-button-dodge-first-minute-review",
+    title: "One Button Dodge: A First-Minute Review of a Tiny Browser Game",
+    description:
+      "A close review of One Button Dodge and how a very small AI-made game can teach controls, feedback, failure, and replay in the first minute.",
+    date: "2026-08-11",
+    readingTime: "9 min read",
+    category: "Case Study",
+    tags: ["case-study", "one-button", "browser-games", "arcade", "game-feel"],
+    intro: [
+      "One Button Dodge is intentionally small, which makes it useful to study. There is nowhere for the design to hide. The game either teaches one action clearly or it loses the visitor.",
+      "This review focuses on the first minute: the moment when a visitor decides whether a tiny game feels fair, readable, and worth another run.",
+    ],
+    relatedLinks: [
+      {
+        label: "Try One Button Dodge",
+        href: "/demos/one-button-dodge",
+        description: "Open the compact arcade loop and study the first interaction.",
+      },
+      {
+        label: "Design the first minute",
+        href: "/blog/design-the-first-minute-of-an-ai-browser-game",
+        description: "Read the broader first-minute game design framework.",
+      },
+      {
+        label: "Browse browser games",
+        href: "/categories/game",
+        description: "Find more playable AI-made games.",
+      },
+    ],
+    sections: [
+      {
+        heading: "Why small games are revealing",
+        body: [
+          "A one-button game cannot rely on a large feature list. It has to create clarity through timing, feedback, and consequence. That makes it a strong test of whether an AI-assisted prototype has been edited by someone with taste.",
+          "The advantage is focus. A visitor can understand the promise quickly and judge the feel immediately.",
+        ],
+      },
+      {
+        heading: "The first action matters",
+        body: [
+          "The first press should visibly change the game state. If the player cannot tell what happened, the loop fails before difficulty even matters.",
+          "For one-button games, input feedback can be the whole interface. Movement, color, spacing, score, and animation all become teaching tools.",
+        ],
+      },
+      {
+        heading: "Failure should feel fair",
+        body: [
+          "A small dodge game needs failure that the player can read. If the hazard is unclear or the timing feels random, the player will blame the page rather than their decision.",
+          "Fair failure creates replay. The player should think, I almost had that, not I do not know what happened.",
+        ],
+      },
+      {
+        heading: "The restart loop is part of the product",
+        body: [
+          "The restart action should be immediate. A tiny game earns attention through repeated attempts, and any friction between attempts damages the core experience.",
+          "This is one of the easiest places for creators to improve AI-generated games. A clear end state and fast retry can make the same mechanic feel more polished.",
+        ],
+      },
+      {
+        heading: "What the example teaches",
+        body: [
+          "One Button Dodge teaches that a public game does not need to be large to be valuable. It needs to make one interaction legible enough that visitors can feel improvement.",
+          "For oeeco, examples like this help define the lower bound of a good game listing: small is fine, but the loop must be readable, fair, and worth trying again.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "micro-saas-validation-lab-case-study",
+    title: "Micro SaaS Validation Lab Case Study: Turning an Idea Into Testable Risks",
+    description:
+      "A case study of Micro SaaS Validation Lab and how AI-made browser tools can help founders map risk, audience, pricing, and next experiments.",
+    date: "2026-08-11",
+    readingTime: "10 min read",
+    category: "Case Study",
+    tags: ["case-study", "micro-saas", "validation", "interactive-tools", "startup"],
+    intro: [
+      "Micro SaaS Validation Lab is useful because it does not treat every idea as equally ready. It asks for the audience, problem, willingness to pay, and go-to-market context, then turns that input into a structured risk picture.",
+      "That makes it a good example of an AI-made web tool: it compresses a messy early-stage thinking session into a repeatable browser workflow.",
+    ],
+    relatedLinks: [
+      {
+        label: "Try Micro SaaS Validation Lab",
+        href: "/demos/micro-saas-validation-lab",
+        description: "Run a product idea through the validation workflow.",
+      },
+      {
+        label: "AI web app publishing checklist",
+        href: "/blog/ai-web-app-publishing-checklist",
+        description: "Use the pre-publish checklist for AI-assisted web apps.",
+      },
+      {
+        label: "Interactive tools topic",
+        href: "/blog/topics/interactive-tools",
+        description: "Explore more articles about practical AI-made browser tools.",
+      },
+    ],
+    sections: [
+      {
+        heading: "The value is in risk mapping",
+        body: [
+          "Early product ideas often sound better when they are vague. A validation tool is useful when it makes risk visible: unclear buyer, weak urgency, missing channel, unsupported pricing, or too many assumptions.",
+          "The lab format works because it invites comparison. A founder can run several ideas through the same structure and see which one produces a more believable next experiment.",
+        ],
+      },
+      {
+        heading: "Why the workflow belongs in the browser",
+        body: [
+          "A browser tool reduces friction. The visitor can test an idea without installing software, opening a spreadsheet, or building a long document first.",
+          "That immediacy matters for AI-made tools. The page becomes a working surface, not a static article about validation.",
+        ],
+      },
+      {
+        heading: "Good scoring needs explanation",
+        body: [
+          "Scores are useful only when the criteria are visible. A validation score should explain what pushed it up or down and what evidence would change the result.",
+          "This is where many AI demos fail. They give a number without a reasoning structure. A stronger tool makes the score inspectable.",
+        ],
+      },
+      {
+        heading: "The output should lead to action",
+        body: [
+          "A good validation tool should end with the next experiment: who to interview, what landing page to test, what pricing question to ask, or what concierge version to build.",
+          "That action orientation is what makes the tool valuable. It does not merely summarize the idea; it helps the visitor decide what to do next.",
+        ],
+      },
+      {
+        heading: "What creators can learn",
+        body: [
+          "The pattern is reusable: take an ambiguous business question, break it into criteria, ask for realistic input, and return a structured next step.",
+          "For oeeco, Micro SaaS Validation Lab demonstrates that AI-made tools can provide value without pretending to be complete SaaS products. A focused browser workflow can be enough.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getAllBlogPosts() {

@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next";
 import { getAllBlogPosts } from "@/lib/blog-posts";
 import { getAllBlogTopics } from "@/lib/blog-topics";
 import { categories, works, type CategoryId } from "@/lib/data";
-import { getTagSlugs } from "@/lib/discovery";
 import { absoluteUrl } from "@/lib/site";
 import { getPublishedWorks } from "@/lib/work-service";
 
@@ -109,13 +108,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-  const tagRoutes: MetadataRoute.Sitemap = getTagSlugs(Array.from(allWorksById.values())).map((tag) => ({
-    url: absoluteUrl(`/tags/${tag}`),
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.6,
-  }));
-
   const workRoutes: MetadataRoute.Sitemap = Array.from(allWorksById.values()).map((work) => ({
     url: absoluteUrl(`/works/${work.id}`),
     lastModified: new Date(work.createdAt),
@@ -137,5 +129,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...tagRoutes, ...creatorRoutes, ...workRoutes, ...blogRoutes, ...blogTopicRoutes];
+  return [...staticRoutes, ...categoryRoutes, ...creatorRoutes, ...workRoutes, ...blogRoutes, ...blogTopicRoutes];
 }

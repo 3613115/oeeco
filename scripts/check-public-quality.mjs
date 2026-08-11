@@ -14,9 +14,13 @@ const sitemapUrls = extractSitemapUrls(sitemapText).filter((url) => {
   const parsed = new URL(url);
   return parsed.origin === origin || parsed.origin === new URL(DEFAULT_SITE).origin;
 });
+const tagIndexUrls = sitemapUrls.filter((url) => new URL(url).pathname.startsWith("/tags/"));
 
 if (sitemapUrls.length < MIN_SITEMAP_URLS) {
   failures.push(`sitemap has only ${sitemapUrls.length} URLs; expected at least ${MIN_SITEMAP_URLS}`);
+}
+if (tagIndexUrls.length > 0) {
+  failures.push(`sitemap includes ${tagIndexUrls.length} tag URL(s); tag directory pages should remain noindex for AdSense review`);
 }
 
 for (const url of sitemapUrls) {

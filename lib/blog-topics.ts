@@ -39,6 +39,8 @@ export const blogTopics: BlogTopic[] = [
       ["Orbital Salvage", "/demos/orbital-salvage"],
     ],
     postSlugs: [
+      "orbital-salvage-case-study-ai-browser-game",
+      "one-button-dodge-first-minute-review",
       "design-the-first-minute-of-an-ai-browser-game",
       "best-ai-made-browser-games-to-study",
       "what-makes-a-good-ai-made-browser-game",
@@ -58,6 +60,9 @@ export const blogTopics: BlogTopic[] = [
       ["Customer Interview Signal Lab", "/demos/customer-interview-signal-lab"],
     ],
     postSlugs: [
+      "customer-interview-signal-lab-editorial-review",
+      "landing-page-copy-doctor-ai-tool-review",
+      "micro-saas-validation-lab-case-study",
       "how-to-design-inputs-for-ai-made-web-tools",
       "why-interactive-tools-beat-static-ai-demos",
       "turn-a-prompt-into-a-playable-web-tool",
@@ -77,11 +82,31 @@ export const blogTopics: BlogTopic[] = [
       ["Safety checklist", "/blog/checklist-for-publishing-safe-interactive-web-projects"],
     ],
     postSlugs: [
+      "customer-interview-signal-lab-editorial-review",
       "trust-signals-for-ai-made-content-sites",
       "how-oeeco-reviews-ai-made-works",
       "checklist-for-publishing-safe-interactive-web-projects",
       "why-ai-creators-need-public-portfolios",
       "what-are-ai-made-web-works",
+    ],
+  },
+  {
+    slug: "case-studies",
+    title: "Case studies",
+    description: "Detailed editorial reviews of specific AI-made games, tools, and browser experiments on oeeco.",
+    summary:
+      "Real examples from the oeeco gallery, reviewed for first-minute experience, input design, safety signals, usefulness, and what other creators can learn.",
+    links: [
+      ["Orbital Salvage review", "/blog/orbital-salvage-case-study-ai-browser-game"],
+      ["Customer Interview Signal Lab review", "/blog/customer-interview-signal-lab-editorial-review"],
+      ["Browse latest works", "/latest"],
+    ],
+    postSlugs: [
+      "orbital-salvage-case-study-ai-browser-game",
+      "customer-interview-signal-lab-editorial-review",
+      "landing-page-copy-doctor-ai-tool-review",
+      "one-button-dodge-first-minute-review",
+      "micro-saas-validation-lab-case-study",
     ],
   },
 ];
