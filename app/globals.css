@@ -591,6 +591,110 @@ button {
   line-height: 1.82;
 }
 
+.blog-article-dossier {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--line);
+}
+
+.blog-article-dossier > div {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  background: #f9fcfa;
+  padding: 16px;
+}
+
+.blog-article-dossier > .blog-article-verdict {
+  background: #eff9f4;
+}
+
+.blog-article-dossier span,
+.blog-editor-note strong {
+  color: var(--leaf);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.blog-article-dossier ul,
+.blog-prose-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 19px;
+  color: #3f4b47;
+}
+
+.blog-article-dossier li,
+.blog-prose-list li {
+  padding-left: 2px;
+  line-height: 1.62;
+}
+
+.blog-article-dossier p {
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.blog-prose-list {
+  font-size: 16px;
+}
+
+.blog-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.blog-table-wrap table {
+  width: 100%;
+  min-width: 580px;
+  border-collapse: collapse;
+  background: #fff;
+  color: #3f4b47;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.blog-table-wrap th,
+.blog-table-wrap td {
+  border-bottom: 1px solid var(--line);
+  padding: 11px 13px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.blog-table-wrap th {
+  background: #f3f8f5;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 860;
+}
+
+.blog-table-wrap tr:last-child td {
+  border-bottom: 0;
+}
+
+.blog-editor-note {
+  display: grid;
+  gap: 7px;
+  border-left: 4px solid var(--leaf);
+  background: #f3f8f5;
+  padding: 14px 16px;
+}
+
+.blog-editor-note p {
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
 .blog-context-links {
   display: grid;
   gap: 16px;
@@ -7312,7 +7416,8 @@ button {
   .blog-context-grid,
   .blog-grid,
   .blog-related-grid,
-  .blog-topic-grid {
+  .blog-topic-grid,
+  .blog-article-dossier {
     grid-template-columns: 1fr;
   }
 
@@ -7433,6 +7538,12 @@ button {
     grid-column: 1 / -1;
     min-width: 0;
     overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  .nav-links::-webkit-scrollbar {
+    display: none;
   }
 
   .avatar-button {

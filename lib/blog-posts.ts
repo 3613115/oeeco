@@ -1,26 +1,7 @@
-export type BlogSection = {
-  heading: string;
-  body: string[];
-};
+import { fieldNotesBlogPosts } from "@/lib/blog-posts-field-notes";
+import type { BlogPost } from "@/lib/blog-types";
 
-export type BlogRelatedLink = {
-  label: string;
-  href: string;
-  description: string;
-};
-
-export type BlogPost = {
-  slug: string;
-  title: string;
-  description: string;
-  date: string;
-  readingTime: string;
-  category: string;
-  tags: string[];
-  intro: string[];
-  relatedLinks: BlogRelatedLink[];
-  sections: BlogSection[];
-};
+export type { BlogPost, BlogRelatedLink, BlogSection } from "@/lib/blog-types";
 
 export const blogAuthor = "oeeco Editorial";
 
@@ -31,7 +12,7 @@ export const blogAuthorPath = `/authors/${blogAuthorSlug}`;
 export const blogAuthorDescription =
   "The oeeco editorial team writes practical guides for AI-made web works, creator submissions, review standards, browser games, and interactive tools.";
 
-export const blogPosts: BlogPost[] = [
+const archiveBlogPosts: BlogPost[] = [
   {
     slug: "what-are-ai-made-web-works",
     title: "What Are AI-Made Web Works?",
@@ -1666,6 +1647,8 @@ export const blogPosts: BlogPost[] = [
     ],
   },
 ];
+
+export const blogPosts: BlogPost[] = [...archiveBlogPosts, ...fieldNotesBlogPosts];
 
 export function getAllBlogPosts() {
   return [...blogPosts].sort((a, b) => b.date.localeCompare(a.date));

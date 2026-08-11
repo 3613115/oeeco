@@ -8,7 +8,7 @@ import { absoluteUrl, siteName } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Blog",
   description:
-    "Read oeeco essays and guides about AI-made web works, Codex workflows, interactive tools, browser games, and creator publishing.",
+    "Read oeeco field tests, case studies, editing notes, and practical guides about AI-made web works, browser games, interactive tools, and creator publishing.",
   alternates: {
     canonical: "/blog",
     types: {
@@ -27,8 +27,8 @@ export const metadata: Metadata = {
 export default function BlogPage() {
   const posts = getAllBlogPosts();
   const topicGroups = getAllBlogTopics();
-  const featured = posts[0];
-  const rest = posts.slice(1);
+  const featured = posts.find((post) => post.featured) ?? posts[0];
+  const rest = posts.filter((post) => post.slug !== featured?.slug);
   const blogJsonLd = {
     "@context": "https://schema.org",
     "@type": "Blog",
@@ -80,8 +80,8 @@ export default function BlogPage() {
         <span className="section-kicker">oeeco Blog</span>
         <h1 className="page-title">Notes on AI-made web works</h1>
         <p>
-          Guides, essays, and practical publishing notes for creators building browser games, interactive tools,
-          visual experiments, and small software artifacts with AI-assisted workflows.
+          Field tests, case studies, editing notes, and practical publishing guides for people building browser games,
+          interactive tools, visual experiments, and small software artifacts with AI-assisted workflows.
         </p>
         <div className="blog-hero-actions">
           <Link className="solid-button" href="/upload">
@@ -100,7 +100,7 @@ export default function BlogPage() {
         <div>
           <span className="section-kicker">Start here</span>
           <h2 id="blog-topics-heading">Explore by topic</h2>
-          <p>Follow the main oeeco themes: submissions, playable games, useful tools, and trustworthy review.</p>
+          <p>Follow the main oeeco themes: field-tested tools, playable games, product craft, publishing, and trustworthy review.</p>
         </div>
         <div className="blog-topic-grid">
           {topicGroups.map((group) => (

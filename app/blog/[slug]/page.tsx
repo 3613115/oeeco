@@ -54,7 +54,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  const relatedPosts = getAllBlogPosts().filter((item) => item.slug !== post.slug).slice(0, 2);
+  const relatedPosts = getAllBlogPosts()
+    .filter((item) => item.slug !== post.slug)
+    .map((item) => ({
+      item,
+      score:
+        item.tags.filter((tag) => post.tags.includes(tag)).length * 3 +
+        (item.category === post.category ? 2 : 0) +
+        post.relatedLinks.filter((link) => link.href === `/blog/${item.slug}`).length * 4,
+    }))
+    .sort((a, b) => b.score - a.score || b.item.date.localeCompare(a.item.date))
+    .slice(0, 2)
+    .map(({ item }) => item);
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -150,12 +161,80 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <p key={paragraph}>{paragraph}</p>
         ))}
 
+        {(post.testedWith || post.verdict || post.keyTakeaways) && (
+          <aside className="blog-article-dossier" aria-label="Article evidence and conclusion">
+            {post.testedWith && (
+              <div>
+                <span>Evidence checked</span>
+                <ul>
+                  {post.testedWith.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {post.verdict && (
+              <div className="blog-article-verdict">
+                <span>Editorial verdict</span>
+                <p>{post.verdict}</p>
+              </div>
+            )}
+            {post.keyTakeaways && (
+              <div>
+                <span>What to carry forward</span>
+                <ul>
+                  {post.keyTakeaways.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </aside>
+        )}
+
         {post.sections.map((section) => (
           <section key={section.heading}>
             <h2>{section.heading}</h2>
             {section.body.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
+            {section.bullets && (
+              <ul className="blog-prose-list">
+                {section.bullets.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            )}
+            {section.table && (
+              <div className="blog-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      {section.table.columns.map((column) => (
+                        <th key={column} scope="col">
+                          {column}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {section.table.rows.map((row, rowIndex) => (
+                      <tr key={`${section.heading}-${rowIndex}`}>
+                        {row.map((cell, cellIndex) => (
+                          <td key={`${cell}-${cellIndex}`}>{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {section.note && (
+              <aside className="blog-editor-note">
+                <strong>{section.note.label}</strong>
+                <p>{section.note.text}</p>
+              </aside>
+            )}
           </section>
         ))}
       </div>

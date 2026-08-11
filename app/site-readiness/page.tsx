@@ -51,8 +51,8 @@ export default function SiteReadinessPage() {
   const blogTopics = getAllBlogTopics();
   const latestPost = blogPosts[0];
   const readinessScore = [
-    blogPosts.length >= 24,
-    blogTopics.length >= 5,
+    blogPosts.length >= 42,
+    blogTopics.length >= 8,
     Boolean(googleAdSenseClient),
     policyChecks.length >= 7,
     discoveryChecks.length >= 6,
@@ -73,7 +73,7 @@ export default function SiteReadinessPage() {
         <div className="info-grid">
           <div>
             <h3>{blogPosts.length} blog posts</h3>
-            <p>Target baseline: 24 or more original, topic-focused articles with specific case studies.</p>
+            <p>Target baseline: 42 original articles spanning field tests, case studies, methods, and editorial notes.</p>
           </div>
           <div>
             <h3>{googleAdSenseClient.replace("ca-", "")}</h3>
@@ -81,7 +81,7 @@ export default function SiteReadinessPage() {
           </div>
           <div>
             <h3>{blogTopics.length} topic hubs</h3>
-            <p>Topic pages organize articles into creator, game, tool, trust, and case-study clusters.</p>
+            <p>Topic pages organize articles into creator, game, tool, visual, craft, operations, trust, and case-study clusters.</p>
           </div>
           <div>
             <h3>{readinessScore}/6 checks</h3>
