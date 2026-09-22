@@ -1,69 +1,41 @@
-# oeeco
+# oeeco — Curated AI Interactive Showcase & Web Application Gallery
 
-oeeco 是一个面向 AI/Codex 创作者的作品展示与试玩平台。创作者可以发布小游戏、网页工具、互动实验和视觉作品，观众可以浏览、试玩、喜欢、收藏、评论和关注创作者。
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Status: Active](https://img.shields.io/badge/Status-Active%20Development-success.svg)]()
 
-当前工程已经迁移为 Next.js，可直接部署到 Vercel。
+`oeeco` is an open-source web showcase platform designed to curate, index, and run lightweight AI-generated interactive applications, interactive canvas/H5 experiments, and community-driven web micro-tools. 
 
-## 功能
+The goal of this project is to provide a standardized, plug-and-play gallery architecture for creative developers and open-source contributors to share and explore generative web creations.
 
-- 首页作品流
-- 分类、搜索、推荐/热门/最新排序
-- 作品详情页
-- iframe 试玩页
-- 上传作品表单，本地草稿预览
-- 创作者主页
-- 热门榜单
-- Supabase 客户端与数据库 SQL 草案
+---
 
-## 本地开发
+## ✨ Features
 
-```powershell
-npm install
-npm run dev
-```
+- **Dynamic Interactive Gallery**: Showcase modular web experiments, AI prototypes, and interactive mini-tools in one unified portal.
+- **Lightweight Architecture**: Built for optimal client-side performance, fast sandbox rendering, and frictionless asset previewing.
+- **Community Submission Ready**: Structured data models and asset management for seamless open-source contribution and community showcases.
+- **Responsive Layout**: Designed for seamless browsing across desktop and mobile screens.
 
-这台电脑如果全局 `node` 或 `npm` 不可用，可以用项目里的 helper：
+---
 
-```powershell
-powershell -ExecutionPolicy Bypass -File C:\oeeco\scripts\dev.ps1
-```
+## 🛠️ Tech Stack
 
-访问：
+- **Framework**: Next.js / React
+- **Styling**: Tailwind CSS
+- **Storage & State**: Cloudflare R2 / Object Store & Supabase
+- **Hosting & Edge**: Vercel / Edge Network
 
-```txt
-http://127.0.0.1:3000
-```
+---
 
-## 环境变量
+## 🚀 Getting Started
 
-复制 `.env.example` 为 `.env.local`，填入 Supabase 项目的公开配置：
+### Prerequisites
 
-```txt
-NEXT_PUBLIC_SITE_URL=https://oeeco.com
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-```
+Ensure you have Node.js (>= 18.0.0) and npm/pnpm installed.
 
-不要把 `service_role` 密钥放到前端环境变量里。
+### Installation
 
-## Supabase
-
-在 Supabase SQL Editor 运行：
-
-```txt
-supabase/schema.sql
-```
-
-建议建立两个 public storage bucket：
-
-- `avatars`
-- `covers`
-
-## 部署
-
-1. 推送到 GitHub。
-2. Vercel 导入 GitHub 仓库。
-3. 在 Vercel 设置环境变量。
-4. 在 Vercel 添加 `oeeco.com` 和 `www.oeeco.com`。
-5. 在 Namecheap 按 Vercel 提示配置 DNS。
-6. 在 Supabase Auth 里设置 Site URL 和 Redirect URLs。
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/3613115/oeeco.git](https://github.com/3613115/oeeco.git)
+   cd oeeco
