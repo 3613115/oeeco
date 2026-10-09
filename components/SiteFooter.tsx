@@ -40,6 +40,7 @@ export function SiteFooter() {
           <span className="brand-name">oeeco</span>
         </Link>
         <p>AI-made games, tools, interactive pages, and creative experiments worth opening.</p>
+        <p>Operated by OEECO LLC</p>
       </div>
 
       <nav className="footer-links" aria-label="Platform links">
