@@ -2468,7 +2468,9 @@ button {
 
 .spotlight-visual {
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   min-height: 330px;
   overflow: hidden;
   background: #11231c;
@@ -2476,16 +2478,14 @@ button {
 
 .spotlight-visual img {
   width: 100%;
-  height: 100%;
-  min-height: 330px;
-  object-fit: cover;
+  height: auto;
+  min-height: 0;
+  object-fit: contain;
 }
 
 .spotlight-caption {
-  position: absolute;
-  right: 18px;
-  bottom: 18px;
-  left: 18px;
+  position: static;
+  margin: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
