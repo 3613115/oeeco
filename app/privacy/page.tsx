@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy",
-  description: "Read the oeeco privacy overview for accounts, submissions, analytics, and contact information.",
+  description: "Learn how OEECO LLC handles account, submission, usage, and advertising information on oeeco.com.",
   alternates: {
     canonical: "/privacy",
   },
@@ -12,61 +12,66 @@ export default function PrivacyPage() {
   return (
     <article className="info-page surface">
       <span className="section-kicker">Privacy</span>
-      <h1 className="page-title">Privacy overview</h1>
+      <h1 className="page-title">Privacy Policy</h1>
       <p>
-        This page explains the basic information oeeco may collect as an early-stage creative platform. It is intended
-        as a clear product policy, not as a substitute for legal advice.
+        OEECO LLC operates oeeco.com. This page explains how information is handled when you browse works, sign in,
+        or submit a work for review.
       </p>
 
       <section className="info-section">
-        <h2>Information we use</h2>
+        <h2>Information we handle</h2>
         <ul className="info-list">
-          <li>Account information, such as email address and profile details, when you sign in or submit work.</li>
-          <li>Submission information, such as titles, summaries, tags, creator notes, cover URLs, and demo URLs.</li>
-          <li>Basic usage information needed to operate, protect, and improve the site.</li>
+          <li>Email address and account or profile details when you sign in with an email link or Google and use creator features.</li>
+          <li>Work submissions, including titles, descriptions, categories, tags, creator notes, cover images, and demo links.</li>
+          <li>Work-level activity counts, including views, TRY visits, and clicks on tracked external links.</li>
         </ul>
       </section>
 
       <section className="info-section">
         <h2>How it is used</h2>
         <ul className="info-list">
-          <li>To publish and display approved works.</li>
-          <li>To review submissions, prevent abuse, and keep unsafe links off the platform.</li>
-          <li>To understand whether pages are working and which parts of the site need improvement.</li>
-          <li>To support basic account features such as creator identity, submission history, and work management.</li>
+          <li>To provide sign-in and creator account features.</li>
+          <li>To review submissions and display approved works with creator attribution.</li>
+          <li>To maintain work listings and understand how visitors interact with them.</li>
+          <li>To review content reports and platform requests.</li>
         </ul>
       </section>
 
       <section className="info-section">
         <h2>Public content</h2>
         <p>
-          Published work pages, creator profiles, tags, summaries, and playable links are public. Do not submit private,
-          confidential, or sensitive information that should not appear on the open web.
+          Published work pages, creator profiles, descriptions, tags, cover images, and demo links are public. Do not
+          submit private or sensitive information that should not appear on the open web.
         </p>
       </section>
 
       <section className="info-section">
-        <h2>Contact and removal</h2>
+        <h2>Browser storage</h2>
         <p>
-          If a published work includes private information, unsafe links, or content you believe should be removed, use the
-          contact page to request review. Include the relevant work URL and a clear explanation of the issue.
+          Sign-in sessions and unfinished submission drafts can be stored in your browser. Some games may also save
+          local progress, such as a best score, on your device.
         </p>
       </section>
 
       <section className="info-section">
-        <h2>Advertising and third-party services</h2>
+        <h2>Service providers and advertising</h2>
         <p>
-          oeeco may use third-party services for hosting, authentication, analytics, security, and advertising. These
-          services may process technical information such as browser, device, page, and interaction data according to
-          their own policies.
+          oeeco.com uses Vercel for hosting, Supabase for accounts and work data, and Google for optional sign-in and
+          AdSense advertising. These providers may process technical information under their own policies. Google and
+          other advertising partners may use cookies or similar identifiers to serve and measure ads based on visits to
+          this or other sites. You can manage personalized ads in{" "}
+          <a href="https://adssettings.google.com/" rel="noopener noreferrer" target="_blank">
+            Google Ads Settings
+          </a>
+          .
         </p>
       </section>
 
       <section className="info-section">
-        <h2>Data choices</h2>
+        <h2>Questions and removal requests</h2>
         <p>
-          Creators should avoid submitting confidential information. If you need a public listing updated, hidden, or
-          reviewed, contact the site owner with the affected work URL.
+          To request a review, correction, or removal of public content, email{" "}
+          <a href="mailto:contact@oeeco.com">contact@oeeco.com</a> with the relevant URL and details.
         </p>
       </section>
     </article>

@@ -40,7 +40,10 @@ export function SiteFooter() {
           <span className="brand-name">oeeco</span>
         </Link>
         <p>AI-made games, tools, interactive pages, and creative experiments worth opening.</p>
-        <p>Operated by OEECO LLC</p>
+        <div className="footer-legal">
+          <p>© 2026 OEECO LLC. All rights reserved.</p>
+          <p>1209 Mountain Road PL NE, Ste R, Albuquerque, NM 87110, USA</p>
+        </div>
       </div>
 
       <nav className="footer-links" aria-label="Platform links">

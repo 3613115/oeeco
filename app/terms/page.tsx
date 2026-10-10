@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Terms",
-  description: "Read the oeeco terms overview for using and submitting AI-made web works.",
+  description: "Terms for exploring and submitting browser-based works on oeeco.com, operated by OEECO LLC.",
   alternates: {
     canonical: "/terms",
   },
@@ -13,26 +13,34 @@ export default function TermsPage() {
   return (
     <article className="info-page surface">
       <span className="section-kicker">Terms</span>
-      <h1 className="page-title">Terms overview</h1>
+      <h1 className="page-title">Terms of Use</h1>
       <p>
-        By using oeeco or submitting a work, you agree to use the platform responsibly and to follow the submission
-        guidelines. This page describes the operating rules for the current version of oeeco.
+        OEECO LLC operates oeeco.com. By using the site or submitting a work, you agree to these terms and the
+        submission guidelines.
       </p>
+
+      <section className="info-section">
+        <h2>About the platform</h2>
+        <p>
+          oeeco lets visitors discover and try browser-based games, digital tools, and interactive works. Creators can
+          submit works for review; submission does not guarantee publication.
+        </p>
+      </section>
 
       <section className="info-section">
         <h2>Your submissions</h2>
         <ul className="info-list">
           <li>You are responsible for the works, links, descriptions, and assets you submit.</li>
           <li>You should have the rights or permission needed to share the submitted content.</li>
-          <li>You give oeeco permission to display submitted metadata, covers, and links as part of the platform.</li>
+          <li>You give OEECO LLC permission to review your submission and display its metadata, cover, and links on oeeco if published.</li>
         </ul>
       </section>
 
       <section className="info-section">
         <h2>Platform moderation</h2>
         <p>
-          oeeco may review, edit metadata, reject, hide, or remove works to protect users, comply with policy, respond
-          to reports, or maintain platform quality.
+          OEECO LLC may review, edit metadata, reject, hide, or remove works to respond to reports, enforce these
+          terms, or maintain the platform.
         </p>
       </section>
 
@@ -55,10 +63,10 @@ export default function TermsPage() {
       </section>
 
       <section className="info-section">
-        <h2>Advertising and monetization</h2>
+        <h2>Advertising</h2>
         <p>
-          oeeco may display advertising or sponsored placements in the future. Ads and sponsored areas should not
-          override the purpose of the site: helping viewers discover AI-made works that are safe and worth opening.
+          Advertising may appear on oeeco. Third-party advertising services may use cookies or similar technologies
+          as described in our <Link href="/privacy">Privacy Policy</Link>.
         </p>
       </section>
 

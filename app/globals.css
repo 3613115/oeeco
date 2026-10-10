@@ -178,7 +178,7 @@ button {
 .site-footer {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto auto;
-  gap: clamp(24px, 6vw, 72px);
+  gap: clamp(24px, 4vw, 56px);
   width: min(1240px, calc(100% - 32px));
   margin: 0 auto;
   padding: 32px 0 44px;
@@ -188,13 +188,20 @@ button {
 .footer-brand {
   display: grid;
   gap: 14px;
-  max-width: 480px;
+  max-width: 560px;
 }
 
 .footer-brand p {
   margin: 0;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.footer-legal {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .footer-links {
@@ -270,6 +277,12 @@ button {
   margin: 0;
   color: var(--muted);
   line-height: 1.75;
+}
+
+.info-section p a {
+  color: var(--leaf);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .info-list {

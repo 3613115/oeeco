@@ -15,9 +15,16 @@ export default function ContactPage() {
       <span className="section-kicker">Contact oeeco</span>
       <h1 className="page-title">Questions, reviews, and removal requests</h1>
       <p>
-        oeeco is an early-stage gallery for AI-made web works. This contact page explains how creators, viewers, and
-        rights holders can ask for help while the platform is still being built.
+        OEECO LLC operates oeeco.com, a platform for browser-based games, digital tools, and interactive works.
+        Creators, viewers, and rights holders can use the address below for platform questions and content requests.
       </p>
+
+      <section className="info-section">
+        <h2>Email</h2>
+        <p>
+          <a href="mailto:contact@oeeco.com">contact@oeeco.com</a>
+        </p>
+      </section>
 
       <section className="info-section">
         <h2>What to contact us about</h2>
@@ -45,14 +52,6 @@ export default function ContactPage() {
           <li>For rights or privacy requests, include enough detail for the site owner to identify the affected content.</li>
           <li>For creator requests, use the same account identity that submitted the work whenever possible.</li>
         </ul>
-      </section>
-
-      <section className="info-section">
-        <h2>Response priority</h2>
-        <p>
-          Safety, privacy, copyright, and broken-link reports are reviewed first. General product feedback and feature
-          requests are collected as part of the ongoing roadmap.
-        </p>
       </section>
 
       <section className="info-section">
