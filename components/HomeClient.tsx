@@ -11,21 +11,21 @@ function HomeTrustSection() {
   return (
     <section className="home-trust-section surface" aria-label="How oeeco reviews and presents works">
       <div className="home-trust-intro">
-        <span className="section-kicker">What oeeco is curating</span>
-        <h2>Small AI-made works with enough substance to open, try, and learn from</h2>
+        <span className="section-kicker">Discover with oeeco</span>
+        <h2>Find something to play, use, or explore</h2>
         <p>
-          oeeco is not a link dump. Each public listing is meant to give visitors a clear reason to open the work: a
-          playable loop, a useful output, a visual experiment, or a concrete product idea that can run in the browser.
+          Explore browser games, practical tools, and interactive experiments. Each listing provides a description
+          and creator information to help you decide what to try.
         </p>
       </div>
       <div className="home-trust-grid">
         <article>
           <strong>Reviewed submissions</strong>
-          <p>New works can be held for review, edited for clearer metadata, rejected, or hidden if links become unsafe.</p>
+          <p>Creators submit their works for review before publication.</p>
         </article>
         <article>
           <strong>Playable first</strong>
-          <p>TRY pages prioritize browser-safe demos so visitors can inspect the experience before leaving oeeco.</p>
+          <p>Use TRY to experience works directly in your browser.</p>
         </article>
         <article>
           <strong>Creator context</strong>
@@ -33,7 +33,7 @@ function HomeTrustSection() {
         </article>
         <article>
           <strong>Useful collection</strong>
-          <p>The first shelf focuses on games, tools, AI workflows, and interactive pages that show real build patterns.</p>
+          <p>Browse games, tools, visual experiments, and interactive works in one place.</p>
         </article>
       </div>
       <div className="home-trust-actions">
@@ -156,30 +156,30 @@ export function HomeClient({
       <div>
         <section className="home-intro">
           <div>
-            <span className="section-kicker">Live Collection</span>
+            <span className="section-kicker">Games, tools & interactive works</span>
             <h1 className="headline">oeeco</h1>
             <p className="lede">
-              A growing gallery of AI-made browser works. The first batch is being curated now, with each piece reviewed
-              for a playable TRY experience and a clear creator page.
+              Discover browser games, useful digital tools, and interactive works built with AI assistance.
+              Try them in your browser, or submit your own creation for review.
             </p>
           </div>
           <div className="home-intro-actions">
-            <Link className="solid-button" href="/upload">
-              <Upload size={17} aria-hidden="true" />
-              Submit Work
-            </Link>
-            <Link className="ghost-button" href="/latest">
-              Latest Works
+            <Link className="solid-button" href="#works">
+              Explore Works
               <ArrowRight size={17} aria-hidden="true" />
+            </Link>
+            <Link className="ghost-button" href="/upload">
+              <Upload size={17} aria-hidden="true" />
+              Submit Your Work
             </Link>
           </div>
         </section>
 
-        <section className="home-status-grid" aria-label="oeeco live status">
+        <section className="home-status-grid" aria-label="Collection overview">
           <div className="home-status-card">
-            <span>Live works</span>
+            <span>Published works</span>
             <strong>{initialWorks.length}</strong>
-            <small>Targeting the first 10-20 piece collection</small>
+            <small>Available to explore</small>
           </div>
           <div className="home-status-card">
             <span>Total views</span>
@@ -189,12 +189,12 @@ export function HomeClient({
           <div className="home-status-card">
             <span>TRY opens</span>
             <strong>{formatNumber(totals.tryClicks)}</strong>
-            <small>Playable sessions started</small>
+            <small>TRY button clicks</small>
           </div>
           <div className="home-status-card">
             <span>Shares</span>
             <strong>{formatNumber(totals.shares)}</strong>
-            <small>Share button uses and copy fallback</small>
+            <small>Share button interactions</small>
           </div>
         </section>
 
@@ -251,7 +251,7 @@ export function HomeClient({
             <div className="home-panel-heading">
               <span className="section-kicker">
                 <Sparkles size={14} aria-hidden="true" />
-                Latest Drops
+                Latest Works
               </span>
               <Link href="/latest">
                 View all
@@ -277,7 +277,7 @@ export function HomeClient({
             <div className="home-panel-heading">
               <span className="section-kicker">
                 <Gauge size={14} aria-hidden="true" />
-                Category Coverage
+                Browse by Category
               </span>
             </div>
             <div className="home-category-grid">
@@ -300,22 +300,22 @@ export function HomeClient({
             <div className="home-panel-heading">
               <span className="section-kicker">
                 <Share2 size={14} aria-hidden="true" />
-                Next Batch
+                Share Your Creation
               </span>
             </div>
             <p>
-              oeeco is assembling the first public shelf. Add strong playable works, then use admin curation to promote
-              the best pieces into the featured slot.
+              Built a browser game, useful tool, or interactive experience with AI assistance?
+              Submit your work for review and share it with visitors on oeeco.
             </p>
             <Link className="ghost-button" href="/upload">
-              Submit another work
+              Submit Your Work
             </Link>
           </div>
         </section>
 
         <HomeTrustSection />
 
-        <div className="filter-row">
+        <div className="filter-row" id="works">
           <div className="segmented" aria-label="Sort works">
             {[
               ["featured", "Featured"],
