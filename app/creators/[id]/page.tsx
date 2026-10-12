@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   }
 
-  const title = `${creator.name} (${creator.handle})`;
+  const title = creator.handle ? `${creator.name} (${creator.handle})` : creator.name;
   const description = getCreatorMetaDescription(creator, creatorWorks);
 
   return {
@@ -121,7 +121,7 @@ export default async function CreatorPage({ params }: { params: Promise<{ id: st
         <div className="creator-copy">
           <span className="section-kicker">
             <UserRound size={14} aria-hidden="true" />
-            {creator.handle}
+            {creator.handle || "Creator profile"}
           </span>
           <h1>{creator.name}</h1>
           <p>{creator.bio}</p>

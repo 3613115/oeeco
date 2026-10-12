@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { WorkCard } from "@/components/WorkCard";
-import { categories, formatNumber, getWorkCreator, getWorkCuration, type CategoryId, type Work } from "@/lib/data";
+import { categories, getWorkCreator, getWorkCuration, type CategoryId, type Work } from "@/lib/data";
 
 function HomeTrustSection() {
   return (
@@ -77,27 +77,13 @@ export function HomeClient({
     }
 
     return categories
-      .filter(([id]) => id !== "all")
+      .filter(([id]) => id !== "all" && (counts.get(id) || 0) > 0)
       .map(([id, label]) => ({
         id,
         label,
         count: counts.get(id) || 0,
       }));
   }, [initialWorks]);
-
-  const totals = useMemo(
-    () =>
-      initialWorks.reduce(
-        (acc, work) => ({
-          views: acc.views + work.views,
-          tryClicks: acc.tryClicks + work.tryClicks,
-          demoOpens: acc.demoOpens + work.demoOpens,
-          shares: acc.shares + work.shares,
-        }),
-        { views: 0, tryClicks: 0, demoOpens: 0, shares: 0 },
-      ),
-    [initialWorks],
-  );
 
   const filteredWorks = useMemo(() => {
     const next = initialWorks.filter((work) => {
@@ -140,7 +126,7 @@ export function HomeClient({
       <aside className="sidebar surface">
         <div className="sidebar-title">Categories</div>
         <div className="category-list">
-          {categories.map(([id, label]) => (
+          {categories.filter(([id]) => id === "all" || liveCategories.some((item) => item.id === id)).map(([id, label]) => (
             <button
               type="button"
               key={id}
@@ -175,29 +161,6 @@ export function HomeClient({
           </div>
         </section>
 
-        <section className="home-status-grid" aria-label="Collection overview">
-          <div className="home-status-card">
-            <span>Published works</span>
-            <strong>{initialWorks.length}</strong>
-            <small>Available to explore</small>
-          </div>
-          <div className="home-status-card">
-            <span>Total views</span>
-            <strong>{formatNumber(totals.views)}</strong>
-            <small>Measured from public work pages</small>
-          </div>
-          <div className="home-status-card">
-            <span>TRY opens</span>
-            <strong>{formatNumber(totals.tryClicks)}</strong>
-            <small>TRY button clicks</small>
-          </div>
-          <div className="home-status-card">
-            <span>Shares</span>
-            <strong>{formatNumber(totals.shares)}</strong>
-            <small>Share button interactions</small>
-          </div>
-        </section>
-
         <section className="spotlight surface">
           <div className="spotlight-copy">
             <div>
@@ -216,20 +179,6 @@ export function HomeClient({
                   <ArrowRight size={17} aria-hidden="true" />
                 </Link>
               </div>
-              <div className="metric-strip">
-                <div className="metric-box">
-                  <strong>{formatNumber(featured.views)}</strong>
-                  <span>views</span>
-                </div>
-                <div className="metric-box">
-                  <strong>{formatNumber(featured.tryClicks)}</strong>
-                  <span>TRY opens</span>
-                </div>
-                <div className="metric-box">
-                  <strong>{formatNumber(featured.demoOpens)}</strong>
-                  <span>demo opens</span>
-                </div>
-              </div>
             </div>
           </div>
           <Link className="spotlight-visual" href={`/works/${featured.id}`}>
@@ -238,7 +187,7 @@ export function HomeClient({
               <div>
                 <strong>{featured.title}</strong>
                 <span>
-                  {featuredCreator.handle} / {featured.summary}
+                  {featuredCreator.name} / {featured.summary}
                 </span>
               </div>
               <span className="type-pill">{featured.type}</span>
@@ -284,7 +233,6 @@ export function HomeClient({
               {liveCategories.map((item) => (
                 <button
                   className={category === item.id ? "is-active" : ""}
-                  disabled={!item.count}
                   key={item.id}
                   onClick={() => setCategory(item.id)}
                   type="button"

@@ -1,4 +1,4 @@
-import { ExternalLink, Heart, Play, Shield } from "lucide-react";
+import { ExternalLink, Play, Shield } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -153,9 +153,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
             <Image src={creator.avatar} width={46} height={46} alt="" />
             <span>
               <strong>{creator.name}</strong>
-              <span>
-                {creator.handle} / {creator.followers} followers
-              </span>
+              {creator.handle ? <span>{creator.handle}</span> : null}
             </span>
           </Link>
           <p>{work.detail}</p>
@@ -207,10 +205,6 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
                 Open Demo
               </TrackedExternalLink>
             ) : null}
-            <button className="ghost-button" type="button">
-              <Heart size={17} aria-hidden="true" />
-              Like {formatNumber(work.likes)}
-            </button>
             <WorkShareButton summary={work.summary} title={work.title} url={shareUrl} workId={work.id} />
             <WorkReportButton context="work" work={work} />
           </div>

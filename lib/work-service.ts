@@ -1,6 +1,7 @@
 import {
   categoryLabels,
   creators,
+  getPublicCreatorName,
   getWork,
   getWorkCuration,
   isCategoryId,
@@ -418,8 +419,8 @@ async function hydrateWorks(rows: WorkRow[], useAdmin = false): Promise<Work[]> 
 function profileToCreator(profile: ProfileRow): Creator {
   return {
     id: profile.id,
-    name: profile.display_name || profile.username || "oeeco creator",
-    handle: profile.username ? `@${profile.username}` : "@creator",
+    name: getPublicCreatorName(profile.display_name, profile.username),
+    handle: profile.username?.trim() && !/^user_[a-f0-9]+$/i.test(profile.username.trim()) ? `@${profile.username.trim()}` : "",
     avatar: profile.avatar_url || creators.neo.avatar,
     bio: profile.bio || "oeeco creator",
     followers: "new creator",
@@ -429,8 +430,8 @@ function profileToCreator(profile: ProfileRow): Creator {
 function fallbackCreator(id: string): Creator {
   return {
     id,
-    name: "oeeco creator",
-    handle: "@creator",
+    name: "Creator",
+    handle: "",
     avatar: creators.neo.avatar,
     bio: "oeeco creator",
     followers: "new creator",

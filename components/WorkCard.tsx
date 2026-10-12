@@ -1,15 +1,13 @@
 "use client";
 
-import { Heart, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import { WorkShareButton } from "@/components/WorkShareButton";
-import { formatNumber, getWorkCreator, type Work } from "@/lib/data";
+import { getWorkCreator, type Work } from "@/lib/data";
 import { tagToSlug } from "@/lib/discovery";
 
 export function WorkCard({ work }: { work: Work }) {
-  const [liked, setLiked] = useState(false);
   const creator = getWorkCreator(work);
 
   return (
@@ -32,19 +30,11 @@ export function WorkCard({ work }: { work: Work }) {
               url={`/works/${work.id}`}
               workId={work.id}
             />
-            <button
-              className="icon-button like-button"
-              type="button"
-              aria-label={`Like ${work.title}`}
-              onClick={() => setLiked((value) => !value)}
-            >
-              <Heart size={18} fill={liked ? "currentColor" : "none"} />
-            </button>
           </div>
         </div>
         <Link className="creator-line" href={`/creators/${creator.id}`}>
           <Image src={creator.avatar} width={24} height={24} alt="" />
-          <span>{creator.handle}</span>
+          <span>{creator.name}</span>
         </Link>
         <div className="tag-row">
           {work.tags.map((tag) => (
@@ -54,8 +44,6 @@ export function WorkCard({ work }: { work: Work }) {
           ))}
         </div>
         <div className="metric-row">
-          <span>{formatNumber(work.views)} views</span>
-          <span>{formatNumber(work.likes)} likes</span>
           <Link className="play-link" href={`/play/${work.id}`}>
             <Play size={14} aria-hidden="true" />
             Try

@@ -94,8 +94,14 @@ export const creators: Record<string, Creator> = {
 
 export const works: Work[] = [];
 
+export function getPublicCreatorName(displayName?: string | null, username?: string | null) {
+  return [displayName, username]
+    .map((value) => value?.trim())
+    .find((value) => value && !/^@?user_[a-f0-9]+$/i.test(value) && value.toLowerCase() !== "oeeco creator") || "Creator";
+}
+
 export function getCreator(id: string) {
-  return creators[id] || creators.neo;
+  return creators[id] || { id, name: "Creator", handle: "", avatar: creators.neo.avatar, bio: "", followers: "" };
 }
 
 export function getWorkCreator(work: Work) {

@@ -2496,6 +2496,10 @@ button {
   object-fit: contain;
 }
 
+.spotlight-caption .type-pill {
+  color: var(--ink);
+}
+
 .spotlight-caption {
   position: static;
   margin: 12px;
