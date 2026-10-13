@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Clock, Tag, UserRound } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock, Tag, UserRound } from "lucide-react";
 import { blogAuthor, blogAuthorPath, getAllBlogPosts, getBlogPost } from "@/lib/blog-posts";
 import { absoluteUrl, siteName } from "@/lib/site";
 
@@ -246,9 +246,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </div>
         <div className="blog-context-grid">
           {post.relatedLinks.map((item) => (
-            <Link className="blog-context-card" href={item.href} key={item.href}>
+            <Link
+              className="blog-context-card"
+              href={item.href}
+              key={item.href}
+              prefetch={item.href.startsWith("/works/") ? false : undefined}
+            >
               <strong>{item.label}</strong>
               <span>{item.description}</span>
+              {item.href.startsWith("/works/") ? (
+                <span className="blog-context-action">
+                  Explore Project <ArrowRight size={16} aria-hidden="true" />
+                </span>
+              ) : null}
             </Link>
           ))}
         </div>

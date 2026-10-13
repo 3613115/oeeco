@@ -1321,8 +1321,8 @@ const archiveBlogPosts: BlogPost[] = [
     ],
     relatedLinks: [
       {
-        label: "Try Orbital Salvage",
-        href: "/demos/orbital-salvage",
+        label: "Orbital Salvage",
+        href: "/works/8fcc2f29-d387-4a17-9ca9-872b4476a3b3",
         description: "Open the space recovery game and inspect the physics loop directly.",
       },
       {

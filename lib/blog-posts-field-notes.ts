@@ -28,8 +28,8 @@ export const fieldNotesBlogPosts: BlogPost[] = [
     ],
     relatedLinks: [
       {
-        label: "Try the Prompt Card Generator",
-        href: "/demos/ai-prompt-card-generator",
+        label: "AI Prompt Card Generator",
+        href: "/works/626acf30-ba22-4851-9142-a5f86f3df8a8",
         description: "Run your own idea through the card workflow and compare the result with these notes.",
       },
       {
@@ -364,8 +364,8 @@ export const fieldNotesBlogPosts: BlogPost[] = [
     ],
     relatedLinks: [
       {
-        label: "Make a neon poster",
-        href: "/demos/neon-poster-maker",
+        label: "Neon Poster Maker",
+        href: "/works/8f9cd8f8-e265-406a-a906-874e01235b7c",
         description: "Enter your own headline, choose a layout, and export a PNG.",
       },
       {

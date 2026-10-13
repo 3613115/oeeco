@@ -751,6 +751,14 @@ button {
   line-height: 1.55;
 }
 
+.blog-context-card .blog-context-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--leaf);
+  font-weight: 800;
+}
+
 .blog-article-footer {
   display: grid;
   gap: 16px;
