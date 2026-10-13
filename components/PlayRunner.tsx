@@ -1,7 +1,6 @@
 "use client";
 
-import { ExternalLink, Info, Maximize2, Minimize2, RefreshCw, Shield } from "lucide-react";
-import Link from "next/link";
+import { ExternalLink, Maximize2, Minimize2, RefreshCw, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TrackedExternalLink } from "@/components/TrackedExternalLink";
 import { WorkReportButton } from "@/components/WorkReportButton";
@@ -12,36 +11,33 @@ type PlayRunnerProps = {
   playableDemoUrl: string | null;
   originLabel: string;
   previewHtml: string;
-  detailsHref: string;
   workId: string;
 };
 
-export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, detailsHref, workId }: PlayRunnerProps) {
+export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, workId }: PlayRunnerProps) {
   const [frameKey, setFrameKey] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasFrameLoaded, setHasFrameLoaded] = useState(false);
   const [isSlow, setIsSlow] = useState(false);
-  const [isBlocked, setIsBlocked] = useState(false);
+  const [isUnconfirmed, setIsUnconfirmed] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const isExternal = Boolean(playableDemoUrl);
 
   useEffect(() => {
-    setIsLoaded(false);
-    setIsSlow(false);
-    setIsBlocked(false);
+    if (hasFrameLoaded) return;
 
     const slowTimeout = window.setTimeout(() => {
       setIsSlow(true);
     }, 8000);
 
-    const blockedTimeout = window.setTimeout(() => {
-      setIsBlocked(true);
+    const unconfirmedTimeout = window.setTimeout(() => {
+      setIsUnconfirmed(true);
     }, 18000);
 
     return () => {
       window.clearTimeout(slowTimeout);
-      window.clearTimeout(blockedTimeout);
+      window.clearTimeout(unconfirmedTimeout);
     };
-  }, [frameKey, playableDemoUrl]);
+  }, [frameKey, playableDemoUrl, hasFrameLoaded]);
 
   useEffect(() => {
     if (!isFocused) return;
@@ -62,6 +58,9 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, d
   }, [isFocused]);
 
   function reloadFrame() {
+    setHasFrameLoaded(false);
+    setIsSlow(false);
+    setIsUnconfirmed(false);
     setFrameKey((value) => value + 1);
   }
 
@@ -96,57 +95,31 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, d
           {playableDemoUrl ? (
             <TrackedExternalLink className="solid-button" href={playableDemoUrl} metric="demo_open" workId={workId}>
               <ExternalLink size={17} aria-hidden="true" />
-              Open New Tab
+              Open in New Tab
             </TrackedExternalLink>
           ) : null}
         </div>
+        {playableDemoUrl ? (
+          <p className="play-runner-hint">
+            Blank or unresponsive preview? Downloads (including PNG) may be restricted here.
+            Try Open in New Tab above; some browser limitations may still apply.
+          </p>
+        ) : null}
       </div>
 
       <div className="play-window">
-        {!isLoaded ? (
-          <div className={isBlocked ? "play-loading is-blocked" : "play-loading"} aria-live="polite">
+        {!hasFrameLoaded ? (
+          <div className={isUnconfirmed ? "play-loading is-blocked" : "play-loading"} aria-live="polite">
             <Shield size={24} aria-hidden="true" />
-            <strong>{isBlocked ? "Runner could not confirm loading" : isSlow ? "Still loading" : "Preparing sandbox"}</strong>
+            <strong>{isUnconfirmed ? "Preview loading is unconfirmed" : isSlow ? "Still loading" : "Loading preview"}</strong>
             <p>
-              {isBlocked
-                ? "This usually means the creator demo blocks iframe embedding, is offline, or needs more time than the runner can confirm."
+              {isUnconfirmed
+                ? "The frame has not finished loading. It may be slow, unavailable, or unable to embed. This does not confirm whether the app is running."
                 : isSlow
-                ? "Some creator demos block iframe loading. You can retry here or open the work in a new tab."
+                ? "The frame is taking longer than expected. Use Reload above, or Open in New Tab when available."
                 : `Loading ${isExternal ? originLabel : "oeeco preview"} in a restricted runner.`}
             </p>
-            {isBlocked ? (
-              <div className="play-recovery-card">
-                <span>Recovery options</span>
-                <ul>
-                  <li>Retry the sandbox if the site is slow.</li>
-                  <li>Open the creator demo in a new tab when available.</li>
-                  <li>Return to details if the demo keeps blocking the runner.</li>
-                </ul>
-              </div>
-            ) : null}
-            {isSlow ? (
-              <div className="play-loading-actions">
-                <button className="ghost-button" type="button" onClick={reloadFrame}>
-                  <RefreshCw size={17} aria-hidden="true" />
-                  Retry
-                </button>
-                {playableDemoUrl ? (
-                  <TrackedExternalLink className="solid-button" href={playableDemoUrl} metric="demo_open" workId={workId}>
-                    <ExternalLink size={17} aria-hidden="true" />
-                    Open New Tab
-                  </TrackedExternalLink>
-                ) : null}
-                {isBlocked ? (
-                  <Link className="ghost-button" href={detailsHref}>
-                    <Info size={17} aria-hidden="true" />
-                    Details
-                  </Link>
-                ) : null}
-                {isBlocked ? (
-                  <WorkReportButton context="play" label="Report Issue" work={{ id: workId, title }} />
-                ) : null}
-              </div>
-            ) : null}
+            {isUnconfirmed ? <p>Use Reload above, or Open in New Tab when available.</p> : null}
           </div>
         ) : null}
 
@@ -156,7 +129,8 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, d
             allowFullScreen
             className="play-frame"
             key={frameKey}
-            onLoad={() => setIsLoaded(true)}
+            // A frame load event does not verify that the embedded app is working.
+            onLoad={() => setHasFrameLoaded(true)}
             referrerPolicy="no-referrer"
             sandbox={externalRunnerSandbox}
             src={playableDemoUrl}
@@ -166,7 +140,8 @@ export function PlayRunner({ title, playableDemoUrl, originLabel, previewHtml, d
           <iframe
             className="play-frame"
             key={frameKey}
-            onLoad={() => setIsLoaded(true)}
+            // A frame load event does not verify that the embedded app is working.
+            onLoad={() => setHasFrameLoaded(true)}
             referrerPolicy="no-referrer"
             sandbox={localPreviewSandbox}
             srcDoc={previewHtml}

@@ -3272,6 +3272,28 @@ button {
 .play-page {
   display: grid;
   gap: 18px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.play-instructions {
+  border-left: 3px solid var(--leaf);
+  padding: 2px 12px;
+}
+
+.play-instructions h2 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.play-instructions p {
+  margin: 0;
+  max-height: 8rem;
+  overflow-y: auto;
+  white-space: pre-line;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .play-top {
@@ -3308,6 +3330,7 @@ button {
 .play-runner-shell {
   display: grid;
   gap: 10px;
+  min-width: 0;
 }
 
 .play-runner-shell.is-focused {
@@ -3371,6 +3394,7 @@ button {
 
 .play-runner-controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -3393,6 +3417,23 @@ button {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.play-runner-controls .ghost-button,
+.play-runner-controls .solid-button {
+  min-height: 44px;
+}
+
+.play-runner-hint {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.is-focused .play-runner-hint {
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .play-window {
@@ -7609,11 +7650,30 @@ button {
   }
 
   .play-runner-controls > div {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     justify-content: flex-start;
   }
 
   .play-runner-shell.is-focused {
     padding: 8px;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .play-runner-hint {
+    flex-basis: auto;
+  }
+
+  .play-runner-controls .solid-button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .play-runner-controls .ghost-button {
+    gap: 4px;
+    padding: 0 6px;
+    font-size: 12px;
+    overflow-wrap: normal;
   }
 
   .play-runner-shell.is-focused .play-runner-status {

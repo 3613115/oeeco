@@ -1,4 +1,4 @@
-import { Info, Shield, Upload } from "lucide-react";
+import { Info, Shield } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -53,6 +53,8 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
   await recordWorkEngagement(work.id, "try");
 
   const runnerPolicy = getRunnerPolicy(work.demoUrl);
+  const instructions = work.detail?.trim();
+  const hasInstructions = instructions && instructions !== work.summary?.trim();
 
   return (
     <section className="play-page">
@@ -66,19 +68,14 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
             <Info size={17} aria-hidden="true" />
             Details
           </Link>
-          <Link className="solid-button" href="/upload">
-            <Upload size={17} aria-hidden="true" />
-            Submit Work
-          </Link>
         </div>
       </div>
-      <div className="play-runner-bar">
-        <span>
-          <Shield size={16} aria-hidden="true" />
-          {runnerPolicy.label}
-        </span>
-      </div>
-
+      {hasInstructions && runnerPolicy.status !== "held" ? (
+        <div className="play-instructions">
+          <h2>How to use</h2>
+          <p>{instructions}</p>
+        </div>
+      ) : null}
       {runnerPolicy.status === "held" ? (
         <div className="play-window">
           <div className="play-fallback">
@@ -93,7 +90,7 @@ export default async function PlayPage({ params }: { params: Promise<{ id: strin
         </div>
       ) : (
         <PlayRunner
-          detailsHref={`/works/${work.id}`}
+          key={`${work.id}:${runnerPolicy.playableUrl}`}
           originLabel={runnerPolicy.originLabel}
           playableDemoUrl={runnerPolicy.playableUrl}
           previewHtml={getPlayPreviewHtml(work)}
