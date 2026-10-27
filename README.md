@@ -37,7 +37,7 @@ Ensure you have Node.js (>= 18.0.0) and npm/pnpm installed.
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/3613115/oeeco.git](https://github.com/3613115/oeeco.git)
+git clone https://github.com/3613115/oeeco.git
    cd oeeco
 ---
 
