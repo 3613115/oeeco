@@ -39,3 +39,11 @@ Ensure you have Node.js (>= 18.0.0) and npm/pnpm installed.
    ```bash
    git clone [https://github.com/3613115/oeeco.git](https://github.com/3613115/oeeco.git)
    cd oeeco
+---
+
+## 📄 License & Copyright
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+**Copyright © 2026 OEECO LLC. All Rights Reserved.**  
+Maintained by the core development team for [oeeco.com](https://oeeco.com).
